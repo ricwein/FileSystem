@@ -24,4 +24,13 @@ abstract class FileSystem
     {
         $this->storage = $storage;
     }
+
+    /**
+     * @internal this should only be used for debugging purposes
+     * @return Storage
+     */
+    public function storage(): Storage
+    {
+        return $this->storage;
+    }
 }

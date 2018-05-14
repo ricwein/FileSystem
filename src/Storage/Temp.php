@@ -24,7 +24,11 @@ class Temp extends Disk
     public function __construct()
     {
         for ($try = 0; $try < self::MAX_RETRY; $try++) {
-            $this->path = new Path(sys_get_temp_dir(), uniqid('tmpfile.'));
+            $this->path = new Path([
+                sys_get_temp_dir(),
+                uniqid('tmpfile.')
+            ]);
+
             if (!file_exists($this->path->raw)) {
                 $this->touch(true);
                 return;

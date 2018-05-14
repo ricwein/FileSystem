@@ -16,4 +16,13 @@ class File extends FileSystem
     {
         return $this->storage->read();
     }
+
+    /**
+     * check if file exists and is an actual file
+     * @return bool
+     */
+    public function isFile(): bool
+    {
+        return $this->storage->isFile();
+    }
 }

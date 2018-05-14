@@ -28,6 +28,13 @@ class Disk extends Storage
         $this->path = new Path($path);
     }
 
+    public function getDetails(): array
+    {
+        return array_merge(parent::getDetails(), [
+            'path' => $this->path->getDetails(),
+        ]);
+    }
+
     /**
      * @inheritDoc
      */
@@ -88,10 +95,9 @@ class Disk extends Storage
     }
 
     /**
-     * @param  bool $ifNewOnly
-     * @return bool
+     * @inheritDoc
      */
-    public function touch(bool $ifNewOnly = false): bool
+    public function touch(bool $ifNewOnly = false): Storage
     {
         if ($ifNewOnly === true && $this->isFile()) {
             return true;
@@ -105,6 +111,6 @@ class Disk extends Storage
         // reset internal path-state to re-evaluate the realpath
         $this->path->reload();
 
-        return $result;
+        return $this;
     }
 }

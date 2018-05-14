@@ -82,8 +82,8 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
-    public function touch(): bool
+    public function touch(): Storage
     {
-        return true;
+        return $this;
     }
 }

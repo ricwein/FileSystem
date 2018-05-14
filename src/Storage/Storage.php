@@ -10,6 +10,17 @@ namespace ricwein\FileSystem\Storage;
 abstract class Storage
 {
     /**
+     * returns all detail-informations for testing/debugging purposes
+     * @return string[]
+     */
+    public function getDetails(): array
+    {
+        return [
+            'storage' => static::class,
+        ];
+    }
+
+    /**
      * check if file exists and is an actual file
      * @return bool
      */
@@ -52,7 +63,7 @@ abstract class Storage
 
     /**
      * @param  bool $ifNewOnly
-     * @return bool
+     * @return self
      */
-    abstract public function touch(bool $ifNewOnly = false): bool;
+    abstract public function touch(bool $ifNewOnly = false): self;
 }
