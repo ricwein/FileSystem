@@ -7,6 +7,6 @@ namespace ricwein\FileSystem\Exception;
 /**
  * Base of all FileSystem Exceptions
  */
-class Exception
+class Exception extends \Exception
 {
 }

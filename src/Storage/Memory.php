@@ -71,9 +71,19 @@ class Memory extends Storage
         return true;
     }
 
-
+    /**
+     * @inheritDoc
+     */
     public function read(): string
     {
         return $this->content;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function touch(): bool
+    {
+        return true;
     }
 }

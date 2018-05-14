@@ -49,4 +49,10 @@ abstract class Storage
      * @return string
      */
     abstract public function read(): string;
+
+    /**
+     * @param  bool $ifNewOnly
+     * @return bool
+     */
+    abstract public function touch(bool $ifNewOnly = false): bool;
 }

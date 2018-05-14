@@ -1,0 +1,17 @@
+before_script:
+  - composer install
+
+cache:
+  paths:
+    - vendor/
+
+# jobs
+Linting:
+  stage: lint
+  script:
+    - vendor/bin/phplint
+
+Unit Testing:
+  stage: test
+  script:
+    - vendor/bin/phpunit

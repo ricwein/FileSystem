@@ -137,6 +137,17 @@ class Path
     }
 
     /**
+     * reset internal loaded-state,
+     * resulting in reloading all paths on next access
+     * @return self
+     */
+    public function reload():self
+    {
+        $this->loaded = false;
+        return $this;
+    }
+
+    /**
      * @param  string $key
      * @return string|null
      * @throws \UnexpectedValueException
