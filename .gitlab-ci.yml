@@ -7,7 +7,7 @@ cache:
 
 # jobs
 Linting:
-  stage: lint
+  stage: build
   script:
     - vendor/bin/phplint
 
