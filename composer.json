@@ -1,0 +1,21 @@
+{
+    "name": "ricwein/filesystem",
+    "description": "Filesystem Abstraction Layer",
+    "type": "library",
+    "license": "MIT",
+    "authors": [{
+        "name": "Richard Weinhold",
+        "email": "git@ricwein.com"
+    }],
+    "require": {
+        "php": ">= 7.2.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "ricwein\\FileSystem\\": "src/"
+        }
+    }
+}
