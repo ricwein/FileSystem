@@ -7,6 +7,13 @@ namespace ricwein\FileSystem;
 /**
  * represents a selected directory
  */
-class File extends FileSystem {
-
+class File extends FileSystem
+{
+    /**
+     * @return string
+     */
+    public function read(): string
+    {
+        return $this->storage->read();
+    }
 }

@@ -9,17 +9,19 @@ use ricwein\FileSystem\Storage\Storage;
 /**
  * base of all FileSystem type-classes (File/Directory)
  */
-abstract class FileSystem {
+abstract class FileSystem
+{
 
-	/**
-	 * @var Storage
-	 */
-	protected $storage;
+    /**
+     * @var Storage
+     */
+    protected $storage;
 
-	/**
-	 * @param Storage $storage
-	 */
-	__construct(Storage $storage) {
-		$this->storage = $storage;
-	}
+    /**
+     * @param Storage $storage
+     */
+    public function __construct(Storage $storage)
+    {
+        $this->storage = $storage;
+    }
 }

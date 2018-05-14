@@ -7,6 +7,6 @@ namespace ricwein\FileSystem;
 /**
  * represents a selected directory
  */
-class Directory extends FileSystem {
-
+class Directory extends FileSystem
+{
 }
