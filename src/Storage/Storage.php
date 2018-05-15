@@ -62,6 +62,20 @@ abstract class Storage
     abstract public function read(): string;
 
     /**
+     * write content to storage
+     * @param  string $content
+     * @param int $mode FILE_USE_INCLUDE_PATH | FILE_APPEND | LOCK_EX
+     * @return bool
+     */
+    abstract public function write(string $content, int $mode = 0): bool;
+
+    /**
+     * remove file from storage
+     * @return bool
+     */
+    abstract public function remove(): bool;
+
+    /**
      * @param  bool $ifNewOnly
      * @return self
      */

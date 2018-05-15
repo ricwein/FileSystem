@@ -4,11 +4,10 @@
  */
 namespace ricwein\FileSystem\Storage;
 
-use ricwein\FileSystem\Directory;
-use ricwein\FileSystem\File;
+use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Exception\Exception;
 use ricwein\FileSystem\Exception\FileNotFoundException;
-use ricwein\FileSystem\Storage\Disk\Path;
+use ricwein\FileSystem\Helper\Path;
 
 /**
  * represents a file/directory at the local filesystem
@@ -18,10 +17,10 @@ class Disk extends Storage
     /**
      * @var Path|null
      */
-    protected $path = null;
+    protected $path;
 
     /**
-     * @param string|Directory|File $path ,...
+     * @param string|FileSystem|Path $path ,...
      */
     public function __construct(... $path)
     {
@@ -33,6 +32,14 @@ class Disk extends Storage
         return array_merge(parent::getDetails(), [
             'path' => $this->path->getDetails(),
         ]);
+    }
+
+    /**
+     * @return Path
+     */
+    public function path(): Path
+    {
+        return $this->path;
     }
 
     /**
@@ -93,6 +100,23 @@ class Disk extends Storage
         }
         return file_get_contents($this->path->real);
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function write(string $content, int $mode = 0): bool
+    {
+        return file_put_contents($this->path->raw, $content, $mode) !== false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function remove(): bool
+    {
+        return unlink($this->path->real ?? $this->path->raw);
+    }
+
 
     /**
      * @inheritDoc

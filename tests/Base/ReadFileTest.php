@@ -16,7 +16,7 @@ class ReadFileTest extends TestCase
      */
     public function testFileRead()
     {
-        $file = new File(new Storage\Disk(__DIR__.'/../Examples', 'test.txt'));
+        $file = new File(new Storage\Disk(__DIR__.'/../_examples', 'test.txt'));
         $this->assertSame(trim($file->read()), 'test succeeded');
     }
 }

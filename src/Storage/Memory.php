@@ -13,14 +13,16 @@ class Memory extends Storage
     /**
      * @var string
      */
-    protected $content;
+    protected $content = '';
 
     /**
-     * @param string $content
+     * @param string|null $content
      */
-    public function __construct(string $content)
+    public function __construct(?string $content = null)
     {
-        $this->content = $content;
+        if ($content !== null) {
+            $this->content = $content;
+        }
     }
 
     /**
@@ -82,7 +84,25 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
-    public function touch(): Storage
+    public function write(string $content, int $mode = 0): bool
+    {
+        $this->content = $content;
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function remove():bool
+    {
+        $this->content = '';
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function touch(bool $ifNewOnly = false): Storage
     {
         return $this;
     }

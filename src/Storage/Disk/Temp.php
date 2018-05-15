@@ -2,10 +2,11 @@
 /**
  * @author Richard Weinhold
  */
-namespace ricwein\FileSystem\Storage;
+namespace ricwein\FileSystem\Storage\Disk;
 
 use ricwein\FileSystem\Exception\FileAlreadyExistsException;
-use ricwein\FileSystem\Storage\Disk\Path;
+use ricwein\FileSystem\Helper\Path;
+use ricwein\FileSystem\Storage\Disk;
 
 /**
  * like Disk, but for temporary files
@@ -14,9 +15,16 @@ class Temp extends Disk
 {
 
     /**
+     * try to create random tempfile,
+     * retry if file already exists
      * @var int
      */
-    const MAX_RETRY = 4;
+    protected const MAX_RETRY = 4;
+
+    /**
+     * @var bool
+     */
+    protected $isFreed = false;
 
     /**
      * @throws FileAlreadyExistsException
@@ -25,8 +33,8 @@ class Temp extends Disk
     {
         for ($try = 0; $try < self::MAX_RETRY; $try++) {
             $this->path = new Path([
-                sys_get_temp_dir(),
-                uniqid('tmpfile.')
+                \sys_get_temp_dir(),
+                'tmp.' . \bin2hex(\random_bytes(16))
             ]);
 
             if (!file_exists($this->path->raw)) {
@@ -39,12 +47,21 @@ class Temp extends Disk
     }
 
     /**
+     * @inheritDoc
+     */
+    public function remove(): bool
+    {
+        $this->isFreed = true;
+        return parent::remove();
+    }
+
+    /**
      * remove tempfile on free
      */
     public function __destruct()
     {
-        if ($this->path->real !== null) {
-            unlink($this->path->real);
+        if (!$this->isFreed) {
+            $this->remove();
         }
     }
 }
