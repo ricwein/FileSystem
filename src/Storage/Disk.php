@@ -10,6 +10,7 @@ use ricwein\FileSystem\Exception\Exception;
 use ricwein\FileSystem\Exception\FileNotFoundException;
 use ricwein\FileSystem\Exception\RuntimeException;
 use ricwein\FileSystem\Helper\Path;
+use ricwein\FileSystem\Helper\MimeType;
 
 /**
  * represents a file/directory at the local filesystem
@@ -136,8 +137,16 @@ class Disk extends Storage
      */
     public function getType(bool $withEncoding = false): ?string
     {
-        if ($this->path->real !== null) {
-            return (new \finfo($withEncoding ? FILEINFO_MIME : FILEINFO_MIME_TYPE))->file($this->path->raw);
+        if ($this->path->real === null) {
+            return null;
+        }
+
+        if ('text/plain' !== $type = (new \finfo($withEncoding ? FILEINFO_MIME : FILEINFO_MIME_TYPE))->file($this->path->raw)) {
+            return $type;
+        }
+
+        if (array_key_exists($this->path->extension, MimeType::EXTENSION_MAP)) {
+            return MimeType::EXTENSION_MAP[$this->path->extension];
         }
 
         return null;

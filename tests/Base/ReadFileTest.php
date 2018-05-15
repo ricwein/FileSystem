@@ -19,4 +19,16 @@ class ReadFileTest extends TestCase
         $file = new File(new Storage\Disk(__DIR__.'/../_examples', 'test.txt'));
         $this->assertSame(trim($file->read()), 'test succeeded');
     }
+
+    /**
+     * @return void
+     */
+    public function testFileMimeTypeGuessing()
+    {
+        $file = new File(new Storage\Disk(__DIR__, '../_examples', 'test.txt'));
+        $this->assertSame($file->getType(), 'text/plain');
+
+        $file = new File(new Storage\Disk(__DIR__, '../_examples', 'test.json'));
+        $this->assertSame($file->getType(), 'application/json');
+    }
 }
