@@ -8,7 +8,7 @@ use ricwein\FileSystem\Helper\Path;
  *
  * @author Richard Weinhold
  */
-class PathParser extends TestCase
+class PathParserTest extends TestCase
 {
     /**
      * @return void
@@ -28,24 +28,5 @@ class PathParser extends TestCase
 
         $this->assertNotSame($pathA->savepath, $pathB->savepath);
         $this->assertNotSame($pathA->filepath, $pathB->filepath);
-    }
-
-    /**
-     * @return void
-     */
-    public function testPathRestrictions()
-    {
-        $path = new Path([realpath(__DIR__. '/../_examples'), 'test.txt']);
-
-        $this->assertTrue($path->isSave(Path::NO_SYMLINK));
-        $this->assertTrue($path->isSave(Path::IN_SAVEPATH));
-
-        $path = new Path([__DIR__, '/../', '_examples', 'test.txt']);
-
-        $this->assertTrue($path->isSave(Path::NO_SYMLINK));
-        $this->assertFalse($path->isSave(Path::IN_SAVEPATH));
-
-        $path = new Path([__FILE__]);
-        $this->assertTrue($path->isSave(Path::NO_SYMLINK | Path::IN_SAVEPATH));
     }
 }

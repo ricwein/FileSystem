@@ -4,6 +4,11 @@
  */
 namespace ricwein\FileSystem\Storage;
 
+use ricwein\FileSystem\Helper\Hash;
+use ricwein\FileSystem\Exception\Exception;
+use ricwein\FileSystem\Exception\FileNotFoundException;
+use ricwein\FileSystem\Exception\RuntimeException;
+
 /**
  * base-implementation for all Storage Adapters
  */
@@ -58,6 +63,7 @@ abstract class Storage
 
     /**
      * @return string
+     * @throws FileNotFoundException
      */
     abstract public function read(): string;
 
@@ -76,8 +82,31 @@ abstract class Storage
     abstract public function remove(): bool;
 
     /**
+     * size of file from storage
+     * @return int|null
+     */
+    abstract public function getSize(): ?int;
+
+    /**
+     * guess content-type (mime) of storage
+     * @param bool $withEncoding
+     * @return string|null
+     */
+    abstract public function getType(bool $withEncoding = false): ?string;
+
+    /**
+     * calculate hash
+     * @param int $mode Hash::CONTENT | Hash::FILENAME | Hash::FILEPATH
+     * @param string $algo hashing-algorigthm
+     * @return string|null
+     * @throws RuntimeException
+     */
+    abstract public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): ?string;
+
+    /**
      * @param  bool $ifNewOnly
      * @return self
+     * @throws Exception
      */
     abstract public function touch(bool $ifNewOnly = false): self;
 }

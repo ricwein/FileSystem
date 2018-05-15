@@ -5,8 +5,10 @@
 namespace ricwein\FileSystem\Storage;
 
 use ricwein\FileSystem\FileSystem;
+use ricwein\FileSystem\Helper\Hash;
 use ricwein\FileSystem\Exception\Exception;
 use ricwein\FileSystem\Exception\FileNotFoundException;
+use ricwein\FileSystem\Exception\RuntimeException;
 use ricwein\FileSystem\Helper\Path;
 
 /**
@@ -106,7 +108,7 @@ class Disk extends Storage
      */
     public function write(string $content, int $mode = 0): bool
     {
-        return file_put_contents($this->path->raw, $content, $mode) !== false;
+        return file_put_contents($this->path->real ?? $this->path->raw, $content, $mode) !== false;
     }
 
     /**
@@ -117,6 +119,46 @@ class Disk extends Storage
         return unlink($this->path->real ?? $this->path->raw);
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function getSize(): ?int
+    {
+        if ($this->path->real !== null && false !== $filesize = filesize($this->path->real)) {
+            return $filesize;
+        }
+
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getType(bool $withEncoding = false): ?string
+    {
+        if ($this->path->real !== null) {
+            return (new \finfo($withEncoding ? FILEINFO_MIME : FILEINFO_MIME_TYPE))->file($this->path->raw);
+        }
+
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): ?string
+    {
+        if ($this->path->real === null) {
+            return null;
+        }
+
+        switch ($mode) {
+            case Hash::CONTENT: return hash_file($algo, $this->path->real, false);
+            case Hash::FILENAME: return hash($algo, $this->path->basename, false);
+            case Hash::FILEPATH: return hash($algo, $this->path->real, false);
+            default: throw new RuntimeException('unknown hashing-mode', 500);
+        }
+    }
 
     /**
      * @inheritDoc

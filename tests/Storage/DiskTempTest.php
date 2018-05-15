@@ -9,7 +9,7 @@ use ricwein\FileSystem\Storage;
  *
  * @author Richard Weinhold
  */
-class TempTest extends TestCase
+class DiskTempTest extends TestCase
 {
     /**
      * @return void
