@@ -46,6 +46,9 @@ class Disk extends Storage
         return $this->fileInfo;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getDetails(): array
     {
         return array_merge(parent::getDetails(), [
@@ -237,5 +240,14 @@ class Disk extends Storage
         $this->path->reload();
 
         return $this;
+    }
+
+
+    /**
+     * @inheritDoc
+     */
+    public function isDotfile(): bool
+    {
+        return strpos($this->storage->path()->basename, '.') === 0;
     }
 }

@@ -62,6 +62,11 @@ abstract class Storage
     abstract public function isWriteable(): bool;
 
     /**
+     * @return bool
+     */
+    abstract public function isDotfile(): bool;
+
+    /**
      * @param int|null $offset
      * @param int|null $length
      * @param int $mode

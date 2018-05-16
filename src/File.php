@@ -47,7 +47,7 @@ class File extends FileSystem
     /**
      * copy file-content to new destination
      * @param Storage\Storage $destination
-     * @return self
+     * @return self new File-object
      * @throws AccessDeniedException|RuntimeException
      */
     public function saveAs(Storage\Storage $destination): self
@@ -82,15 +82,6 @@ class File extends FileSystem
     }
 
     /**
-     * @return int
-     * @throws UnexpectedValueException
-     */
-    public function getSize(): int
-    {
-        return $this->storage->getSize();
-    }
-
-    /**
      * guess content-type (mime) of storage
      * @param  bool $withEncoding
      * @return string
@@ -116,17 +107,6 @@ class File extends FileSystem
         }
 
         throw new UnexpectedValueException('unable to calculate file-hash', 500);
-    }
-
-    /**
-     * @return bool
-     */
-    public function isDotfile(): bool
-    {
-        if ($this->storage instanceof Storage\Disk) {
-            return strpos($this->storage->path()->basename, '.') ===0;
-        }
-        return false;
     }
 
     /**

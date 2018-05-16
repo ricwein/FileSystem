@@ -149,4 +149,12 @@ class Memory extends Storage
     {
         return $this;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function isDotfile(): bool
+    {
+        return false;
+    }
 }

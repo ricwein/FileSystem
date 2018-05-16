@@ -10,6 +10,7 @@ use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage\Disk;
 use ricwein\FileSystem\Storage\Storage;
 use ricwein\FileSystem\Exception\RuntimeException;
+use ricwein\FileSystem\Exception\UnexpectedValueException;
 
 /**
  * base of all FileSystem type-classes (File/Directory)
@@ -60,6 +61,14 @@ abstract class FileSystem
     }
 
     /**
+     * @return bool
+     */
+    public function isDotfile(): bool
+    {
+        return $this->storage->isDotfile();
+    }
+
+    /**
      * get last-modified timestamp
      * @return int
      */
@@ -73,11 +82,43 @@ abstract class FileSystem
      */
     abstract public function remove(): self;
 
+
     /**
-     * calculate size
+    * calculate size
      * @return int
+     * @throws UnexpectedValueException
      */
-    abstract public function getSize(): int;
+    public function getSize(): int
+    {
+        return $this->storage->getSize();
+    }
+
+    /**
+     * check if path is readable
+     * @return bool
+     */
+    public function isReadable(): bool
+    {
+        return $this->storage->isReadable();
+    }
+
+    /**
+     * check if path is writeable
+     * @return bool
+     */
+    public function isWriteable(): bool
+    {
+        return $this->storage->isWriteable();
+    }
+
+    /**
+     * check if path is a symlink
+     * @return bool
+     */
+    public function isSymlink(): bool
+    {
+        return $this->storage->isSymlink();
+    }
 
     /**
      * calculate hash above content or filename
