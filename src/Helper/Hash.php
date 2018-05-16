@@ -5,7 +5,7 @@
 namespace ricwein\FileSystem\Helper;
 
 /**
- * file-path validation class
+ * enum-like hash-type consts
  */
 class Hash
 {
@@ -13,17 +13,17 @@ class Hash
      * hash over filename only
      * @var int
      */
-    const FILENAME = 1;
+    public const FILENAME = 1;
 
     /**
      * hash over full filepath
      * @var int
      */
-    const FILEPATH = 2;
+    public const FILEPATH = 2;
 
     /**
      * hash over file-content
      * @var int
      */
-    const CONTENT  = 4;
+    public const CONTENT  = 4;
 }

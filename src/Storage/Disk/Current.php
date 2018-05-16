@@ -9,7 +9,7 @@ use ricwein\FileSystem\Storage\Disk;
 use ricwein\FileSystem\FileSystem;
 
 /**
- * like Disk, but for temporary files
+ * creates a absolute path from current-working-directory
  */
 class Current extends Disk
 {

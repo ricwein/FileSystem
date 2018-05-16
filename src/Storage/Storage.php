@@ -62,10 +62,13 @@ abstract class Storage
     abstract public function isWriteable(): bool;
 
     /**
+     * @param int|null $offset
+     * @param int|null $length
+     * @param int $mode
      * @return string
      * @throws FileNotFoundException
      */
-    abstract public function read(): string;
+    abstract public function readFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string;
 
     /**
      * write content to storage
@@ -73,35 +76,35 @@ abstract class Storage
      * @param int $mode FILE_USE_INCLUDE_PATH | FILE_APPEND | LOCK_EX
      * @return bool
      */
-    abstract public function write(string $content, int $mode = 0): bool;
+    abstract public function writeFile(string $content, int $mode = 0): bool;
 
     /**
      * remove file from storage
      * @return bool
      */
-    abstract public function remove(): bool;
+    abstract public function removeFile(): bool;
 
     /**
      * size of file from storage
      * @return int|null
      */
-    abstract public function getSize(): ?int;
+    abstract public function getFileSize(): ?int;
 
     /**
-     * guess content-type (mime) of storage
+     * guess content-type (mime) of file
      * @param bool $withEncoding
      * @return string|null
      */
-    abstract public function getType(bool $withEncoding = false): ?string;
+    abstract public function getFileType(bool $withEncoding = false): ?string;
 
     /**
-     * calculate hash
+     * calculate file-hash
      * @param int $mode Hash::CONTENT | Hash::FILENAME | Hash::FILEPATH
      * @param string $algo hashing-algorigthm
      * @return string|null
      * @throws RuntimeException
      */
-    abstract public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): ?string;
+    abstract public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): ?string;
 
     /**
      * @param  bool $ifNewOnly

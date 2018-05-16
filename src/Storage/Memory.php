@@ -79,15 +79,19 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
-    public function read(): string
+    public function readFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string
     {
+        if ($offset !== null && $length !== null) {
+            return mb_substr($this->content, $offset, $length, '8bit');
+        }
+
         return $this->content;
     }
 
     /**
      * @inheritDoc
      */
-    public function write(string $content, int $mode = 0): bool
+    public function writeFile(string $content, int $mode = 0): bool
     {
         $this->content = $content;
         return true;
@@ -96,7 +100,7 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
-    public function remove():bool
+    public function removeFile():bool
     {
         $this->content = '';
         return true;
@@ -105,7 +109,7 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
-    public function getSize(): ?int
+    public function getFileSize(): ?int
     {
         return mb_strlen($this->content, '8bit');
     }
@@ -113,7 +117,7 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
-    public function getType(bool $withEncoding = false): string
+    public function getFileType(bool $withEncoding = false): string
     {
         return (new \finfo($withEncoding ? FILEINFO_MIME : FILEINFO_MIME_TYPE))->buffer($this->content);
     }
@@ -121,7 +125,7 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
-    public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): string
+    public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): string
     {
         switch ($mode) {
             case Hash::CONTENT: return hash($algo, $this->content, false);

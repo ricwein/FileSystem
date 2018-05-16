@@ -5,7 +5,7 @@
 namespace ricwein\FileSystem\Helper;
 
 /**
- * file-path validation class
+ * extension-to-mimetype map
  */
 class MimeType
 {

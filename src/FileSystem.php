@@ -4,10 +4,11 @@
  */
 namespace ricwein\FileSystem;
 
+use ricwein\FileSystem\Helper\Hash;
+use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Storage\Disk;
 use ricwein\FileSystem\Storage\Storage;
 use ricwein\FileSystem\Exception\RuntimeException;
-use ricwein\FileSystem\Helper\Path;
 
 /**
  * base of all FileSystem type-classes (File/Directory)
@@ -49,4 +50,23 @@ abstract class FileSystem
 
         throw new RuntimeException('unable to fetch path from non-disk FileSystem', 500);
     }
+
+    /**
+     * @return self
+     */
+    abstract public function remove(): self;
+
+    /**
+     * calculate size
+     * @return int
+     */
+    abstract public function getSize(): int;
+
+    /**
+     * calculate hash above content or filename
+     * @param int $mode Hash::CONTENT | Hash::FILENAME | Hash::FILEPATH
+     * @param string $algo hashing-algorigthm
+     * @return string
+     */
+    abstract public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): string;
 }

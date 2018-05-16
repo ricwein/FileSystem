@@ -95,19 +95,46 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
+     * @throws FileNotFoundException|RuntimeException
      */
-    public function read(): string
+    public function readFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string
     {
         if (!$this->isFile()) {
             throw new FileNotFoundException('file not found', 404);
         }
-        return file_get_contents($this->path->real);
+
+        // open file-handler in readonly mode
+        $handle = fopen($this->path->real, 'r');
+
+        try {
+
+            // try to set lock if provided
+            if ($mode !== 0 && !flock($handle, $mode)) {
+                throw new RuntimeException('unable to lock file', 500);
+            }
+
+            // read whole file
+            if ($offset === null || $length === null) {
+                return fread($handle, filesize($this->path->real));
+            }
+
+            // read part of file
+            fseek($handle, $offset);
+            return fread($handle, $length);
+        } finally {
+
+            // ensure the file in unlocked after reading and the file-handler is closed again
+            if ($mode !== 0) {
+                flock($handle, LOCK_UN);
+            }
+            fclose($handle);
+        }
     }
 
     /**
      * @inheritDoc
      */
-    public function write(string $content, int $mode = 0): bool
+    public function writeFile(string $content, int $mode = 0): bool
     {
         return file_put_contents($this->path->real ?? $this->path->raw, $content, $mode) !== false;
     }
@@ -115,7 +142,7 @@ class Disk extends Storage
     /**
      * @inheritDoc
      */
-    public function remove(): bool
+    public function removeFile(): bool
     {
         return unlink($this->path->real ?? $this->path->raw);
     }
@@ -123,7 +150,7 @@ class Disk extends Storage
     /**
      * @inheritDoc
      */
-    public function getSize(): ?int
+    public function getFileSize(): ?int
     {
         if ($this->path->real !== null && false !== $filesize = filesize($this->path->real)) {
             return $filesize;
@@ -135,7 +162,7 @@ class Disk extends Storage
     /**
      * @inheritDoc
      */
-    public function getType(bool $withEncoding = false): ?string
+    public function getFileType(bool $withEncoding = false): ?string
     {
         if ($this->path->real === null) {
             return null;
@@ -155,7 +182,7 @@ class Disk extends Storage
     /**
      * @inheritDoc
      */
-    public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): ?string
+    public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): ?string
     {
         if ($this->path->real === null) {
             return null;

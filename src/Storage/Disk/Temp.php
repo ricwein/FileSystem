@@ -49,10 +49,10 @@ class Temp extends Disk
     /**
      * @inheritDoc
      */
-    public function remove(): bool
+    public function removeFile(): bool
     {
         $this->isFreed = true;
-        return parent::remove();
+        return parent::removeFile();
     }
 
     /**
@@ -61,7 +61,7 @@ class Temp extends Disk
     public function __destruct()
     {
         if (!$this->isFreed) {
-            $this->remove();
+            $this->removeFile();
         }
     }
 }

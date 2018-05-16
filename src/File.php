@@ -17,12 +17,15 @@ use ricwein\FileSystem\Exception\UnexpectedValueException;
 class File extends FileSystem
 {
     /**
+     * @param int|null $offset
+     * @param int|null $length
+     * @param int $mode
      * @return string
      * @throws FileNotFoundException
      */
-    public function read(): string
+    public function read(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string
     {
-        return $this->storage->read();
+        return $this->storage->readFile($offset, $length, $mode);
     }
 
     /**
@@ -34,7 +37,7 @@ class File extends FileSystem
      */
     public function write(string $content, int $mode = 0): self
     {
-        if (!$this->storage->write($content, $mode)) {
+        if (!$this->storage->writeFile($content, $mode)) {
             throw new AccessDeniedException('unable to write file-content', 403);
         }
 
@@ -45,31 +48,24 @@ class File extends FileSystem
      * copy file-content to new destination
      * @param Storage\Storage $destination
      * @return self
-     * @throws AccessDeniedException
+     * @throws AccessDeniedException|RuntimeException
      */
     public function saveAs(Storage\Storage $destination): self
     {
-        if ($this->storage instanceof Storage\Disk && $destination instanceof Storage\Disk) {
 
-            // copy file from filesystem to filesystem
+        // copy file from filesystem to filesystem
+        if ($this->storage instanceof Storage\Disk && $destination instanceof Storage\Disk) {
             if (!copy($this->storage->path()->real, $destination->path()->raw)) {
                 throw new AccessDeniedException('unable to copy file', 403);
             }
 
             $destination->path()->reload();
-        } elseif ($this->storage instanceof Storage\Disk && $destination instanceof Storage\Memory) {
+            return new static($destination);
+        }
 
-            // read file from filesystem into in-memory-file
-            $destination->write($this->storage->read());
-        } elseif ($this->storage instanceof Storage\Memory && $destination instanceof Storage\Disk) {
-
-            // save in-memory-file to filesystem
-            $destination->write($this->storage->read());
+        $destination->writeFile($this->storage->readFile());
+        if ($destination instanceof Storage\Disk) {
             $destination->path()->reload();
-        } elseif ($this->storage instanceof Storage\Memory && $destination instanceof Storage\Memory) {
-
-            // copy in-memory-file
-            $destination->write($this->storage->read());
         }
 
         return new static($destination);
@@ -91,7 +87,7 @@ class File extends FileSystem
      */
     public function getSize(): int
     {
-        if (null !== $filesize = $this->storage->getSize()) {
+        if (null !== $filesize = $this->storage->getFileSize()) {
             return $filesize;
         }
 
@@ -106,7 +102,7 @@ class File extends FileSystem
      */
     public function getType(bool $withEncoding = false): string
     {
-        if (null !== $mime = $this->storage->getType($withEncoding)) {
+        if (null !== $mime = $this->storage->getFileType($withEncoding)) {
             return $mime;
         }
 
@@ -114,15 +110,12 @@ class File extends FileSystem
     }
 
     /**
-    * calculate hash
-    * @param int $mode Hash::CONTENT | Hash::FILENAME | Hash::FILEPATH
-    * @param string $algo hashing-algorigthm
-    * @return string
-    * @throws UnexpectedValueException|RuntimeException
+     * @inheritDoc
+     * @throws UnexpectedValueException|RuntimeException
      */
     public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): string
     {
-        if (null !== $hash = $this->storage->getHash($mode, $algo)) {
+        if (null !== $hash = $this->storage->getFileHash($mode, $algo)) {
             return $hash;
         }
 
@@ -138,5 +131,17 @@ class File extends FileSystem
             return strpos($this->storage->path()->basename, '.') ===0;
         }
         return false;
+    }
+
+    /**
+     * remove file
+     * @return FileSystem
+     */
+    public function remove(): FileSystem
+    {
+        if (!$this->storage->removeFile()) {
+            throw new RuntimeException('unable to remove file', 500);
+        }
+        return $this;
     }
 }
