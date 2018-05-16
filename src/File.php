@@ -87,11 +87,7 @@ class File extends FileSystem
      */
     public function getSize(): int
     {
-        if (null !== $filesize = $this->storage->getFileSize()) {
-            return $filesize;
-        }
-
-        throw new UnexpectedValueException('unable to calculate file-size', 500);
+        return $this->storage->getSize();
     }
 
     /**

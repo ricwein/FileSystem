@@ -35,6 +35,12 @@ class Constraint
     public const DISALLOW_LINK = 004;
 
     /**
+     * includes all Constraints
+     * @var int
+     */
+    public const STRICT = 0063;
+
+    /**
      * @var Path
      */
     protected $path;
@@ -48,14 +54,14 @@ class Constraint
     }
 
     /**
-     * @param  int $contraints
+     * @param  int $constraints
      * @return bool
      */
-    public function doesSatisfy(int $contraints = self::IN_SAVEPATH | self::IN_OPENBASEDIR | self::DISALLOW_LINK): bool
+    public function doesSatisfy(int $constraints = self::STRICT): bool
     {
         // not in open_basedir restrictions
         if (
-            ($contraints & self::IN_OPENBASEDIR) === self::IN_OPENBASEDIR
+            ($constraints & self::IN_OPENBASEDIR) === self::IN_OPENBASEDIR
             && !$this->path->isInOpenBasedir()
         ) {
             return false;
@@ -63,7 +69,7 @@ class Constraint
 
         // path contains a symlink
         if (
-            ($contraints & self::DISALLOW_LINK) === self::DISALLOW_LINK
+            ($constraints & self::DISALLOW_LINK) === self::DISALLOW_LINK
             && file_exists($this->path->raw)
             && is_link($this->path->raw)
         ) {
@@ -72,7 +78,7 @@ class Constraint
 
         // ensure realpath is in original search path (prevent /../ cd's)
         if (
-            ($contraints & self::IN_SAVEPATH) === self::IN_SAVEPATH
+            ($constraints & self::IN_SAVEPATH) === self::IN_SAVEPATH
             && $this->path->raw !== $this->path->real
             && strpos($this->path->real, $this->path->savepath) !== 0
         ) {

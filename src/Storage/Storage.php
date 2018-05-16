@@ -86,9 +86,15 @@ abstract class Storage
 
     /**
      * size of file from storage
-     * @return int|null
+     * @return int
      */
-    abstract public function getFileSize(): ?int;
+    abstract public function getSize(): int;
+
+    /**
+     * get last-modified timestamp
+     * @return int
+     */
+    abstract public function getTime(): int;
 
     /**
      * guess content-type (mime) of file

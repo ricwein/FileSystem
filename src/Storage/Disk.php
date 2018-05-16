@@ -23,11 +23,27 @@ class Disk extends Storage
     protected $path;
 
     /**
+     * @var \SplFileInfo
+     */
+    protected $fileInfo = null;
+
+    /**
      * @param string|FileSystem|Path $path ,...
      */
     public function __construct(... $path)
     {
         $this->path = new Path($path);
+    }
+
+    /**
+     * @return \SplFileInfo
+     */
+    protected function fileInfo(): \SplFileInfo
+    {
+        if ($this->fileInfo === null) {
+            $this->fileInfo = new \SplFileInfo($this->path->real ?? $this->path->raw);
+        }
+        return $this->fileInfo;
     }
 
     public function getDetails(): array
@@ -50,15 +66,15 @@ class Disk extends Storage
      */
     public function isFile(): bool
     {
-        return $this->path->real !== null && file_exists($this->path->real) && is_file($this->path->real);
+        return $this->path->real !== null && file_exists($this->path->real) && $this->fileInfo()->isFile();
     }
 
     /**
      * @inheritDoc
      */
-    public function isDirectory():bool
+    public function isDirectory(): bool
     {
-        return $this->path->real !== null && is_dir($this->path->real);
+        return $this->fileInfo()->isDir();
     }
 
     /**
@@ -66,7 +82,7 @@ class Disk extends Storage
      */
     public function isExecutable(): bool
     {
-        return $this->isFile() && is_executable($this->path->real);
+        return $this->isFile() && $this->fileInfo()->isExecutable();
     }
 
     /**
@@ -74,7 +90,7 @@ class Disk extends Storage
      */
     public function isSymlink(): bool
     {
-        return $this->path->real !== null && is_link($this->path->real);
+        return $this->path->real !== null && (new \SplFileInfo($this->path->raw))->isLink();
     }
 
     /**
@@ -82,7 +98,7 @@ class Disk extends Storage
      */
     public function isReadable(): bool
     {
-        return $this->path->real !== null && is_readable($this->path->real);
+        return $this->path->real !== null && $this->fileInfo()->isReadable();
     }
 
     /**
@@ -90,7 +106,7 @@ class Disk extends Storage
      */
     public function isWriteable(): bool
     {
-        return $this->path->real !== null && is_writable($this->path->real);
+        return $this->fileInfo()->isWritable();
     }
 
     /**
@@ -150,13 +166,9 @@ class Disk extends Storage
     /**
      * @inheritDoc
      */
-    public function getFileSize(): ?int
+    public function getSize(): int
     {
-        if ($this->path->real !== null && false !== $filesize = filesize($this->path->real)) {
-            return $filesize;
-        }
-
-        return null;
+        return $this->fileInfo()->getSize();
     }
 
     /**
@@ -168,10 +180,13 @@ class Disk extends Storage
             return null;
         }
 
-        if ('text/plain' !== $type = (new \finfo($withEncoding ? FILEINFO_MIME : FILEINFO_MIME_TYPE))->file($this->path->raw)) {
+        // detect mimetype by magic.mime
+        $type = (new \finfo($withEncoding ? FILEINFO_MIME : FILEINFO_MIME_TYPE))->file($this->path->raw);
+        if (!in_array($type, ['text/plain', 'application/octet-stream', 'inode/x-empty'], true)) {
             return $type;
         }
 
+        // detect mimetype by file-extension
         if (array_key_exists($this->path->extension, MimeType::EXTENSION_MAP)) {
             return MimeType::EXTENSION_MAP[$this->path->extension];
         }
@@ -194,6 +209,14 @@ class Disk extends Storage
             case Hash::FILEPATH: return hash($algo, $this->path->real, false);
             default: throw new RuntimeException('unknown hashing-mode', 500);
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getTime(): int
+    {
+        return $this->fileInfo()->getMTime();
     }
 
     /**

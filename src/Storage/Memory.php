@@ -109,7 +109,7 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
-    public function getFileSize(): ?int
+    public function getSize(): int
     {
         return mb_strlen($this->content, '8bit');
     }
@@ -132,6 +132,14 @@ class Memory extends Storage
             case Hash::FILENAME: case Hash::FILEPATH: throw new RuntimeException('unable to calculate filepath/name hash for in-memory-files', 500);
             default: throw new RuntimeException('unknown hashing-mode', 500);
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getTime(): int
+    {
+        return time();
     }
 
     /**

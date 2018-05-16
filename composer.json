@@ -1,6 +1,6 @@
 {
     "name": "ricwein/filesystem",
-    "description": "Filesystem Abstraction Layer",
+    "description": "Filesystem abstraction layer",
     "type": "library",
     "license": "MIT",
     "authors": [{
@@ -20,6 +20,9 @@
     },
     "suggest": {
         "league/flysystem": "Support for more filesystems"
+    },
+    "scripts": {
+        "test": "./vendor/bin/phpunit"
     },
     "autoload": {
         "psr-4": {

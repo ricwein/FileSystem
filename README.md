@@ -45,10 +45,16 @@ Example: Saving a File which was intialized as `Storage\Memory` to the Disk resu
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 
-$file = new File(Storage\Disk('test.txt'));
+$file = new File(new Storage\Disk(__DIR__, 'test.txt'));
 $content = $file->read();
 ```
 
+## or from in-memory-file
 
+```php
+use ricwein\FileSystem\File;
+use ricwein\FileSystem\Storage;
 
-
+$file = new File(new Storage\Memory('some content'));
+$content = $file->read();
+```

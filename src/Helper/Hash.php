@@ -13,17 +13,17 @@ class Hash
      * hash over filename only
      * @var int
      */
-    public const FILENAME = 1;
+    public const FILENAME = 0001;
 
     /**
      * hash over full filepath
      * @var int
      */
-    public const FILEPATH = 2;
+    public const FILEPATH = 0002;
 
     /**
      * hash over file-content
      * @var int
      */
-    public const CONTENT  = 4;
+    public const CONTENT  = 0004;
 }
