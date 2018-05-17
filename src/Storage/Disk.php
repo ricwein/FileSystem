@@ -6,7 +6,7 @@ namespace ricwein\FileSystem\Storage;
 
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Helper\Hash;
-use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Helper\Path;
@@ -23,27 +23,11 @@ class Disk extends Storage
     protected $path;
 
     /**
-     * @var \SplFileInfo
-     */
-    protected $fileInfo = null;
-
-    /**
      * @param string|FileSystem|Path $path ,...
      */
     public function __construct(... $path)
     {
         $this->path = new Path($path);
-    }
-
-    /**
-     * @return \SplFileInfo
-     */
-    protected function fileInfo(): \SplFileInfo
-    {
-        if ($this->fileInfo === null) {
-            $this->fileInfo = new \SplFileInfo($this->path->real ?? $this->path->raw);
-        }
-        return $this->fileInfo;
     }
 
     /**
@@ -77,15 +61,15 @@ class Disk extends Storage
      */
     public function isFile(): bool
     {
-        return $this->path->real !== null && file_exists($this->path->real) && $this->fileInfo()->isFile();
+        return $this->path->real !== null && file_exists($this->path->real) && $this->path->fileInfo()->isFile();
     }
 
     /**
      * @inheritDoc
      */
-    public function isDirectory(): bool
+    public function isDir(): bool
     {
-        return $this->fileInfo()->isDir();
+        return $this->path->fileInfo()->isDir();
     }
 
     /**
@@ -93,7 +77,7 @@ class Disk extends Storage
      */
     public function isExecutable(): bool
     {
-        return $this->isFile() && $this->fileInfo()->isExecutable();
+        return $this->isFile() && $this->path->fileInfo()->isExecutable();
     }
 
     /**
@@ -101,7 +85,7 @@ class Disk extends Storage
      */
     public function isSymlink(): bool
     {
-        return $this->path->real !== null && (new \SplFileInfo($this->path->raw))->isLink();
+        return $this->path->real !== null && $this->path->fileInfo()->isLink();
     }
 
     /**
@@ -109,7 +93,7 @@ class Disk extends Storage
      */
     public function isReadable(): bool
     {
-        return $this->path->real !== null && $this->fileInfo()->isReadable();
+        return $this->path->real !== null && $this->path->fileInfo()->isReadable();
     }
 
     /**
@@ -117,7 +101,7 @@ class Disk extends Storage
      */
     public function isWriteable(): bool
     {
-        return $this->fileInfo()->isWritable();
+        return $this->path->fileInfo()->isWritable();
     }
 
     /**
@@ -175,11 +159,80 @@ class Disk extends Storage
     }
 
     /**
+     * removes directory from disk
+     * @return bool
+     * @throws AccessDeniedException
+     */
+    public function removeDir(): bool
+    {
+        if (!file_exists($this->path->raw) || !$this->isDir()) {
+            return false;
+        }
+
+        $files = $this->getIterator(true, \RecursiveIteratorIterator::CHILD_FIRST);
+
+        /** @var \SplFileInfo $file */
+        foreach ($files as $file) {
+            if (!$file->isReadable()) {
+                throw new AccessDeniedException(sprintf('unable to access file: \'%s\'', $file->getPathname()), 500);
+            }
+
+            // try to remove files/dirs/links
+            switch ($file->getType()) {
+                case 'dir': rmdir($file->getRealPath()); break;
+                case 'link': unlink($file->getPathname()); break;
+                default: unlink($file->getRealPath());
+            }
+        }
+
+
+        return rmdir($this->path->raw);
+    }
+
+    /**
+     * @param bool $recursive
+     * @param int $mode
+     * @return \Iterator
+     */
+    protected function getIterator(bool $recursive, int $mode = \RecursiveIteratorIterator::SELF_FIRST): \Iterator
+    {
+        if ($recursive) {
+            return new \DirectoryIterator($this->path->raw);
+        }
+
+        return new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($this->path->raw, \FilesystemIterator::SKIP_DOTS),
+            $mode
+        );
+    }
+
+    /**
+     * @param bool $recursive
+     * @return self[]
+     * @throws RuntimeException
+     */
+    public function list(bool $recursive = false): \Generator
+    {
+        if (!file_exists($this->path->raw) || !is_dir($this->path->raw)) {
+            throw new RuntimeException(sprintf('unable to list directory %s', $this->path->raw), 500);
+        }
+
+        $iterator = $this->getIterator($recursive);
+
+        /** @var \SplFileInfo $file */
+        foreach ($iterator as $file) {
+            if (!$file->isDir()) {
+                yield new self($this->path->directory, str_replace($this->path->directory, '', $file->getRealPath()));
+            }
+        }
+    }
+
+    /**
      * @inheritDoc
      */
     public function getSize(): int
     {
-        return $this->fileInfo()->getSize();
+        return $this->path->fileInfo()->getSize();
     }
 
     /**
@@ -227,7 +280,7 @@ class Disk extends Storage
      */
     public function getTime(): int
     {
-        return $this->fileInfo()->getMTime();
+        return $this->path->fileInfo()->getMTime();
     }
 
     /**

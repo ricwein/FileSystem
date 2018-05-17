@@ -18,12 +18,15 @@ class WriteTest extends TestCase
      */
     public function testFileWriteTempDisk()
     {
-        $message = \bin2hex(\random_bytes(16384));
+        $message = \bin2hex(\random_bytes(2 ** 10));
 
         $file = new File(new Storage\Disk\Temp());
         $file->write($message);
 
-        $this->assertSame($message, $file->read());
+        $this->assertSame(
+            $message,
+            $file->read()
+        );
     }
 
     /**
@@ -31,7 +34,7 @@ class WriteTest extends TestCase
      */
     public function testFileWriteMemory()
     {
-        $message = \bin2hex(\random_bytes(16384));
+        $message = \bin2hex(\random_bytes(2 ** 10));
 
         $file = new File(new Storage\Memory());
         $file->write($message);

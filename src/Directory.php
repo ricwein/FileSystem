@@ -7,7 +7,7 @@ namespace ricwein\FileSystem;
 use ricwein\FileSystem\Helper\Hash;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Exception\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 
 /**
@@ -45,6 +45,18 @@ class Directory extends FileSystem
      */
     public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): string
     {
+        // @TODO implement directory hashing
         return '';
+    }
+
+    /**
+     * @param bool $recursive
+     * @return File[]
+     */
+    public function list(bool $recursive = false): \Generator
+    {
+        foreach ($this->storage->list() as $file) {
+            yield new File($file, $this->storage->getConstraints());
+        }
     }
 }

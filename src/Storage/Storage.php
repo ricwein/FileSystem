@@ -74,7 +74,7 @@ abstract class Storage
      * check if path is directory
      * @return bool
      */
-    abstract public function isDirectory():bool;
+    abstract public function isDir():bool;
 
     /**
      * check if file exists and is executable

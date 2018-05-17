@@ -47,7 +47,7 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
-    public function isDirectory():bool
+    public function isDir():bool
     {
         return true;
     }

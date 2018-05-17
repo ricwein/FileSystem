@@ -82,6 +82,11 @@ class Path
     protected $extension = null;
 
     /**
+     * @var \SplFileInfo|null
+     */
+    protected $fileInfo = null;
+
+    /**
      * @param string[]|FileSystem[]|self[] $components
      * @throws UnexpectedValueException
      */
@@ -152,18 +157,23 @@ class Path
 
         $this->filepath = str_replace($this->safepath, '', $path);
 
-        // parse into path-details
-        $details = pathinfo($path, PATHINFO_DIRNAME | PATHINFO_BASENAME | PATHINFO_EXTENSION | PATHINFO_FILENAME);
-        $this->extension = $details['extension'];
-        $this->filename = $details['filename'];
-        $this->directory = $details['dirname'];
-        $this->basename = $details['basename'];
-
         $this->raw = $path;
+        $this->fileInfo = new \SplFileInfo($path);
 
-        if (false !== $realpath = realpath($path)) {
-            $this->real = $realpath;
+        // parse into path-details
+        $this->directory = $this->fileInfo->getPath();
+        $this->real = $this->fileInfo->getRealPath();
+
+        if ($this->fileInfo->isFile()) {
+            $this->extension = $this->fileInfo->getExtension();
+            $this->filename = $this->fileInfo->getFilename();
+            $this->basename = $this->fileInfo->getBasename();
+        } else {
+            $this->extension = null;
+            $this->filename = null;
+            $this->basename = null;
         }
+
 
         $this->loaded = true;
     }
@@ -173,11 +183,24 @@ class Path
      * resulting in reloading all paths on next access
      * @return self
      */
-    public function reload():self
+    public function reload(): self
     {
         $this->loaded = false;
         return $this;
     }
+
+    /**
+    * @return \SplFileInfo
+    */
+    public function fileInfo(): \SplFileInfo
+    {
+        if (!$this->loaded) {
+            $this->resolvePath();
+        }
+
+        return $this->fileInfo;
+    }
+
 
     /**
      * check if path is in open_basedir restrictions
@@ -227,16 +250,21 @@ class Path
         }
 
         return [
-            'rawpath' => $this->raw,
-            'realpath' => $this->real,
-            'directory' => $this->directory,
+            'path' => [
+                'rawpath' => $this->raw,
+                'realpath' => $this->real,
+                'directory' => $this->directory,
 
-            'safepath' => $this->safepath,
-            'filepath' => $this->filepath,
+                'safepath' => $this->safepath,
+                'filepath' => $this->filepath,
 
-            'basename' => $this->basename,
-            'filename' => $this->filename,
-            'extension' => $this->extension,
+                'basename' => $this->basename,
+                'filename' => $this->filename,
+                'extension' => $this->extension,
+            ],
+            'splInfo' => [
+                'type' => $this->fileInfo->getType(),
+            ],
         ];
     }
 

@@ -25,7 +25,7 @@ class ReadTest extends TestCase
             file_get_contents(__DIR__ . '/../_examples/test.txt')
         );
 
-        $message = bin2hex(random_bytes(2^14));
+        $message = bin2hex(random_bytes(2 ** 10));
         $file = new File(new Storage\Memory($message));
         $this->assertSame(
             $file->read(),
@@ -47,7 +47,7 @@ class ReadTest extends TestCase
             mb_substr(file_get_contents(__DIR__ . '/../_examples/test.txt'), 0, $length)
         );
 
-        $message = bin2hex(random_bytes(2^14));
+        $message = bin2hex(random_bytes(2 ** 10));
         $file = new File(new Storage\Memory($message));
 
         $length = (int) floor($file->getSize() / 2);

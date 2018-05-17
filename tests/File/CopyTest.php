@@ -58,8 +58,8 @@ class CopyTest extends TestCase
         $source = new File(new Storage\Memory(file_get_contents(__DIR__.'/../_examples/test.txt')));
         $destination = $source->saveAs(new Storage\Disk\Temp());
 
+        $this->assertInstanceOf(Storage\Disk\Temp::class, $destination->storage());
         $this->assertInstanceOf(Storage\Disk::class, $destination->storage());
-
         $this->assertSame($source->read(), $destination->read());
         $this->assertSame(file_get_contents(__DIR__.'/../_examples/test.txt'), $destination->read());
     }
