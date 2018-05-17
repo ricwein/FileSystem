@@ -1,5 +1,7 @@
 <?php declare(strict_types = 1);
 
+namespace ricwein\FileSystem\Tests\Helper;
+
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Helper\Path;
 

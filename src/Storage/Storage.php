@@ -158,8 +158,8 @@ abstract class Storage
 
     /**
      * @param  bool $ifNewOnly
-     * @return self
+     * @return bool
      * @throws Exception
      */
-    abstract public function touch(bool $ifNewOnly = false): self;
+    abstract public function touch(bool $ifNewOnly = false): bool;
 }

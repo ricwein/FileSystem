@@ -26,26 +26,62 @@ class Temp extends Disk
     /**
      * @var bool
      */
-    protected $isFreed = false;
+    protected $isFreed = true;
 
     /**
      * @throws FileAlreadyExistsException
      */
     public function __construct()
     {
+        // do nothing
+    }
+
+    /**
+     * @return bool
+     */
+    public function createFile(): bool
+    {
+        if (!$this->isFreed) {
+            return true;
+        }
+
         for ($try = 0; $try < self::MAX_RETRY; $try++) {
             $this->path = new Path([
                 \sys_get_temp_dir(),
-                'tmp.' . \bin2hex(\random_bytes(16))
+                'tmp.' . \bin2hex(\random_bytes(16)) . '.file'
             ]);
 
-            if (!file_exists($this->path->raw)) {
-                $this->touch(true);
-                return;
+            if (!file_exists($this->path->raw) && $this->touch(true)) {
+                $this->isFreed = false;
+                return true;
             }
         }
 
-        throw new FileAlreadyExistsException('unable to create temp file', 500);
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
+    public function createDir(): bool
+    {
+        if (!$this->isFreed) {
+            return true;
+        }
+
+        for ($try = 0; $try < self::MAX_RETRY; $try++) {
+            $this->path = new Path([
+                \sys_get_temp_dir(),
+                'tmp.' . \bin2hex(\random_bytes(16)) . '.dir'
+            ]);
+
+            if (!file_exists($this->path->raw) && $this->mkdir()) {
+                $this->isFreed = false;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -53,7 +89,7 @@ class Temp extends Disk
      */
     public function setConstraints(int $constraints): Storage
     {
-        return parent::setConstraints($constraints & ~Constraint::IN_OPENBASEDIR);
+        return parent::setConstraints($constraints & ~Constraint::IN_OPENBASEDIR & ~Constraint::IN_SAFEPATH & ~Constraint::DISALLOW_LINK);
     }
 
     /**
@@ -66,12 +102,27 @@ class Temp extends Disk
     }
 
     /**
+     * @inheritDoc
+     */
+    public function removeDir(): bool
+    {
+        $this->isFreed = true;
+        return parent::removeDir();
+    }
+
+    /**
      * remove tempfile on free
      */
     public function __destruct()
     {
-        if (!$this->isFreed) {
+        if ($this->isFreed || !file_exists($this->path->real)) {
+            return;
+        }
+
+        if (is_file($this->path->real)) {
             $this->removeFile();
+        } elseif (is_dir($this->path->real)) {
+            $this->removeDir();
         }
     }
 }

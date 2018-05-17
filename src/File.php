@@ -6,6 +6,7 @@ namespace ricwein\FileSystem;
 
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\Hash;
+use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
@@ -16,6 +17,19 @@ use ricwein\FileSystem\Exceptions\UnexpectedValueException;
  */
 class File extends FileSystem
 {
+    /**
+     * @inheritDoc
+     * @throws AccessDeniedException
+     */
+    public function __construct(Storage\Storage $storage, int $constraints = Constraint::STRICT)
+    {
+        if ($storage instanceof Storage\Disk\Temp && !$storage->createFile()) {
+            throw new AccessDeniedException('unable to create temp file', 500);
+        }
+
+        parent::__construct($storage, $constraints);
+    }
+
     /**
      * @param int|null $offset
      * @param int|null $length
@@ -59,16 +73,19 @@ class File extends FileSystem
     /**
      * copy file-content to new destination
      * @param Storage\Storage $destination
+     * @param int|null $constraints
      * @return self new File-object
      * @throws AccessDeniedException|FileNotFoundException
      */
-    public function saveAs(Storage\Storage $destination): self
+    public function saveAs(Storage\Storage $destination, ?int $constraints = null): self
     {
-        $destination->setConstraints($this->storage->getConstraints());
+        $destination->setConstraints(($constraints !== null) ? $constraints : $this->storage->getConstraints());
 
         // validate constraints
         if (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
             throw new FileNotFoundException('unable to open source file', 404, $this->storage->getConstraintViolations());
+        } elseif ($destination instanceof Storage\Disk\Temp && !$destination->createFile()) {
+            throw new AccessDeniedException('unable to create temp file', 500);
         } elseif (!$destination->doesSatisfyConstraints() || !$destination->isWriteable()) {
             throw new AccessDeniedException('unable to open destination file', 404, $destination->getConstraintViolations());
         }

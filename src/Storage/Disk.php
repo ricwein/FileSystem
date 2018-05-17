@@ -126,7 +126,7 @@ class Disk extends Storage
      */
     public function readFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string
     {
-        if (!$this->isFile()) {
+        if (!$this->isFile() || !$this->isReadable()) {
             throw new FileNotFoundException('file not found', 404);
         }
 
@@ -141,8 +141,8 @@ class Disk extends Storage
             }
 
             // read whole file
-            if ($offset === null || $length === null) {
-                return fread($handle, filesize($this->path->real));
+            if (($offset === null || $length === null) && false !== $filesize = filesize($this->path->real ?? $this->path->raw)) {
+                return ($filesize <= 0) ? '' : fread($handle, $filesize);
             }
 
             // read part of file
@@ -233,7 +233,7 @@ class Disk extends Storage
     /**
      * @inheritDoc
      */
-    public function touch(bool $ifNewOnly = false): Storage
+    public function touch(bool $ifNewOnly = false): bool
     {
         if ($ifNewOnly === true && $this->isFile()) {
             return true;
@@ -241,13 +241,26 @@ class Disk extends Storage
 
         // actual touch file
         if (!touch($this->path->raw)) {
-            throw new Exception('unable to touch file', 500);
+            return false;
         }
 
         // reset internal path-state to re-evaluate the realpath
         $this->path->reload();
 
-        return $this;
+        return true;
+    }
+
+    /**
+     * @return bool
+     */
+    public function mkdir():bool
+    {
+        if (mkdir($this->path->raw, 0777, true)) {
+            $this->path->reload();
+            return true;
+        }
+
+        return false;
     }
 
 

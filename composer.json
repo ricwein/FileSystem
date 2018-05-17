@@ -28,5 +28,10 @@
         "psr-4": {
             "ricwein\\FileSystem\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ricwein\\FileSystem\\Tests\\": "tests"
+        }
     }
 }

@@ -1,5 +1,7 @@
 <?php declare(strict_types = 1);
 
+namespace ricwein\FileSystem\Tests\File;
+
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
@@ -10,7 +12,7 @@ use ricwein\FileSystem\Helper\Constraint;
  *
  * @author Richard Weinhold
  */
-class SaveFileTest extends TestCase
+class CopyTest extends TestCase
 {
     /**
      * @return void
@@ -21,6 +23,8 @@ class SaveFileTest extends TestCase
         $destination = $source->saveAs(new Storage\Disk\Temp());
 
         $this->assertInstanceOf(Storage\Disk::class, $destination->storage());
+        $this->assertInstanceOf(Storage\Disk\Temp::class, $destination->storage());
+        $this->assertTrue($destination->isFile());
 
         $this->assertSame(
             $source->read(),

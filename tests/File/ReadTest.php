@@ -1,5 +1,7 @@
 <?php declare(strict_types = 1);
 
+namespace ricwein\FileSystem\Tests\File;
+
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
@@ -10,7 +12,7 @@ use ricwein\FileSystem\Helper\Constraint;
  *
  * @author Richard Weinhold
  */
-class ReadFileTest extends TestCase
+class ReadTest extends TestCase
 {
     /**
      * @return void
