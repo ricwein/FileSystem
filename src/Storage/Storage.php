@@ -4,16 +4,23 @@
  */
 namespace ricwein\FileSystem\Storage;
 
+use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Helper\Hash;
-use ricwein\FileSystem\Exception\Exception;
-use ricwein\FileSystem\Exception\FileNotFoundException;
-use ricwein\FileSystem\Exception\RuntimeException;
+use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\ConstraintsException;
 
 /**
  * base-implementation for all Storage Adapters
  */
 abstract class Storage
 {
+    /**
+     * @var Constraint|null
+     */
+    protected $constraints = null;
+
     /**
      * returns all detail-informations for testing/debugging purposes
      * @return string[]
@@ -24,6 +31,38 @@ abstract class Storage
             'storage' => static::class,
         ];
     }
+
+    /**
+     * @param  int  $constraints
+     * @return self
+     */
+    public function setConstraints(int $constraints): self
+    {
+        $this->constraints = new Constraint($constraints);
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getConstraints(): int
+    {
+        return $this->constraints->getConstraints();
+    }
+
+    /**
+     * @return ConstraintsException|null
+     */
+    public function getConstraintViolations(): ?ConstraintsException
+    {
+        return $this->constraints->getErrors();
+    }
+
+    /**
+     * check if current path satisfies the given constraints
+     * @return bool
+     */
+    abstract public function doesSatisfyConstraints(): bool;
 
     /**
      * check if file exists and is an actual file

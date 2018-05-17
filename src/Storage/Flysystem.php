@@ -6,7 +6,7 @@ namespace ricwein\FileSystem\Storage;
 
 use League\Flysystem\Filesystem;
 use League\Flysystem\Adapter\AbstractAdapter;
-use ricwein\FileSystem\Exception\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 
 /**
  * represents a file/directory at the local filesystem

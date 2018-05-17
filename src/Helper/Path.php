@@ -5,8 +5,8 @@
 namespace ricwein\FileSystem\Helper;
 
 use ricwein\FileSystem\FileSystem;
-use ricwein\FileSystem\Exception\RuntimeException;
-use ricwein\FileSystem\Exception\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 
 /**
  * path-resolver for filesystem
@@ -51,7 +51,7 @@ class Path
      * e.g.: /res/
      * @var string
      */
-    protected $savepath;
+    protected $safepath;
 
     /**
      * name of a file without file-extension
@@ -144,13 +144,13 @@ class Path
     {
         $components = $this->parseComponents();
 
-        $this->savepath = reset($components);
+        $this->safepath = reset($components);
 
         // cleanup path variable
         $path = implode(DIRECTORY_SEPARATOR, $components);
         $path = str_replace(['/', '\\', DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR], DIRECTORY_SEPARATOR, $path);
 
-        $this->filepath = str_replace($this->savepath, '', $path);
+        $this->filepath = str_replace($this->safepath, '', $path);
 
         // parse into path-details
         $details = pathinfo($path, PATHINFO_DIRNAME | PATHINFO_BASENAME | PATHINFO_EXTENSION | PATHINFO_FILENAME);
@@ -231,7 +231,7 @@ class Path
             'realpath' => $this->real,
             'directory' => $this->directory,
 
-            'savepath' => $this->savepath,
+            'safepath' => $this->safepath,
             'filepath' => $this->filepath,
 
             'basename' => $this->basename,

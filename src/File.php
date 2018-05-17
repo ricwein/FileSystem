@@ -6,10 +6,10 @@ namespace ricwein\FileSystem;
 
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\Hash;
-use ricwein\FileSystem\Exception\AccessDeniedException;
-use ricwein\FileSystem\Exception\FileNotFoundException;
-use ricwein\FileSystem\Exception\RuntimeException;
-use ricwein\FileSystem\Exception\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 
 /**
  * represents a selected directory
@@ -25,6 +25,12 @@ class File extends FileSystem
      */
     public function read(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string
     {
+
+        // validate constraints
+        if (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
+            throw new FileNotFoundException('unable to open file', 404, $this->storage->getConstraintViolations());
+        }
+
         return $this->storage->readFile($offset, $length, $mode);
     }
 
@@ -37,6 +43,12 @@ class File extends FileSystem
      */
     public function write(string $content, int $mode = 0): self
     {
+
+        // validate constraints
+        if (!$this->storage->doesSatisfyConstraints() || !$this->isWriteable()) {
+            throw new AccessDeniedException('unable to write file-content', 403, $this->storage->getConstraintViolations());
+        }
+
         if (!$this->storage->writeFile($content, $mode)) {
             throw new AccessDeniedException('unable to write file-content', 403);
         }
@@ -48,10 +60,18 @@ class File extends FileSystem
      * copy file-content to new destination
      * @param Storage\Storage $destination
      * @return self new File-object
-     * @throws AccessDeniedException|RuntimeException
+     * @throws AccessDeniedException|FileNotFoundException
      */
     public function saveAs(Storage\Storage $destination): self
     {
+        $destination->setConstraints($this->storage->getConstraints());
+
+        // validate constraints
+        if (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
+            throw new FileNotFoundException('unable to open source file', 404, $this->storage->getConstraintViolations());
+        } elseif (!$destination->doesSatisfyConstraints() || !$destination->isWriteable()) {
+            throw new AccessDeniedException('unable to open destination file', 404, $destination->getConstraintViolations());
+        }
 
         // copy file from filesystem to filesystem
         if ($this->storage instanceof Storage\Disk && $destination instanceof Storage\Disk) {
@@ -85,10 +105,16 @@ class File extends FileSystem
      * guess content-type (mime) of storage
      * @param  bool $withEncoding
      * @return string
-     * @throws UnexpectedValueException
+     * @throws UnexpectedValueException|FileNotFoundException
      */
     public function getType(bool $withEncoding = false): string
     {
+
+        // validate constraints
+        if (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
+            throw new FileNotFoundException('unable to open file', 404, $this->storage->getConstraintViolations());
+        }
+
         if (null !== $mime = $this->storage->getFileType($withEncoding)) {
             return $mime;
         }
@@ -98,10 +124,16 @@ class File extends FileSystem
 
     /**
      * @inheritDoc
-     * @throws UnexpectedValueException|RuntimeException
+     * @throws UnexpectedValueException|FileNotFoundException
      */
     public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): string
     {
+
+        // validate constraints
+        if (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
+            throw new FileNotFoundException('unable to open file', 404, $this->storage->getConstraintViolations());
+        }
+
         if (null !== $hash = $this->storage->getFileHash($mode, $algo)) {
             return $hash;
         }
@@ -110,11 +142,17 @@ class File extends FileSystem
     }
 
     /**
-     * remove file
-     * @return FileSystem
+     * @inheritDoc
+     * @throws AccessDeniedException|RuntimeException
      */
     public function remove(): FileSystem
     {
+
+        // validate constraints
+        if (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isWriteable()) {
+            throw new AccessDeniedException('unable to open file', 404, $this->storage->getConstraintViolations());
+        }
+
         if (!$this->storage->removeFile()) {
             throw new RuntimeException('unable to remove file', 500);
         }

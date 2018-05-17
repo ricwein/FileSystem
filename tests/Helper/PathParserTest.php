@@ -26,7 +26,7 @@ class PathParserTest extends TestCase
         $this->assertSame($pathA->basename, $pathB->basename);
         $this->assertSame($pathA->extension, $pathB->extension);
 
-        $this->assertNotSame($pathA->savepath, $pathB->savepath);
+        $this->assertNotSame($pathA->safepath, $pathB->safepath);
         $this->assertNotSame($pathA->filepath, $pathB->filepath);
     }
 }

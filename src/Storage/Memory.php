@@ -5,7 +5,7 @@
 namespace ricwein\FileSystem\Storage;
 
 use ricwein\FileSystem\Helper\Hash;
-use ricwein\FileSystem\Exception\RuntimeException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
 
 /**
  * represents a file/directory from in-memory
@@ -26,6 +26,14 @@ class Memory extends Storage
         if ($content !== null) {
             $this->content = $content;
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function doesSatisfyConstraints(): bool
+    {
+        return true;
     }
 
     /**

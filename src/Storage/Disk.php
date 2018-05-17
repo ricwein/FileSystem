@@ -6,9 +6,9 @@ namespace ricwein\FileSystem\Storage;
 
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Helper\Hash;
-use ricwein\FileSystem\Exception\Exception;
-use ricwein\FileSystem\Exception\FileNotFoundException;
-use ricwein\FileSystem\Exception\RuntimeException;
+use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\MimeType;
 
@@ -18,7 +18,7 @@ use ricwein\FileSystem\Helper\MimeType;
 class Disk extends Storage
 {
     /**
-     * @var Path|null
+     * @var Path
      */
     protected $path;
 
@@ -54,6 +54,14 @@ class Disk extends Storage
         return array_merge(parent::getDetails(), [
             'path' => $this->path->getDetails(),
         ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function doesSatisfyConstraints(): bool
+    {
+        return $this->constraints->isValidPath($this->path);
     }
 
     /**

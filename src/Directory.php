@@ -7,7 +7,7 @@ namespace ricwein\FileSystem;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage\Memory;
 use ricwein\FileSystem\Storage\Storage;
-use ricwein\FileSystem\Exception\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 
 /**
  * represents a selected directory

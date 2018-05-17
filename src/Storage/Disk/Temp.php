@@ -4,7 +4,9 @@
  */
 namespace ricwein\FileSystem\Storage\Disk;
 
-use ricwein\FileSystem\Exception\FileAlreadyExistsException;
+use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Storage\Storage;
+use ricwein\FileSystem\Exceptions\FileAlreadyExistsException;
 use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Storage\Disk;
 
@@ -44,6 +46,14 @@ class Temp extends Disk
         }
 
         throw new FileAlreadyExistsException('unable to create temp file', 500);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setConstraints(int $constraints): Storage
+    {
+        return parent::setConstraints($constraints & ~Constraint::IN_OPENBASEDIR);
     }
 
     /**

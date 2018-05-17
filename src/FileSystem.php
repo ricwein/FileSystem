@@ -9,20 +9,14 @@ use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage\Disk;
 use ricwein\FileSystem\Storage\Storage;
-use ricwein\FileSystem\Exception\RuntimeException;
-use ricwein\FileSystem\Exception\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 
 /**
  * base of all FileSystem type-classes (File/Directory)
  */
 abstract class FileSystem
 {
-
-    /**
-     * @var int
-     */
-    protected $constraints;
-
     /**
      * @var Storage
      */
@@ -30,12 +24,12 @@ abstract class FileSystem
 
     /**
      * @param Storage $storage
-     * @param int $constraints Constraint::LOOSE || Constraint::STRICT || Constraint::IN_SAVEPATH | Constraint::IN_OPENBASEDIR | Constraint::DISALLOW_LINK
+     * @param int $constraints Constraint::LOOSE || Constraint::STRICT || Constraint::IN_SAFEPATH | Constraint::IN_OPENBASEDIR | Constraint::DISALLOW_LINK
      */
     public function __construct(Storage $storage, int $constraints = Constraint::STRICT)
     {
         $this->storage = $storage;
-        $this->constraints = $constraints;
+        $this->storage->setConstraints($constraints);
     }
 
     /**
@@ -78,6 +72,7 @@ abstract class FileSystem
     }
 
     /**
+     * remove file
      * @return self
      */
     abstract public function remove(): self;
@@ -127,4 +122,12 @@ abstract class FileSystem
      * @return string
      */
     abstract public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): string;
+
+    /**
+     * @return bool
+     */
+    protected function isValid(): bool
+    {
+        return $this->storage->isValid();
+    }
 }

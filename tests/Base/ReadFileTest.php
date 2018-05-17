@@ -3,6 +3,7 @@
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
+use ricwein\FileSystem\Helper\Constraint;
 
 /**
  * test FileSyst\File bases
@@ -16,7 +17,7 @@ class ReadFileTest extends TestCase
      */
     public function testFileRead()
     {
-        $file = new File(new Storage\Disk(__DIR__ . '/../_examples', 'test.txt'));
+        $file = new File(new Storage\Disk(__DIR__ . '/../_examples', 'test.txt'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
         $this->assertSame(
             $file->read(),
             file_get_contents(__DIR__ . '/../_examples/test.txt')
@@ -35,7 +36,7 @@ class ReadFileTest extends TestCase
      */
     public function testPartialFileRead()
     {
-        $file = new File(new Storage\Disk(__DIR__ . '/../_examples', 'test.txt'));
+        $file = new File(new Storage\Disk(__DIR__ . '/../_examples', 'test.txt'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
 
         $length = (int) floor($file->getSize() / 2);
         $this->assertTrue(!empty($length));
@@ -60,10 +61,10 @@ class ReadFileTest extends TestCase
      */
     public function testFileMimeTypeGuessing()
     {
-        $file = new File(new Storage\Disk(__DIR__, '../_examples', 'test.txt'));
+        $file = new File(new Storage\Disk(__DIR__, '../_examples', 'test.txt'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
         $this->assertSame($file->getType(), 'text/plain');
 
-        $file = new File(new Storage\Disk(__DIR__, '../_examples', 'test.json'));
+        $file = new File(new Storage\Disk(__DIR__, '../_examples', 'test.json'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
         $this->assertSame($file->getType(), 'application/json');
     }
 }
