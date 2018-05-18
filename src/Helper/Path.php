@@ -185,6 +185,8 @@ class Path
      */
     public function reload(): self
     {
+        clearstatcache();
+
         $this->loaded = false;
         return $this;
     }
@@ -262,8 +264,10 @@ class Path
                 'filename' => $this->filename,
                 'extension' => $this->extension,
             ],
+
             'splInfo' => [
                 'type' => $this->fileInfo->getType(),
+                'size' => $this->fileInfo->getSize(),
             ],
         ];
     }

@@ -125,7 +125,8 @@ class Disk extends Storage
             }
 
             // read whole file
-            if (($offset === null || $length === null) && false !== $filesize = filesize($this->path->real ?? $this->path->raw)) {
+            if (($offset === null || $length === null)) {
+                $filesize = $this->path->fileInfo()->getSize();
                 return ($filesize <= 0) ? '' : fread($handle, $filesize);
             }
 
@@ -161,7 +162,12 @@ class Disk extends Storage
             }
 
             // write content
-            return fwrite($handle, $content) !== 0;
+            if (fwrite($handle, $content) <= 0) {
+                return false;
+            }
+
+            $this->path->reload();
+            return true;
         } finally {
 
             // ensure the file in unlocked after reading and the file-handler is closed again
@@ -235,7 +241,7 @@ class Disk extends Storage
      */
     public function list(bool $recursive = false): \Generator
     {
-        if (!file_exists($this->path->raw) || !is_dir($this->path->raw)) {
+        if (!file_exists($this->path->raw) || !$this->path->fileInfo()->isDir()) {
             throw new RuntimeException(sprintf('unable to list directory %s', $this->path->raw), 500);
         }
 
@@ -268,7 +274,7 @@ class Disk extends Storage
 
         // detect mimetype by magic.mime
         $type = (new \finfo($withEncoding ? FILEINFO_MIME : FILEINFO_MIME_TYPE))->file($this->path->raw);
-        if (!in_array($type, ['text/plain', 'application/octet-stream', 'inode/x-empty'], true)) {
+        if (!in_array($type, [false, 'text/plain', 'application/octet-stream', 'inode/x-empty'], true)) {
             return $type;
         }
 
