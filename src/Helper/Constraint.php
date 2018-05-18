@@ -45,7 +45,7 @@ class Constraint
     /**
      * @var string[]
      */
-    protected const ERROR_MAP = [
+    private const ERROR_MAP = [
         self::IN_SAFEPATH => 'the given path is not within the safepath',
         self::IN_OPENBASEDIR => 'the given path is not within the allowed \'open_basedir\' paths',
         self::DISALLOW_LINK => 'the given path contains a symlink',
@@ -113,11 +113,12 @@ class Constraint
     }
 
     /**
+     * @param \Throwable|null $previous
      * @return ConstraintsException|null
      */
-    public function getErrors(): ?ConstraintsException
+    public function getErrors(\Throwable $previous = null): ?ConstraintsException
     {
-        $result = null;
+        $previous = null;
 
         foreach ([
             self::DISALLOW_LINK,
@@ -127,10 +128,10 @@ class Constraint
 
             // unsatisfied constraint detected
             if (($this->failedFor & $constraint) === $constraint) {
-                $result = new ConstraintsException(self::ERROR_MAP[$constraint] ?? ('[' . $constraint . '] - constraint failed'), 500, $result);
+                $previous = new ConstraintsException(self::ERROR_MAP[$constraint] ?? ('[' . $constraint . '] - constraint failed'), 500, $previous);
             }
         }
 
-        return $result;
+        return $previous;
     }
 }

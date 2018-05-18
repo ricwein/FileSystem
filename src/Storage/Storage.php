@@ -51,11 +51,12 @@ abstract class Storage
     }
 
     /**
+     * @param \Throwable|null $previous
      * @return ConstraintsException|null
      */
-    public function getConstraintViolations(): ?ConstraintsException
+    public function getConstraintViolations(\Throwable $previous = null): ?ConstraintsException
     {
-        return $this->constraints->getErrors();
+        return $this->constraints->getErrors($previous);
     }
 
     /**

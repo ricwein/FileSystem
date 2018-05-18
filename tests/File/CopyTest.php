@@ -17,10 +17,10 @@ class CopyTest extends TestCase
     /**
      * @return void
      */
-    public function testSaveFromDiskToDisk()
+    public function testCopyFromDiskToDisk()
     {
         $source = new File(new Storage\Disk(__DIR__, '../_examples', 'test.txt'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
-        $destination = $source->saveAs(new Storage\Disk\Temp());
+        $destination = $source->copyTo(new Storage\Disk\Temp());
 
         $this->assertInstanceOf(Storage\Disk::class, $destination->storage());
         $this->assertInstanceOf(Storage\Disk\Temp::class, $destination->storage());
@@ -30,16 +30,16 @@ class CopyTest extends TestCase
             $source->read(),
             $destination->read()
         );
-        $this->assertSame(file_get_contents(__DIR__.'/../_examples/test.txt'), $destination->read());
+        $this->assertSame(file_get_contents(__DIR__ . '/../_examples/test.txt'), $destination->read());
     }
 
     /**
      * @return void
      */
-    public function testSaveFromDiskToMemory()
+    public function testCopyFromDiskToMemory()
     {
         $source = new File(new Storage\Disk(__DIR__, '../_examples', 'test.txt'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
-        $destination = $source->saveAs(new Storage\Memory());
+        $destination = $source->copyTo(new Storage\Memory());
 
         $this->assertInstanceOf(Storage\Memory::class, $destination->storage());
 
@@ -47,34 +47,34 @@ class CopyTest extends TestCase
             $source->read(),
             $destination->read()
         );
-        $this->assertSame(file_get_contents(__DIR__.'/../_examples/test.txt'), $destination->read());
+        $this->assertSame(file_get_contents(__DIR__ . '/../_examples/test.txt'), $destination->read());
     }
 
     /**
      * @return void
      */
-    public function testSaveFromMemoryToDisk()
+    public function testCopyFromMemoryToDisk()
     {
-        $source = new File(new Storage\Memory(file_get_contents(__DIR__.'/../_examples/test.txt')));
-        $destination = $source->saveAs(new Storage\Disk\Temp());
+        $source = new File(new Storage\Memory(file_get_contents(__DIR__ . '/../_examples/test.txt')));
+        $destination = $source->copyTo(new Storage\Disk\Temp());
 
         $this->assertInstanceOf(Storage\Disk\Temp::class, $destination->storage());
         $this->assertInstanceOf(Storage\Disk::class, $destination->storage());
         $this->assertSame($source->read(), $destination->read());
-        $this->assertSame(file_get_contents(__DIR__.'/../_examples/test.txt'), $destination->read());
+        $this->assertSame(file_get_contents(__DIR__ . '/../_examples/test.txt'), $destination->read());
     }
 
     /**
      * @return void
      */
-    public function testSaveFromMemoryToMemory()
+    public function testCopyFromMemoryToMemory()
     {
-        $source = new File(new Storage\Memory(file_get_contents(__DIR__.'/../_examples/test.txt')));
-        $destination = $source->saveAs(new Storage\Memory());
+        $source = new File(new Storage\Memory(file_get_contents(__DIR__ . '/../_examples/test.txt')));
+        $destination = $source->copyTo(new Storage\Memory());
 
         $this->assertInstanceOf(Storage\Memory::class, $destination->storage());
 
         $this->assertSame($source->read(), $destination->read());
-        $this->assertSame(file_get_contents(__DIR__.'/../_examples/test.txt'), $destination->read());
+        $this->assertSame(file_get_contents(__DIR__ . '/../_examples/test.txt'), $destination->read());
     }
 }

@@ -77,7 +77,7 @@ class File extends FileSystem
      * @return self new File-object
      * @throws AccessDeniedException|FileNotFoundException
      */
-    public function saveAs(Storage\Storage $destination, ?int $constraints = null): self
+    public function copyTo(Storage\Storage $destination, ?int $constraints = null): self
     {
         $destination->setConstraints(($constraints !== null) ? $constraints : $this->storage->getConstraints());
 
@@ -100,14 +100,62 @@ class File extends FileSystem
             return new static($destination);
         }
 
+        // read content into memory and write it into destination
         $destination->writeFile($this->storage->readFile());
+
+        // reload disk-path, since we may just created a new file
         if ($destination instanceof Storage\Disk) {
             $destination->path()->reload();
         }
 
-        return new static($destination);
+        return new self($destination);
     }
 
+    /**
+     * copy file-content to new destination
+     * @param Storage\Disk $destination
+     * @param int|null $constraints
+     * @return self new File-object
+     * @throws AccessDeniedException|FileNotFoundException
+     */
+    public function moveTo(Storage\Disk $destination, ?int $constraints = null): self
+    {
+        $destination->setConstraints(($constraints !== null) ? $constraints : $this->storage->getConstraints());
+
+
+
+        // validate constraints
+        if (!$this->storage instanceof Storage\Disk) {
+            throw new UnexpectedValueException('unable to move file from memory', 500);
+        } elseif (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
+            throw new FileNotFoundException('unable to open source file', 404, $this->storage->getConstraintViolations());
+        } elseif (!$destination->doesSatisfyConstraints() || !$destination->isWriteable()) {
+            throw new AccessDeniedException('unable to write to destination path', 404, $destination->getConstraintViolations());
+        }
+
+        // build destination path
+        if (!$destination->path()->fileInfo()->isFile()) {
+            $destination = new Storage\Disk($destination, $this->storage->getOriginalName());
+            $destination->setConstraints(($constraints !== null) ? $constraints : $this->storage->getConstraints());
+        }
+
+        if ($this->storage instanceof Storage\Disk\Uploaded) {
+
+            // move uploaded file
+            if (!move_uploaded_file($this->storage->path()->real, $destination->path()->raw)) {
+                throw new AccessDeniedException('unable to move uploaded file', 403);
+            }
+        } else {
+
+            // move file
+            if (!rename($this->storage->path()->real, $destination->path()->raw)) {
+                throw new AccessDeniedException('unable to move file', 403);
+            }
+        }
+
+        $destination->path()->reload();
+        return new static($destination);
+    }
 
     /**
      * check if file exists and is an actual file

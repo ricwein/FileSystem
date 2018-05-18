@@ -174,7 +174,6 @@ class Path
             $this->basename = null;
         }
 
-
         $this->loaded = true;
     }
 

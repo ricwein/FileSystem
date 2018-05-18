@@ -35,9 +35,7 @@ class Disk extends Storage
      */
     public function getDetails(): array
     {
-        return array_merge(parent::getDetails(), [
-            'path' => $this->path->getDetails(),
-        ]);
+        return array_merge(parent::getDetails(), $this->path->getDetails());
     }
 
     /**

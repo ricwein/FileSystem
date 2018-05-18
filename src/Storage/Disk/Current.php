@@ -23,7 +23,6 @@ class Current extends Disk
         $this->path = new Path(array_merge([getcwd()], $path));
     }
 
-
     /**
      * @inheritDoc
      */
