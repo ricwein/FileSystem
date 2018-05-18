@@ -185,9 +185,17 @@ class Path
      */
     public function reload(): self
     {
+
+        // we don't need to reload if the path isn't loaded in the first place
+        if ($this->loaded === false) {
+            return $this;
+        }
+
+        // reset path- and fileInfo-cache
         clearstatcache();
 
         $this->loaded = false;
+
         return $this;
     }
 
