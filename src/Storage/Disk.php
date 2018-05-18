@@ -145,9 +145,31 @@ class Disk extends Storage
     /**
      * @inheritDoc
      */
-    public function writeFile(string $content, int $mode = 0): bool
+    public function writeFile(string $content, bool $append = false, int $mode = LOCK_EX): bool
     {
-        return file_put_contents($this->path->real ?? $this->path->raw, $content, $mode) !== false;
+        // ensure file exists and path-real is set correctly
+        $this->touch(true);
+
+        // open file-handler in readonly mode
+        $handle = fopen($this->path->real, $append ? 'a' : 'w');
+
+        try {
+
+            // try to set lock if provided
+            if ($mode !== 0 && !flock($handle, $mode)) {
+                throw new RuntimeException('unable to lock file', 500);
+            }
+
+            // write content
+            return fwrite($handle, $content) !== 0;
+        } finally {
+
+            // ensure the file in unlocked after reading and the file-handler is closed again
+            if ($mode !== 0) {
+                flock($handle, LOCK_UN);
+            }
+            fclose($handle);
+        }
     }
 
     /**

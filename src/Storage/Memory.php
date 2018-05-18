@@ -99,9 +99,14 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
-    public function writeFile(string $content, int $mode = 0): bool
+    public function writeFile(string $content, bool $append = false, int $mode = 0): bool
     {
-        $this->content = $content;
+        if ($append) {
+            $this->content .= $content;
+        } else {
+            $this->content = $content;
+        }
+
         return true;
     }
 

@@ -117,10 +117,11 @@ abstract class Storage
     /**
      * write content to storage
      * @param  string $content
-     * @param int $mode FILE_USE_INCLUDE_PATH | FILE_APPEND | LOCK_EX
+     * @param bool $append
+     * @param int $mode LOCK_EX
      * @return bool
      */
-    abstract public function writeFile(string $content, int $mode = 0): bool;
+    abstract public function writeFile(string $content, bool $append = false, int $mode = 0): bool;
 
     /**
      * remove file from storage
