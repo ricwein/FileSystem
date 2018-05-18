@@ -51,11 +51,12 @@ class File extends FileSystem
     /**
      * write content to storage
      * @param  string $content
-     * @param int $mode FILE_USE_INCLUDE_PATH | FILE_APPEND | LOCK_EX
+     * @param bool $append
+     * @param int $mode LOCK_EX
      * @return self
      * @throws AccessDeniedException
      */
-    public function write(string $content, int $mode = 0): self
+    public function write(string $content, bool $append = false, int $mode = LOCK_EX): self
     {
 
         // validate constraints
@@ -63,7 +64,7 @@ class File extends FileSystem
             throw new AccessDeniedException('unable to write file-content', 403, $this->storage->getConstraintViolations());
         }
 
-        if (!$this->storage->writeFile($content, $mode)) {
+        if (!$this->storage->writeFile($content, $append, $mode)) {
             throw new AccessDeniedException('unable to write file-content', 403);
         }
 

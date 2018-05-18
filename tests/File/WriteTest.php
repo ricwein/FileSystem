@@ -16,29 +16,68 @@ class WriteTest extends TestCase
     /**
      * @return void
      */
-    public function testFileWriteTempDisk()
+    public function testFileOverwriteTempDisk()
     {
-        $message = \bin2hex(\random_bytes(2 ** 10));
-
         $file = new File(new Storage\Disk\Temp());
+
+        $message = \bin2hex(\random_bytes(2 ** 10));
         $file->write($message);
 
-        $this->assertSame(
-            $message,
-            $file->read()
-        );
+        // overwrite file-content
+        $message = \bin2hex(\random_bytes(2 ** 9));
+        $file->write($message);
+
+        $this->assertSame($message, $file->read());
     }
 
     /**
      * @return void
      */
-    public function testFileWriteMemory()
+    public function testFileWriteAppendTempDisk()
     {
-        $message = \bin2hex(\random_bytes(2 ** 10));
+        $file = new File(new Storage\Disk\Temp());
 
+        $messageA = \bin2hex(\random_bytes(2 ** 10));
+        $file->write($messageA);
+
+        // overwrite file-content
+        $messageB = \bin2hex(\random_bytes(2 ** 9));
+        $file->write($messageB, true);
+
+        $this->assertSame($messageA . $messageB, $file->read());
+    }
+
+    /**
+     * @return void
+     */
+    public function testFileOverwriteMemory()
+    {
         $file = new File(new Storage\Memory());
+
+        $message = \bin2hex(\random_bytes(2 ** 10));
+        $file->write($message);
+
+        // overwrite file-content
+        $message = \bin2hex(\random_bytes(2 ** 9));
         $file->write($message);
 
         $this->assertSame($message, $file->read());
+    }
+
+    /**
+     * @return void
+     */
+    public function testFileWriteAppendMemory()
+    {
+        $file = new File(new Storage\Memory());
+
+        $messageA = \bin2hex(\random_bytes(2 ** 10));
+        $file->write($messageA);
+
+        // overwrite file-content
+        $messageB = \bin2hex(\random_bytes(2 ** 9));
+        $file->write($messageB, true);
+
+        $this->assertSame($messageA . $messageB, $file->read());
     }
 }
