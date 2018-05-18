@@ -192,7 +192,7 @@ class Path
         }
 
         // reset path- and fileInfo-cache
-        clearstatcache();
+        clearstatcache(false, $this->raw);
 
         $this->loaded = false;
 
