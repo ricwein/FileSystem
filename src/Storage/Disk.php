@@ -192,12 +192,12 @@ class Disk extends Storage
      */
     protected function getIterator(bool $recursive, int $mode = \RecursiveIteratorIterator::SELF_FIRST): \Iterator
     {
-        if ($recursive) {
+        if (!$recursive) {
             return new \DirectoryIterator($this->path->real);
         }
 
         return new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->path->real, \FilesystemIterator::SKIP_DOTS),
+            new \RecursiveDirectoryIterator($this->path->real, \RecursiveDirectoryIterator::SKIP_DOTS),
             $mode
         );
     }
@@ -210,37 +210,29 @@ class Disk extends Storage
      */
     public function removeDir(): bool
     {
-        try {
-            if (!$this->isDir()) {
-                throw new AccessDeniedException(sprintf('unable to remove non-existing file for path: "%s"', $this->path->raw), 500);
-            }
-
-            $iterator = $this->getIterator(true, \RecursiveIteratorIterator::CHILD_FIRST);
-
-            /** @var \SplFileInfo $file */
-            foreach ($iterator as $file) {
-                if (in_array($file->getFilename(), ['.', '..'], true)) {
-
-                    // skip dotfiles like /. or /..
-                    continue;
-                } elseif (!$file->isReadable()) {
-
-                    // file not readable
-                    throw new AccessDeniedException(sprintf('unable to access file for path: "%s"', $file->getPathname()), 500);
-                }
-
-                // try to remove files/dirs/links
-                switch ($file->getType()) {
-                    case 'dir': @rmdir($file->getRealPath()); break;
-                    case 'link': unlink($file->getPathname()); break;
-                    default: unlink($file->getRealPath());
-                }
-            }
-
-            return @rmdir($this->path->raw);
-        } finally {
-            $this->path->reload();
+        if (!$this->isDir()) {
+            throw new AccessDeniedException(sprintf('unable to remove non-existing file for path: "%s"', $this->path->raw), 500);
         }
+
+        $iterator = $this->getIterator(true, \RecursiveIteratorIterator::CHILD_FIRST);
+
+        /** @var \SplFileInfo $file */
+        foreach ($iterator as $file) {
+
+            // file not readable
+            if (!$file->isReadable()) {
+                throw new AccessDeniedException(sprintf('unable to access file for path: "%s"', $file->getPathname()), 500);
+            }
+
+            // try to remove files/dirs/links
+            switch ($file->getType()) {
+                case 'dir': rmdir($file->getRealPath()); break;
+                case 'link': unlink($file->getPathname()); break;
+                default: unlink($file->getRealPath());
+            }
+        }
+
+        return rmdir($this->path->raw);
     }
 
     /**
@@ -258,17 +250,9 @@ class Disk extends Storage
 
         /** @var \SplFileInfo $file */
         foreach ($iterator as $file) {
-            if (in_array($file->getFilename(), ['.', '..'], true)) {
 
-                // skip dotfiles like /. or /..
-                continue;
-            } elseif ($file->getRealPath() === $this->path->real) {
-
-                // don't list the current root-dir
-                continue;
-            } elseif (!$file->isReadable()) {
-
-                // file not readable
+            // file not readable
+            if (!$file->isReadable()) {
                 throw new AccessDeniedException(sprintf('unable to access file for path: "%s"', $file->getPathname()), 500);
             }
 
