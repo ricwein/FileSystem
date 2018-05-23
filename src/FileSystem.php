@@ -33,6 +33,14 @@ abstract class FileSystem
     }
 
     /**
+     * free internal resources
+     */
+    public function __destruct()
+    {
+        $this->storage = null;
+    }
+
+    /**
      * @internal this should only be used for debugging purposes
      * @return Storage
      */

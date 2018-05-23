@@ -6,6 +6,8 @@ use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Storage;
 
+use ricwein\FileSystem\Helper\Path;
+
 /**
  * test FileSyst\File bases
  *
@@ -33,8 +35,6 @@ class WriteTest extends TestCase
         $dir2 = new Directory(new Storage\Disk($dir1, 'dir2'));
         $dir3 = new Directory(new Storage\Disk($dir1, 'dir3/dir4/dir5'));
 
-        $tmpPath = $dir1->path()->real;
-
         $dir2->create();
         $dir3->create();
 
@@ -46,9 +46,22 @@ class WriteTest extends TestCase
 
         $this->assertSame('/dir2', str_replace($dir1->path()->real, '', $dir2->path()->real));
         $this->assertSame('/dir3/dir4/dir5', str_replace($dir1->path()->real, '', $dir3->path()->real));
+    }
 
-        $dir1 = null;
+    /**
+     * @return void
+     */
+    public function testTempDirRemoval()
+    {
+        $tmpDir = new Directory(new Storage\Disk\Temp());
 
-        // $this->assertFalse(is_dir($dir2->path()->raw));
+        $this->assertTrue(file_exists($tmpDir->path()->raw));
+        $this->assertTrue(file_exists($tmpDir->path()->real));
+        $this->assertTrue(is_dir($tmpDir->path()->real));
+
+        $path = $tmpDir->path()->raw;
+        $tmpDir = null;
+
+        $this->assertFalse(file_exists($path));
     }
 }

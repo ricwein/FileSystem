@@ -115,14 +115,16 @@ class Temp extends Disk
      */
     public function __destruct()
     {
-        if ($this->isFreed || !file_exists($this->path->real)) {
+        if ($this->isFreed || !file_exists($this->path->raw)) {
             return;
         }
 
-        if (is_file($this->path->real)) {
+        if (is_file($this->path->raw)) {
             $this->removeFile();
-        } elseif (is_dir($this->path->real)) {
+        } elseif (is_dir($this->path->raw)) {
+            // fwrite(STDERR, print_r(['before' => ['rmdir' => $this->path->raw, 'is_dir' => is_dir($this->path->raw), 'file_exists' => file_exists($this->path->raw)]], true));
             $this->removeDir();
+            // fwrite(STDERR, print_r(['after' => ['rmdir' => $this->path->raw, 'is_dir' => is_dir($this->path->raw), 'file_exists' => file_exists($this->path->raw)]], true));
         }
     }
 }

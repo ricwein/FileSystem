@@ -214,25 +214,29 @@ class Disk extends Storage
             throw new AccessDeniedException(sprintf('unable to remove non-existing file for path: "%s"', $this->path->raw), 500);
         }
 
-        $iterator = $this->getIterator(true, \RecursiveIteratorIterator::CHILD_FIRST);
+        try {
+            $iterator = $this->getIterator(true, \RecursiveIteratorIterator::CHILD_FIRST);
 
-        /** @var \SplFileInfo $file */
-        foreach ($iterator as $file) {
+            /** @var \SplFileInfo $file */
+            foreach ($iterator as $file) {
 
-            // file not readable
-            if (!$file->isReadable()) {
-                throw new AccessDeniedException(sprintf('unable to access file for path: "%s"', $file->getPathname()), 500);
+                // file not readable
+                if (!$file->isReadable()) {
+                    throw new AccessDeniedException(sprintf('unable to access file for path: "%s"', $file->getPathname()), 500);
+                }
+
+                // try to remove files/dirs/links
+                switch ($file->getType()) {
+                    case 'dir': rmdir($file->getRealPath()); break;
+                    case 'link': unlink($file->getPathname()); break;
+                    default: unlink($file->getRealPath());
+                }
             }
 
-            // try to remove files/dirs/links
-            switch ($file->getType()) {
-                case 'dir': rmdir($file->getRealPath()); break;
-                case 'link': unlink($file->getPathname()); break;
-                default: unlink($file->getRealPath());
-            }
+            return rmdir($this->path->raw);
+        } finally {
+            $this->path->reload();
         }
-
-        return rmdir($this->path->raw);
     }
 
     /**
