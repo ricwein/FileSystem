@@ -344,7 +344,7 @@ class Disk extends Storage
     /**
      * @return bool
      */
-    public function mkdir():bool
+    public function mkdir(): bool
     {
         if (mkdir($this->path->raw, 0777, true)) {
             $this->path->reload();

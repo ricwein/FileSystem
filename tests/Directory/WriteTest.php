@@ -6,8 +6,6 @@ use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Storage;
 
-use ricwein\FileSystem\Helper\Path;
-
 /**
  * test FileSyst\File bases
  *
@@ -35,8 +33,8 @@ class WriteTest extends TestCase
         $dir2 = new Directory(new Storage\Disk($dir1, 'dir2'));
         $dir3 = new Directory(new Storage\Disk($dir1, 'dir3/dir4/dir5'));
 
-        $dir2->create();
-        $dir3->create();
+        $dir2->mkdir();
+        $dir3->mkdir();
 
         foreach ([$dir1, $dir2, $dir3] as $dir) {
             $this->assertTrue(file_exists($dir->path()->raw));

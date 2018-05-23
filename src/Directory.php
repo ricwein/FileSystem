@@ -36,10 +36,12 @@ class Directory extends FileSystem
      * create new dir if not exists
      * @return self
      */
-    public function create():self
+    public function mkdir():self
     {
         if (!$this->storage->isDir()) {
-            $this->storage->mkdir();
+            if (!$this->storage->mkdir()) {
+                throw new AccessDeniedException(sprintf('unable to create directory at: "%s"', $this->storage->path()->raw), 500);
+            }
         }
         return $this;
     }
