@@ -31,7 +31,15 @@ class ReadTest extends TestCase
         $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'));
 
         $files = [];
+
+        /** @var Directory|File $entry */
         foreach ($dir->list(false) as $file) {
+
+            // skip directories
+            if ($file instanceof Directory) {
+                continue;
+            }
+
             $files[$file->path()->filename] = $file;
 
             $this->assertInstanceOf(File::class, $file);

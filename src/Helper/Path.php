@@ -123,10 +123,22 @@ class Path
             // parse path-component
             if (is_string($component)) {
                 $path = $component;
-            } elseif ($component instanceof self) {
-                $path = (next($this->components) === false) ? $component->raw : $component->directory;
-            } elseif ($component instanceof FileSystem) {
-                $path = (next($this->components) === false) ? $component->path()->raw : $component->path()->directory;
+            } elseif ($component instanceof self || $component instanceof FileSystem) {
+                $path = $component instanceof FileSystem ? $component->path() : $component;
+
+                if ($first === $key) {
+
+                    // first component
+                    $path = $path->fileInfo()->isDir() ? $path->raw : $path->directory;
+                } elseif (next($this->components) !== false) {
+
+                    // middle part
+                    $path = $path->directory;
+                } else {
+
+                    // last part
+                    $path = $path->raw;
+                }
             } else {
                 throw new UnexpectedValueException(sprintf('invalid path-component of type \'%s\'', gettype($component)), 500);
             }

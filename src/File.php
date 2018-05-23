@@ -197,7 +197,7 @@ class File extends FileSystem
 
         // validate constraints
         if (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
-            throw new FileNotFoundException('unable to open file', 404, $this->storage->getConstraintViolations());
+            throw new FileNotFoundException(sprintf('unable to open file for path: "%s"', $this->path()->raw), 404, $this->storage->getConstraintViolations());
         }
 
         if (null !== $hash = $this->storage->getFileHash($mode, $algo)) {

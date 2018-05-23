@@ -4,6 +4,7 @@
  */
 namespace ricwein\FileSystem;
 
+use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Helper\Hash;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage;
@@ -32,6 +33,18 @@ class Directory extends FileSystem
     }
 
     /**
+     * create new dir if not exists
+     * @return self
+     */
+    public function create():self
+    {
+        if (!$this->storage->isDir()) {
+            $this->storage->mkdir();
+        }
+        return $this;
+    }
+
+    /**
      * @inheritDoc
      */
     public function remove(): FileSystem
@@ -52,12 +65,15 @@ class Directory extends FileSystem
     /**
      * @param bool $recursive
      * @param int|null $constraints
-     * @return File[]
+     * @return File[]|Directory[]
      */
     public function list(bool $recursive = false, ?int $constraints = null): \Generator
     {
-        foreach ($this->storage->list() as $file) {
-            if (!$file->isDir()) {
+        /** @var Storage\Disk $file */
+        foreach ($this->storage->list($recursive) as $file) {
+            if ($file->isDir()) {
+                yield new Directory($file, $constraints ?? $this->storage->getConstraints());
+            } else {
                 yield new File($file, $constraints ?? $this->storage->getConstraints());
             }
         }
@@ -71,11 +87,9 @@ class Directory extends FileSystem
     {
         $fileHashes = [];
 
-        foreach ($this->list($recursive) as $file) {
-            if (!$file->isFile()) {
-                continue;
-            }
-            $fileHashes[] = $file->getHash($mode, $algo);
+        /** @var Directory|File $entry */
+        foreach ($this->list($recursive) as $entry) {
+            $fileHashes[] = $entry->getHash($mode, $algo);
         }
 
         return hash($algo, implode(':', $fileHashes), false);

@@ -23,7 +23,10 @@ class HashTest extends TestCase
         $dirA = new Directory(new Storage\Disk(__DIR__, '../_examples'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
         $dirB = new Directory(new Storage\Disk(__DIR__, '../_examples'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
 
-        $this->assertSame($dirA->getHash(), $dirB->getHash());
+        $this->assertSame(
+            $dirA->getHash(),
+            $dirB->getHash()
+        );
     }
 
     /**
