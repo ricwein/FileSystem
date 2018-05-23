@@ -41,22 +41,43 @@ class Directory extends FileSystem
     }
 
     /**
-     * @inheritDoc
+     * check if directory exists and is an actual directory
+     * @return bool
      */
-    public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): string
+    public function isDir(): bool
     {
-        // @TODO implement directory hashing
-        return '';
+        return $this->storage->isDir();
     }
 
     /**
      * @param bool $recursive
+     * @param int|null $constraints
      * @return File[]
      */
-    public function list(bool $recursive = false): \Generator
+    public function list(bool $recursive = false, ?int $constraints = null): \Generator
     {
         foreach ($this->storage->list() as $file) {
-            yield new File($file, $this->storage->getConstraints());
+            if (!$file->isDir()) {
+                yield new File($file, $constraints ?? $this->storage->getConstraints());
+            }
         }
+    }
+
+    /**
+     * @inheritDoc
+     * @param bool $recursive
+     */
+    public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $recursive = true): string
+    {
+        $fileHashes = [];
+
+        foreach ($this->list($recursive) as $file) {
+            if (!$file->isFile()) {
+                continue;
+            }
+            $fileHashes[] = $file->getHash($mode, $algo);
+        }
+
+        return hash($algo, implode(':', $fileHashes), false);
     }
 }

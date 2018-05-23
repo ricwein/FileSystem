@@ -67,7 +67,7 @@ class Disk extends Storage
      */
     public function isDir(): bool
     {
-        return $this->path->fileInfo()->isDir();
+        return $this->path->real !== null && file_exists($this->path->real) && $this->path->fileInfo()->isDir();
     }
 
     /**
@@ -223,33 +223,36 @@ class Disk extends Storage
     protected function getIterator(bool $recursive, int $mode = \RecursiveIteratorIterator::SELF_FIRST): \Iterator
     {
         if ($recursive) {
-            return new \DirectoryIterator($this->path->raw);
+            return new \DirectoryIterator($this->path->real);
         }
 
         return new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->path->raw, \FilesystemIterator::SKIP_DOTS),
+            new \RecursiveDirectoryIterator($this->path->real, \FilesystemIterator::SKIP_DOTS),
             $mode
         );
     }
 
     /**
      * @param bool $recursive
-     * @return self[]
+     * @return self[] list of all file-paths
      * @throws RuntimeException
      */
     public function list(bool $recursive = false): \Generator
     {
-        if (!file_exists($this->path->raw) || !$this->path->fileInfo()->isDir()) {
-            throw new RuntimeException(sprintf('unable to list directory %s', $this->path->raw), 500);
+        if (!$this->isDir()) {
+            throw new RuntimeException(sprintf('unable to open directory "%s"', $this->path->raw), 500);
         }
 
-        $iterator = $this->getIterator($recursive);
+        $iterator = $this->getIterator($recursive, 0);
 
         /** @var \SplFileInfo $file */
         foreach ($iterator as $file) {
-            if (!$file->isDir()) {
-                yield new self($this->path->directory, str_replace($this->path->directory, '', $file->getRealPath()));
+            if ($file->isDir()) {
+                continue;
             }
+
+            $pathBase = dirname(realpath($this->path->safepath));
+            yield new self($pathBase, str_replace($pathBase, '', $file->getRealPath()));
         }
     }
 

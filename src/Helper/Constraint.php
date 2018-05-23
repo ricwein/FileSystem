@@ -45,7 +45,7 @@ class Constraint
     /**
      * @var string[]
      */
-    private const ERROR_MAP = [
+    protected const ERROR_MAP = [
         self::IN_SAFEPATH => 'the given path is not within the safepath',
         self::IN_OPENBASEDIR => 'the given path is not within the allowed \'open_basedir\' paths',
         self::DISALLOW_LINK => 'the given path contains a symlink',
@@ -78,6 +78,29 @@ class Constraint
     }
 
     /**
+     * @param \Throwable|null $previous
+     * @return ConstraintsException|null
+     */
+    public function getErrors(\Throwable $previous = null): ?ConstraintsException
+    {
+        $previous = null;
+
+        foreach ([
+            self::DISALLOW_LINK,
+            self::IN_OPENBASEDIR,
+            self::IN_SAFEPATH
+        ] as $constraint) {
+
+            // unsatisfied constraint detected
+            if (($this->failedFor & $constraint) === $constraint) {
+                $previous = new ConstraintsException('[' . $constraint . '] - constraint failed'. (isset(self::ERROR_MAP[$constraint]) ? (': ' . self::ERROR_MAP[$constraint]) : ''), 500, $previous);
+            }
+        }
+
+        return $previous;
+    }
+
+    /**
      * @param Path $path
      * @return bool
      */
@@ -95,7 +118,7 @@ class Constraint
         if (
             ($this->constraints & self::DISALLOW_LINK) === self::DISALLOW_LINK
             && file_exists($path->raw)
-            && is_link($path->raw)
+            && $path->fileInfo()->isLink()
         ) {
             $this->failedFor |= self::DISALLOW_LINK;
         }
@@ -110,28 +133,5 @@ class Constraint
         }
 
         return $this->failedFor === 0;
-    }
-
-    /**
-     * @param \Throwable|null $previous
-     * @return ConstraintsException|null
-     */
-    public function getErrors(\Throwable $previous = null): ?ConstraintsException
-    {
-        $previous = null;
-
-        foreach ([
-            self::DISALLOW_LINK,
-            self::IN_OPENBASEDIR,
-            self::IN_SAFEPATH
-        ] as $constraint) {
-
-            // unsatisfied constraint detected
-            if (($this->failedFor & $constraint) === $constraint) {
-                $previous = new ConstraintsException(self::ERROR_MAP[$constraint] ?? ('[' . $constraint . '] - constraint failed'), 500, $previous);
-            }
-        }
-
-        return $previous;
     }
 }

@@ -28,7 +28,7 @@ class ReadTest extends TestCase
      */
     public function testListing()
     {
-        $dir = new Directory(new Storage\Disk(__DIR__, '../_examples'));
+        $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'));
 
         $files = [];
         foreach ($dir->list(false) as $file) {
@@ -36,6 +36,10 @@ class ReadTest extends TestCase
 
             $this->assertInstanceOf(File::class, $file);
             $this->assertInstanceOf(Storage\Disk::class, $file->storage());
+        }
+
+        foreach ($files as $file) {
+            $this->assertTrue($file->isFile());
         }
     }
 }
