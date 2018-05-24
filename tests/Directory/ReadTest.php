@@ -40,7 +40,7 @@ class ReadTest extends TestCase
                 continue;
             }
 
-            $files[$file->path()->filename] = $file;
+            $files[] = $file;
 
             $this->assertInstanceOf(File::class, $file);
             $this->assertInstanceOf(Storage\Disk::class, $file->storage());

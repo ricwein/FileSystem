@@ -6,7 +6,6 @@ namespace ricwein\FileSystem\Storage\Disk;
 
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage\Storage;
-use ricwein\FileSystem\Exceptions\FileAlreadyExistsException;
 use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Storage\Disk;
 
@@ -26,10 +25,10 @@ class Temp extends Disk
     /**
      * @var bool
      */
-    protected $isFreed = true;
+    protected $isFree = true;
 
     /**
-     * @throws FileAlreadyExistsException
+     * @inheritDoc
      */
     public function __construct()
     {
@@ -41,7 +40,7 @@ class Temp extends Disk
      */
     public function createFile(): bool
     {
-        if (!$this->isFreed) {
+        if (!$this->isFree) {
             return true;
         }
 
@@ -52,7 +51,7 @@ class Temp extends Disk
             ]);
 
             if (!file_exists($this->path->raw) && $this->touch(true)) {
-                $this->isFreed = false;
+                $this->isFree = false;
                 return true;
             }
         }
@@ -65,7 +64,7 @@ class Temp extends Disk
      */
     public function createDir(): bool
     {
-        if (!$this->isFreed) {
+        if (!$this->isFree) {
             return true;
         }
 
@@ -76,7 +75,7 @@ class Temp extends Disk
             ]);
 
             if (!file_exists($this->path->raw) && $this->mkdir()) {
-                $this->isFreed = false;
+                $this->isFree = false;
                 return true;
             }
         }
@@ -97,7 +96,7 @@ class Temp extends Disk
      */
     public function removeFile(): bool
     {
-        $this->isFreed = true;
+        $this->isFree = true;
         return parent::removeFile();
     }
 
@@ -106,7 +105,7 @@ class Temp extends Disk
      */
     public function removeDir(): bool
     {
-        $this->isFreed = true;
+        $this->isFree = true;
         return parent::removeDir();
     }
 
@@ -115,7 +114,7 @@ class Temp extends Disk
      */
     public function mkdir(): bool
     {
-        $this->isFreed = false;
+        $this->isFree = false;
         return parent::mkdir();
     }
 
@@ -124,7 +123,7 @@ class Temp extends Disk
      */
     public function __destruct()
     {
-        if ($this->isFreed || !file_exists($this->path->raw)) {
+        if ($this->isFree || !file_exists($this->path->raw)) {
             return;
         }
 

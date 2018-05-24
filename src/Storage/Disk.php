@@ -241,8 +241,8 @@ class Disk extends Storage
 
     /**
      * @param bool $recursive
-     * @return self[] list of all file-paths
-     * @throws RuntimeException
+     * @return self[] list of all files
+     * @throws RuntimeException|AccessDeniedException
      */
     public function list(bool $recursive = false): \Generator
     {

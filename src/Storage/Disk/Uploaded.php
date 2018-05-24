@@ -99,9 +99,9 @@ class Uploaded extends Disk
     /**
      * @inheritDoc
      */
-    public function getConstraintViolations(): ?ConstraintsException
+    public function getConstraintViolations(\Throwable $previous = null): ?ConstraintsException
     {
-        return parent::getConstraintViolations($this->previousConstraintError);
+        return parent::getConstraintViolations($previous ?? $this->previousConstraintError);
     }
 
     /**
