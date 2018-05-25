@@ -60,6 +60,14 @@ abstract class Storage
     }
 
     /**
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return sprintf('-- not implemneted for %s --', get_class($this));
+    }
+
+    /**
      * check if current path satisfies the given constraints
      * @return bool
      */

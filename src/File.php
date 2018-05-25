@@ -123,8 +123,6 @@ class File extends FileSystem
     {
         $destination->setConstraints(($constraints !== null) ? $constraints : $this->storage->getConstraints());
 
-
-
         // validate constraints
         if (!$this->storage instanceof Storage\Disk) {
             throw new UnexpectedValueException('unable to move file from memory', 500);

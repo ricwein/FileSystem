@@ -308,4 +308,16 @@ class Path
 
         return $this->$key;
     }
+
+    /**
+     * @return string
+     */
+    public function __toString(): string
+    {
+        if (!$this->loaded) {
+            $this->resolvePath();
+        }
+
+        return $this->raw;
+    }
 }

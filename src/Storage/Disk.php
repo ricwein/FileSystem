@@ -211,7 +211,7 @@ class Disk extends Storage
     public function removeDir(): bool
     {
         if (!$this->isDir()) {
-            throw new AccessDeniedException(sprintf('unable to remove non-existing file for path: "%s"', $this->path->raw), 500);
+            throw new AccessDeniedException(sprintf('unable to remove directory for path: "%s"', $this->path->raw), 500);
         }
 
         try {
@@ -360,5 +360,13 @@ class Disk extends Storage
     public function isDotfile(): bool
     {
         return strpos($this->storage->path()->basename, '.') === 0;
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return (string) $this->path;
     }
 }

@@ -9,6 +9,8 @@ use League\Flysystem\Adapter\AbstractAdapter;
 use ricwein\FileSystem\Helper\Hash;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 
 /**
@@ -134,6 +136,8 @@ class Flysystem extends Storage
     {
         if ($offset !== null || $length !== null) {
             throw new UnsupportedException('partial file-read is not supported by FlySystem Adapters', 500);
+        } elseif (!$this->isFile()) {
+            throw new FileNotFoundException('file not found', 404);
         }
 
         return $this->flysystem->read($this->path);
@@ -170,6 +174,10 @@ class Flysystem extends Storage
      */
     public function removeDir(): bool
     {
+        if (!$this->isDir()) {
+            throw new AccessDeniedException(sprintf('unable to remove directory: "%s"', $this->path), 500);
+        }
+
         if ($this->flysystem->deleteDir($this->path)) {
             $this->metadata = $this->flysystem->getMetadata($this->path);
             return true;
@@ -207,7 +215,11 @@ class Flysystem extends Storage
      */
     public function getFileType(bool $withEncoding = false): ?string
     {
-        return $this->flysystem->getMimetype($this->path);
+        if (false !== $type = $this->flysystem->getMimetype($this->path)) {
+            return $type;
+        }
+
+        return null;
     }
 
     /**
@@ -216,7 +228,15 @@ class Flysystem extends Storage
      */
     public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): ?string
     {
-        throw new UnsupportedException('file-hashes are not supported by the default flysystem adapters', 500);
+        if (!$this->isFile()) {
+            throw new FileNotFoundException('file not found', 404);
+        }
+
+        switch ($mode) {
+            case Hash::CONTENT: return hash($algo, $this->readFile(), false);
+            case Hash::FILENAME: return hash($algo, $this->path, false);
+            default: throw new UnsupportedException('file-hashes are not supported by the default flysystem adapters', 500);
+        }
     }
 
     /**
