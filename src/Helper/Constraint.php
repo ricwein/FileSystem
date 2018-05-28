@@ -83,8 +83,6 @@ class Constraint
      */
     public function getErrors(\Throwable $previous = null): ?ConstraintsException
     {
-        $previous = null;
-
         foreach ([
             self::DISALLOW_LINK,
             self::IN_OPENBASEDIR,

@@ -37,30 +37,32 @@ class Uploaded extends Disk
     protected $previousConstraintError = null;
 
     /**
+     * original file-name
      * @var string
      */
     protected $name;
 
     /**
-     * @param array $file
+     * @param array $file $_FILE array in the format:
+     *  ['tmp_name' => string, 'name' => string, 'error' => int]
      * @throws
      */
     public function __construct(array $file)
     {
         if (!isset($file['tmp_name']) || !is_string($file['tmp_name'])) {
             throw new UnexpectedValueException('invalid or missing \'tmp_name\'', 500);
-        } elseif (!array_key_exists('error', $file) || !is_int($file['error'])) {
-            throw new UnexpectedValueException('invalid or missing \'error\'', 500);
         }
+        $this->path = new Path([$file['tmp_name']]);
 
-        $this->path = new Path($file['tmp_name']);
-        $this->checkUploadError($file['error']);
+        if (array_key_exists('error', $file) && is_int($file['error'])) {
+            $this->checkUploadError($file['error']);
+        }
 
         if (!isset($file['name']) || !is_string($file['name'])) {
-            throw new UnexpectedValueException('invalid or missing \'name\'', 500);
+            $this->name = basename($file['tmp_name']);
+        } else {
+            $this->name = $file['name'];
         }
-
-        $this->name = $file['name'];
     }
 
     /**
@@ -101,7 +103,7 @@ class Uploaded extends Disk
      */
     public function getConstraintViolations(\Throwable $previous = null): ?ConstraintsException
     {
-        return parent::getConstraintViolations($previous ?? $this->previousConstraintError);
+        return parent::getConstraintViolations(($previous !== null) ? $previous : $this->previousConstraintError);
     }
 
     /**
