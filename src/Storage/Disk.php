@@ -294,11 +294,7 @@ class Disk extends Storage
         }
 
         // detect mimetype by file-extension
-        if (array_key_exists($this->path->extension, MimeType::EXTENSION_MAP)) {
-            return MimeType::EXTENSION_MAP[$this->path->extension];
-        }
-
-        return null;
+        return MimeType::getMimeFor($this->path->extension);
     }
 
     /**

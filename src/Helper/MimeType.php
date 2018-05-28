@@ -9,11 +9,12 @@ namespace ricwein\FileSystem\Helper;
  */
 class MimeType
 {
+
     /**
-     * map file extensions to mime-type
+     * map general file extensions to mime-type
      * @var array
      */
-    public const EXTENSION_MAP = [
+    protected const EXTENSIONS = [
         'json' => 'application/json',
         'yaml' => 'application/x-yaml',
         'yml' => 'application/x-yaml',
@@ -30,27 +31,11 @@ class MimeType
         'swf' => 'application/x-shockwave-flash',
         'flv' => 'video/x-flv',
 
-        'png' => 'image/png',
-        'jpe' => 'image/jpeg',
-        'jpeg' => 'image/jpeg',
-        'jpg' => 'image/jpeg',
-        'gif' => 'image/gif',
-        'bmp' => 'image/bmp',
-        'ico' => 'image/vnd.microsoft.icon',
-        'tiff' => 'image/tiff',
-        'tif' => 'image/tiff',
-        'svg' => 'image/svg+xml',
-        'svgz' => 'image/svg+xml',
-
         'zip' => 'application/zip',
         'rar' => 'application/x-rar-compressed',
         'exe' => 'application/x-msdownload',
         'msi' => 'application/x-msdownload',
         'cab' => 'application/vnd.ms-cab-compressed',
-
-        'mp3' => 'audio/mpeg',
-        'qt' => 'video/quicktime',
-        'mov' => 'video/quicktime',
 
         'pdf' => 'application/pdf',
         'psd' => 'image/vnd.adobe.photoshop',
@@ -63,4 +48,98 @@ class MimeType
         'xls' => 'application/vnd.ms-excel',
         'ppt' => 'application/vnd.ms-powerpoint',
     ];
+
+    /**
+     * map image extensions to mime-type
+     * @var array
+     */
+    protected const EXTENSIONS_IMAGES = [
+        'png' => 'image/png',
+        'jpe' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'jpg' => 'image/jpeg',
+        'gif' => 'image/gif',
+        'bmp' => 'image/bmp',
+        'ico' => 'image/vnd.microsoft.icon',
+        'tiff' => 'image/tiff',
+        'tif' => 'image/tiff',
+        'svg' => 'image/svg+xml',
+        'svgz' => 'image/svg+xml',
+    ];
+
+    /**
+     * map video extensions to mime-type
+     * @var array
+     */
+    protected const EXTENSIONS_VIDEOS = [
+        'mp3' => 'audio/mpeg',
+        'qt' => 'video/quicktime',
+        'mov' => 'video/quicktime',
+    ];
+
+    /**
+     * @return string[]
+     */
+    public static function getExtensions():array
+    {
+        static $extensions = null;
+
+        if ($extensions === null) {
+            $extensions = array_merge(
+                static::EXTENSIONS,
+                static::EXTENSIONS_IMAGES,
+                static::EXTENSIONS_VIDEOS
+            );
+        }
+
+        return $extensions;
+    }
+
+    /**
+     * fetch file-extension for given mimetype
+     * @param  string $mimetype
+     * @return string|null
+     */
+    public static function getExtensionFor(string $mimetype): ?string
+    {
+        $extensions = static::getExtensions();
+        if (false !== $match = array_search($mimetype, $extensions, true)) {
+            return $match;
+        }
+
+        return null;
+    }
+
+    /**
+     * fetch mimetype for given file-extension
+     * @param  string $extension
+     * @return string|null
+     */
+    public static function getMimeFor(string $extension): ?string
+    {
+        $extensions = static::getExtensions();
+        if (isset($extensions[$extension])) {
+            return $extensions[$extension];
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  string $mimetype
+     * @return bool
+     */
+    public static function isImage(string $mimetype): bool
+    {
+        return array_search($mimetype, static::EXTENSIONS_IMAGES, false) !== false;
+    }
+
+    /**
+     * @param  string $mimetype
+     * @return bool
+     */
+    public static function isVideo(string $mimetype): bool
+    {
+        return array_search($mimetype, static::EXTENSIONS_VIDEOS, false) !== false;
+    }
 }
