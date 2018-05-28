@@ -145,4 +145,22 @@ abstract class FileSystem
     {
         return (string) $this->storage;
     }
+
+    /**
+     * check if file exists and is an actual file
+     * @return bool
+     */
+    public function isFile(): bool
+    {
+        return false;
+    }
+
+    /**
+     * check if directory exists and is an actual directory
+     * @return bool
+     */
+    public function isDir(): bool
+    {
+        return false;
+    }
 }

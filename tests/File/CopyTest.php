@@ -8,7 +8,7 @@ use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\Constraint;
 
 /**
- * test FileSyst\File bases
+ * test FileSystem\File bases
  *
  * @author Richard Weinhold
  */

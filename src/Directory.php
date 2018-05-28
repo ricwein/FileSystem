@@ -56,8 +56,7 @@ class Directory extends FileSystem
     }
 
     /**
-     * check if directory exists and is an actual directory
-     * @return bool
+     * @inheritDoc
      */
     public function isDir(): bool
     {
@@ -77,6 +76,36 @@ class Directory extends FileSystem
                 yield new Directory($file, $constraints ?? $this->storage->getConstraints());
             } else {
                 yield new File($file, $constraints ?? $this->storage->getConstraints());
+            }
+        }
+    }
+
+    /**
+     * @param bool $recursive
+     * @param int|null $constraints
+     * @return File[]
+     */
+    public function listFiles(bool $recursive = false, ?int $constraints = null): \Generator
+    {
+        /** @var Storage\Disk $file */
+        foreach ($this->storage->list($recursive) as $file) {
+            if (!$file->isDir()) {
+                yield new File($file, $constraints ?? $this->storage->getConstraints());
+            }
+        }
+    }
+
+    /**
+     * @param bool $recursive
+     * @param int|null $constraints
+     * @return Directory[]
+     */
+    public function listDirs(bool $recursive = false, ?int $constraints = null): \Generator
+    {
+        /** @var Storage\Disk $file */
+        foreach ($this->storage->list($recursive) as $file) {
+            if ($file->isDir()) {
+                yield new Directory($file, $constraints ?? $this->storage->getConstraints());
             }
         }
     }

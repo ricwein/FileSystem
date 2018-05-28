@@ -13,7 +13,7 @@ use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 
 /**
- * represents a selected directory
+ * represents a selected file
  */
 class File extends FileSystem
 {
@@ -157,8 +157,7 @@ class File extends FileSystem
     }
 
     /**
-     * check if file exists and is an actual file
-     * @return bool
+     * @inheritDoc
      */
     public function isFile(): bool
     {

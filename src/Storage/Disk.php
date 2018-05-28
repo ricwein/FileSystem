@@ -255,6 +255,11 @@ class Disk extends Storage
         /** @var \SplFileInfo $file */
         foreach ($iterator as $file) {
 
+            // skip ourself
+            if ($file->getRealPath() === $this->path->real) {
+                continue;
+            }
+
             // file not readable
             if (!$file->isReadable()) {
                 throw new AccessDeniedException(sprintf('unable to access file for path: "%s"', $file->getPathname()), 500);

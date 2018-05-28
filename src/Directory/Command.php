@@ -44,11 +44,14 @@ class Command extends Directory
     /**
      * @inheritDoc
      * @param File|File[]|Storage\Disk|Storage\Disk[]|Path|Path[]|string|string[] $executablePath
+     * @throws FileNotFoundException
      */
     public function __construct(Storage\Disk $storage, int $constraints = Constraint::STRICT, $executablePath)
     {
         parent::__construct($storage, $constraints);
-        $this->bin = $this->selectBinaryPath((array) $executablePath);
+
+        // try to find binary in given file-paths
+        $this->bin = $this->selectBinaryPath(array_merge((array) $executablePath, $this->paths));
 
         if ($this->bin === null) {
             throw new FileNotFoundException(sprintf('unable to find binary in paths: "%s"', implode('", "', (array) $executablePath)), 500);
