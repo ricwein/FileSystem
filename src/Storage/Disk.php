@@ -372,6 +372,6 @@ class Disk extends Storage
      */
     public function __toString(): string
     {
-        return (string) $this->path;
+        return sprintf('%s at: "%s"', parent::__toString(), (string) $this->path);
     }
 }
