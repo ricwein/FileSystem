@@ -4,6 +4,7 @@
  */
 namespace ricwein\FileSystem\Storage;
 
+use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Helper\Hash;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
@@ -11,6 +12,7 @@ use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\MimeType;
+use ricwein\FileSystem\Storage\Extensions\Binary;
 
 /**
  * represents a file/directory at the local filesystem
@@ -369,5 +371,14 @@ class Disk extends Storage
     public function __toString(): string
     {
         return sprintf('%s at: "%s"', parent::__toString(), (string) $this->path);
+    }
+
+    /**
+     * @inheritDoc
+     * @return Binary\Disk
+     */
+    public function binary(): Binary
+    {
+        return new Binary\Disk($this);
     }
 }

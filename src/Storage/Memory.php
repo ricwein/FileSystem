@@ -4,8 +4,10 @@
  */
 namespace ricwein\FileSystem\Storage;
 
+use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\Hash;
 use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Storage\Extensions\Binary;
 
 /**
  * represents a file/directory from in-memory
@@ -169,5 +171,14 @@ class Memory extends Storage
     public function isDotfile(): bool
     {
         return false;
+    }
+
+    /**
+     * @inheritDoc
+     * @return Binary\Memory
+     */
+    public function binary(): Binary
+    {
+        return new Binary\Memory($this);
     }
 }

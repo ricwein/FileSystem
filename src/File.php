@@ -4,13 +4,15 @@
  */
 namespace ricwein\FileSystem;
 
-use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Helper\Hash;
-use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Helper\Hash;
+use ricwein\FileSystem\Storage;
+use ricwein\FileSystem\Storage\Extensions\Binary;
 
 /**
  * represents a selected file
@@ -21,7 +23,7 @@ class File extends FileSystem
      * @inheritDoc
      * @throws AccessDeniedException
      */
-    public function __construct(Storage\Storage $storage, int $constraints = Constraint::STRICT)
+    public function __construct(Storage $storage, int $constraints = Constraint::STRICT)
     {
         if ($storage instanceof Storage\Disk\Temp && !$storage->createFile()) {
             throw new AccessDeniedException('unable to create temp file', 500);
@@ -73,12 +75,12 @@ class File extends FileSystem
 
     /**
      * copy file-content to new destination
-     * @param Storage\Storage $destination
+     * @param Storage $destination
      * @param int|null $constraints
      * @return self new File-object
      * @throws AccessDeniedException|FileNotFoundException
      */
-    public function copyTo(Storage\Storage $destination, ?int $constraints = null): self
+    public function copyTo(Storage $destination, ?int $constraints = null): self
     {
         $destination->setConstraints(($constraints !== null) ? $constraints : $this->storage->getConstraints());
 
@@ -220,5 +222,19 @@ class File extends FileSystem
             throw new RuntimeException('unable to remove file', 500);
         }
         return $this;
+    }
+
+    /**
+     * access file for binary read/write actions
+     * @return Binary
+     * @throws RuntimeException
+     */
+    public function binary(): Binary
+    {
+        if (!$this->isFile() || !$this->storage->doesSatisfyConstraints()) {
+            throw new RuntimeException('unable to open handle for file', 500);
+        }
+
+        return $this->storage->binary();
     }
 }

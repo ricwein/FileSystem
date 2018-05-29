@@ -7,7 +7,7 @@ namespace ricwein\FileSystem\Storage\Disk;
 use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage\Disk;
-use ricwein\FileSystem\Storage\Storage;
+use ricwein\FileSystem\Storage;
 
 /**
  * creates a absolute path from current-working-directory

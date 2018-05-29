@@ -17,15 +17,15 @@ use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 abstract class FileSystem
 {
     /**
-     * @var Storage\Storage
+     * @var Storage
      */
     protected $storage;
 
     /**
-     * @param Storage\Storage $storage
+     * @param Storage $storage
      * @param int $constraints Constraint::LOOSE || Constraint::STRICT || Constraint::IN_SAFEPATH | Constraint::IN_OPENBASEDIR | Constraint::DISALLOW_LINK
      */
-    public function __construct(Storage\Storage $storage, int $constraints = Constraint::STRICT)
+    public function __construct(Storage $storage, int $constraints = Constraint::STRICT)
     {
         $this->storage = $storage;
         $this->storage->setConstraints($constraints);
@@ -41,9 +41,9 @@ abstract class FileSystem
 
     /**
      * @internal this should only be used for debugging purposes
-     * @return Storage\Storage
+     * @return Storage
      */
-    public function storage(): Storage\Storage
+    public function storage(): Storage
     {
         return $this->storage;
     }

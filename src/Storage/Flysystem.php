@@ -6,6 +6,7 @@ namespace ricwein\FileSystem\Storage;
 
 use League\Flysystem\Filesystem as FlyFilesystem;
 use League\Flysystem\Adapter\AbstractAdapter;
+use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\Hash;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;

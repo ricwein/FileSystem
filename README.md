@@ -25,7 +25,7 @@ Accessing the Objects (File/Directory) Content is abstracted as `Storage`s. A Fi
 - a "real" file at the local Disk (`Storage\Disk`)
 - a "virtual" file, which only temporary exists in-memory (`Storage\Memory`)
 
-All Storage-Types must extend `Storage\StorageInterface`
+All Storage-Types must extend `StorageInterface`
 
 ### Exceptions
 

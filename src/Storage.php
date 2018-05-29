@@ -2,14 +2,16 @@
 /**
  * @author Richard Weinhold
  */
-namespace ricwein\FileSystem\Storage;
+namespace ricwein\FileSystem;
 
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Helper\Hash;
 use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
+use ricwein\FileSystem\Storage\Extensions\Binary;
 
 /**
  * base-implementation for all Storage Adapters
@@ -172,4 +174,14 @@ abstract class Storage
      * @throws Exception
      */
     abstract public function touch(bool $ifNewOnly = false): bool;
+
+    /**
+     * access file for binary read/write actions
+     * @return Binary
+     * @throws UnsupportedException
+     */
+    public function binary(): Binary
+    {
+        throw new UnsupportedException(sprintf('Binary access not supported for current "%s" Storage', get_class($this)), 500);
+    }
 }

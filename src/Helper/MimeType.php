@@ -80,7 +80,7 @@ class MimeType
     /**
      * @return string[]
      */
-    public static function getExtensions():array
+    protected static function getExtensions(): array
     {
         static $extensions = null;
 

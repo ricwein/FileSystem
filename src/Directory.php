@@ -19,7 +19,7 @@ class Directory extends FileSystem
     /**
      * @inheritDoc
      */
-    public function __construct(Storage\Storage $storage, int $constraints = Constraint::STRICT)
+    public function __construct(Storage $storage, int $constraints = Constraint::STRICT)
     {
         if ($storage instanceof Storage\Memory) {
             throw new UnexpectedValueException('in-memory directories are not supported', 500);
