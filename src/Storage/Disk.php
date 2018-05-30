@@ -121,7 +121,7 @@ class Disk extends Storage
 
             // try to set lock if provided
             if ($mode !== 0 && !\flock($handle, $mode | LOCK_NB)) {
-                throw new RuntimeException('unable to lock file', 500);
+                throw new RuntimeException('unable to get file-lock', 500);
             }
 
             // read whole file
@@ -158,7 +158,7 @@ class Disk extends Storage
 
             // try to set lock if provided
             if ($mode !== 0 && !\flock($handle, $mode | LOCK_NB)) {
-                throw new RuntimeException('unable to lock file', 500);
+                throw new RuntimeException('unable to get file-lock', 500);
             }
 
             // write content
