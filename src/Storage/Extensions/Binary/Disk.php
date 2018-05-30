@@ -15,20 +15,6 @@ use ricwein\FileSystem\Storage\Extensions\Binary;
  */
 class Disk extends Binary
 {
-    /**
-     * @var int
-     */
-    private const MODE_CLOSED = 0;
-
-    /**
-     * @var int
-     */
-    private const MODE_READ = 1;
-
-    /**
-     * @var int
-     */
-    private const MODE_WRITE = 2;
 
     /**
      * @var DiskStorage
@@ -39,11 +25,6 @@ class Disk extends Binary
      * @var resource|null
      */
     protected $handle = null;
-
-    /**
-     * @var int
-     */
-    protected $mode = self::MODE_CLOSED;
 
     /**
      * @param DiskStorage $storage
@@ -58,11 +39,12 @@ class Disk extends Binary
      */
     public function __destruct()
     {
-        if ($this->handle === null || $this->mode === self::MODE_CLOSED) {
+        if ($this->handle === null) {
             return;
         }
 
-        @\fclose($this->handle);
+        \flock($this->handle, LOCK_UN);
+        \fclose($this->handle);
         \clearstatcache($this->storage->path()->real);
     }
 
@@ -74,20 +56,24 @@ class Disk extends Binary
      */
     protected function openHandle(int $mode)
     {
+        $this->applyAccessMode($mode);
+
         if ($this->handle !== null) {
-            if ($this->mode !== $mode) {
-                throw new AccessDeniedException('unable to re-open existing file-handle for another mode', 500);
-            }
             return;
         }
 
-        $this->handle = @\fopen($this->storage->path()->real, $mode === self::MODE_READ ? 'rb' : 'wb');
+        $this->handle = @\fopen($this->storage->path()->real, ($mode === static::MODE_READ) ? 'rb' : 'wb');
         if ($this->handle === false) {
             $this->handle = null;
+            $this->mode = static::MODE_CLOSED;
+
             throw new RuntimeException('unable to open file-handle', 500);
         }
 
-        $this->mode = $mode;
+        if (!\flock($this->handle, LOCK_NB | (($mode === self::MODE_READ) ? LOCK_SH : LOCK_EX))) {
+            throw new RuntimeException('unable to get file-lock', 500);
+        }
+
         $this->stat = \fstat($this->handle);
         $this->pos  = 0;
     }
@@ -95,56 +81,58 @@ class Disk extends Binary
     /**
      * @inheritDoc
      */
-    public function writeBytes(string $buf, ?int $num = null): int
+    public function write(string $bytes, ?int $length = null): int
     {
-        $this->openHandle(self::MODE_WRITE);
+        $this->openHandle(static::MODE_WRITE);
 
-        $bufSize = mb_strlen($buf, '8bit');
-        if ($num === null || $num > $bufSize) {
-            $num = $bufSize;
-        } elseif ($num < 0) {
+        $bytesCount = mb_strlen($bytes, '8bit');
+
+        if ($length === null || $length > $bytesCount) {
+            $length = $bytesCount;
+        } elseif ($length < 0) {
             throw new RuntimeException('invalid byte-count', 500);
         }
 
-        $remaining = $num;
+        $remaining = $length;
+
         do {
             if ($remaining <= 0) {
                 break;
             }
 
-            $written = \fwrite($this->handle, $buf, $remaining);
+            $written = \fwrite($this->handle, $bytes, $remaining);
             if ($written === false) {
                 throw new RuntimeException('Could not write to the file', 500);
             }
 
-            $buf = \mb_substr($buf, $written, null, '8bit');
+            $bytes = \mb_substr($bytes, $written, null, '8bit');
             $this->pos += $written;
             $this->stat = \fstat($this->handle);
             $remaining -= $written;
         } while ($remaining > 0);
 
-        return $num;
+        return $length;
     }
 
     /**
      * @inheritDoc
      */
-    public function readBytes(int $num): string
+    public function read(int $length): string
     {
-        $this->openHandle(self::MODE_READ);
+        $this->openHandle(static::MODE_READ);
 
-        if ($num < 0) {
+        if ($length < 0) {
             throw new RuntimeException('invalid byte-count', 500);
-        } elseif ($num === 0) {
+        } elseif ($length === 0) {
             return '';
         }
 
-        if (($this->pos + $num) > $this->stat['size']) {
+        if (($this->pos + $length) > $this->stat['size']) {
             throw new RuntimeException('Out-of-bounds read', 500);
         }
 
-        $buf       = '';
-        $remaining = $num;
+        $retVal = '';
+        $remaining = $length;
 
         $this->toctouTest();
 
@@ -159,13 +147,13 @@ class Disk extends Binary
                 throw new AccessDeniedException('Could not read from the file', 500);
             }
 
-            $buf .= $read;
+            $retVal .= $read;
             $readSize = mb_strlen($read, '8bit');
             $this->pos += $readSize;
             $remaining -= $readSize;
         } while ($remaining > 0);
 
-        return $buf;
+        return $retVal;
     }
 
     /**
@@ -179,7 +167,7 @@ class Disk extends Binary
     /**
      * @inheritDoc
      */
-    public function reset(int $position = 0): bool
+    public function seek(int $position = 0): bool
     {
         $this->pos = $position;
 

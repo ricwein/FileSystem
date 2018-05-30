@@ -30,14 +30,16 @@ class Memory extends Binary
     /**
      * @inheritDoc
      */
-    public function writeBytes(string $buf, ?int $num = null): int
+    public function write(string $bytes, ?int $length = null): int
     {
-        if (!$this->storage->writeFile($buf, true)) {
+        $this->applyAccessMode(self::MODE_WRITE);
+
+        if (!$this->storage->writeFile($bytes, true)) {
             return 0;
         }
 
-        $length = mb_strlen($buf, '8bit');
-        $this->pos = $length;
+        $length = mb_strlen($bytes, '8bit');
+        $this->pos += $length;
 
         return $length;
     }
@@ -45,23 +47,25 @@ class Memory extends Binary
     /**
      * @inheritDoc
      */
-    public function readBytes(int $num): string
+    public function read(int $length): string
     {
-        if ($num < 0) {
+        $this->applyAccessMode(self::MODE_READ);
+
+        if ($length < 0) {
             throw new RuntimeException('invalid byte-count', 500);
-        } elseif ($num === 0) {
+        } elseif ($length === 0) {
             return '';
         }
 
-        if (($this->pos + $num) > $this->storage->getSize()) {
+        if (($this->pos + $length) > $this->storage->getSize()) {
             throw new RuntimeException('Out-of-bounds read', 500);
         }
 
         $buf = '';
-        $remaining = $num;
+        $remaining = $length;
 
-        $buf = $this->storage->readFile($this->pos, $num);
-        $this->pos += $num;
+        $buf = $this->storage->readFile($this->pos, $length);
+        $this->pos += $length;
 
         return $buf;
     }
@@ -77,7 +81,7 @@ class Memory extends Binary
     /**
      * @inheritDoc
      */
-    public function reset(int $position = 0): bool
+    public function seek(int $position = 0): bool
     {
         $this->pos = $position;
         return true;

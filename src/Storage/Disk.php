@@ -115,31 +115,31 @@ class Disk extends Storage
         }
 
         // open file-handler in readonly mode
-        $handle = fopen($this->path->real, 'r');
+        $handle = \fopen($this->path->real, 'r');
 
         try {
 
             // try to set lock if provided
-            if ($mode !== 0 && !flock($handle, $mode)) {
+            if ($mode !== 0 && !\flock($handle, $mode | LOCK_NB)) {
                 throw new RuntimeException('unable to lock file', 500);
             }
 
             // read whole file
             if (($offset === null || $length === null)) {
                 $filesize = $this->path->fileInfo()->getSize();
-                return ($filesize <= 0) ? '' : fread($handle, $filesize);
+                return ($filesize <= 0) ? '' : \fread($handle, $filesize);
             }
 
             // read part of file
-            fseek($handle, $offset);
-            return fread($handle, $length);
+            \fseek($handle, $offset);
+            return \fread($handle, $length);
         } finally {
 
             // ensure the file in unlocked after reading and the file-handler is closed again
             if ($mode !== 0) {
-                flock($handle, LOCK_UN);
+                \flock($handle, LOCK_UN);
             }
-            fclose($handle);
+            \fclose($handle);
         }
     }
 
@@ -152,17 +152,17 @@ class Disk extends Storage
         $this->touch(true);
 
         // open file-handler in readonly mode
-        $handle = fopen($this->path->real, $append ? 'a' : 'w');
+        $handle = \fopen($this->path->real, $append ? 'a' : 'w');
 
         try {
 
             // try to set lock if provided
-            if ($mode !== 0 && !flock($handle, $mode)) {
+            if ($mode !== 0 && !\flock($handle, $mode | LOCK_NB)) {
                 throw new RuntimeException('unable to lock file', 500);
             }
 
             // write content
-            if (fwrite($handle, $content) <= 0) {
+            if (\fwrite($handle, $content) <= 0) {
                 return false;
             }
 
@@ -172,9 +172,9 @@ class Disk extends Storage
 
             // ensure the file in unlocked after reading and the file-handler is closed again
             if ($mode !== 0) {
-                flock($handle, LOCK_UN);
+                \flock($handle, LOCK_UN);
             }
-            fclose($handle);
+            \fclose($handle);
         }
     }
 

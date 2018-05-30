@@ -25,19 +25,15 @@ Accessing the Objects (File/Directory) Content is abstracted as `Storage`s. A Fi
 - a "real" file at the local Disk (`Storage\Disk`)
 - a "virtual" file, which only temporary exists in-memory (`Storage\Memory`)
 
-All Storage-Types must extend `StorageInterface`
+All Storage-Types must extend the abstract base class `Storage`.
 
 ### Exceptions
 
 Accessing File/Directory Attributes can result in throwing Exceptions. All Exceptions extend `Exceptions\Exception`.
 
-
 ## Usage
 
 All *FileSystem*-base-classes must be initialized using a Storage.
-
-**This doens't mean a Storage-Type can't be changed through File-Operations.**
-Example: Saving a File which was intialized as `Storage\Memory` to the Disk results in changing the internal Storage to be of Type `Storage\Disk`.
 
 ## Open and read a file from the local filesystem
 

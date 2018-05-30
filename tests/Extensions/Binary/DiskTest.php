@@ -13,17 +13,23 @@ use ricwein\FileSystem\Storage;
  */
 class DiskTest extends TestCase
 {
+
+    /**
+     * @var int
+     */
+    protected const MSG_LENGTH = 2 ** 12;
+
     /**
      * @return void
      */
     public function testWriteRead()
     {
-        $message = random_bytes(2 ** 12);
+        $message = random_bytes(self::MSG_LENGTH);
 
         $file = new File(new Storage\Disk\Temp());
-        $file->binary()->writeBytes($message);
+        $file->binary()->write($message);
 
-        $this->assertSame($file->binary(true)->readBytes(2 ** 12), $message);
+        $this->assertSame($file->binary(true)->read(self::MSG_LENGTH), $message);
     }
 
     /**
@@ -32,13 +38,13 @@ class DiskTest extends TestCase
      */
     public function testOOBRead()
     {
-        $message = random_bytes(2 ** 12);
+        $message = random_bytes(self::MSG_LENGTH);
 
         $file = new File(new Storage\Disk\Temp());
-        $writeFile = $file->binary();
-        $writeFile->writeBytes($message);
+        $byteHandle = $file->binary();
+        $byteHandle->write($message);
 
-        $this->assertSame($file->binary()->readBytes((2 ** 12) + 1), $message);
+        $this->assertSame($file->binary()->read((self::MSG_LENGTH) + 1), $message);
     }
 
     /**
@@ -47,12 +53,15 @@ class DiskTest extends TestCase
      */
     public function testHandleLock()
     {
-        $message = random_bytes(2 ** 12);
+        $message = random_bytes(self::MSG_LENGTH);
 
         $file = new File(new Storage\Disk\Temp());
-        $writeFile = $file->binary();
-        $writeFile->writeBytes($message);
+        $byteHandle = $file->binary();
 
-        $writeFile->readBytes(2 ** 12);
+        // write bytes and validate if correct length was written
+        $this->assertSame(self::MSG_LENGTH, $byteHandle->write($message, self::MSG_LENGTH));
+
+        // try to read from write-locked handle => this must fail
+        $byteHandle->read(self::MSG_LENGTH);
     }
 }
