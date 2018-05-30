@@ -45,7 +45,7 @@ class Uploaded extends Disk
     /**
      * @param array $file $_FILE array in the format:
      *  ['tmp_name' => string, 'name' => string, 'error' => int]
-     * @throws
+     * @throws UnexpectedValueException
      */
     public function __construct(array $file)
     {

@@ -140,11 +140,12 @@ class Disk extends Binary
             if ($remaining <= 0) {
                 break;
             }
+
             /** @var string $read */
             $read = \fread($this->handle, $remaining);
 
             if (!\is_string($read)) {
-                throw new AccessDeniedException('Could not read from the file', 500);
+                throw new AccessDeniedException('reading file failed', 500);
             }
 
             $retVal .= $read;
