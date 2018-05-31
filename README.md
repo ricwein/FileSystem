@@ -2,6 +2,48 @@
 
 This Library provides an Filesystem abstraction layer.
 
+```php
+use ricwein\FileSystem\File;
+use ricwein\FileSystem\Storage;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
+
+try {
+
+    $file = new File(new Storage\Disk(__DIR__, '/test', '/dir2', 'test.json'));
+    $alt = new File(new Storage\Memory(json_encode(['some' => 'content'])));
+
+    // read file into output-buffer
+    if ($file->isReadable()) {
+        header('Content-Type: ' . $file->getType(true));
+        echo $file->read();
+    } else {
+        header('Content-Type: ' . $alt->getType(true));
+        echo $alt->read();
+    }
+
+
+} catch (FileNotFoundException $e) {
+
+    // file was not found
+    http_response_code(404);
+    echo json_encode(['errors' => [
+        'status' => 404,
+        'title' => 'file not found',
+        'detail' => $e->getMessage(),
+    ]]);
+
+} catch (\Exception $e) {
+
+    // something else went wrong
+    http_response_code(500);
+    echo json_encode(['errors' => [
+        'status' => $e->getCode(),
+        'title' => 'something went wrong',
+        'detail' => $e->getMessage(),
+    ]]);
+}
+```
+
 ## Installation
 
 ```shell
@@ -53,7 +95,7 @@ All *FileSystem*-base-classes must be initialized using a Storage.
 | `isReadable()` | is file readable? |
 | `isWriteable()` | is file writeable? |
 | `isSymlink()` | is file a symlink? |
-| `isFile()` | is selected path a file? => always `true` for File instance |
+| `isFile()` | is selected path an actual file? |
 | `isDir()` | is selected path a directory? => always `false` for File instance |
 | `isDotfile()` | is file a hidden dot-file? |
 | `isValid()` | run constraints validation |
@@ -112,7 +154,7 @@ Like Files, Directories must be initialized using a Storage.
 | `isWriteable()` | is directory writeable? |
 | `isSymlink()` | is directory a symlink? |
 | `isFile()` | is selected path a file? => always `false` for Directory instance |
-| `isDir()` | is selected path a directory? => always `true` for Directory instance |
+| `isDir()` | is selected path an actual directory? |
 | `isDotfile()` | is directory a hidden dot-file? |
 | `isValid()` | run constraints validation |
 | `storage()` | access internal storage adapter |
@@ -175,17 +217,58 @@ The following constraints are set as default, but can be overwritten with the se
  ```
 
 ## Extensions
-<!-- TODO -->
 
-- `Directory\Command`
+ - `Directory\Command`: Allows running shell-commands inside the given directory.
+
+ ```php
+ $git = new Directory\Command(new Storage\Disk(__DIR__), Constraint::STRICT, ['/usr/local/bin/git', '/usr/bin/git']);
+ $ref = $git->execSafe('rev-parse HEAD');
+ ```
 
 ### Storage Extensions
-<!-- TODO -->
 
- - `Disk\Current`
- - `Disk\Temp`
- - `Disk\Uploaded`
- - `Memory\Resource`
+ - `Disk\Current`: Uses current-working-directory (`getcwd()`) as safepath. Usefull for cli-scripts in combination with `Directory\Command`.
+
+ ```php
+ $current = new File(new Storage\Disk(getcwd(), 'file.json'), Constraints::STRICT & ~Constraint::IN_SAFEPATH);
+ // is the same as:
+ $current = new File(new Storage\Disk\Current('file.json'));
+ ```
+
+ ```php
+ $git = new Command(new Storage\Disk\Current(), Constraint::STRICT, ['/usr/local/bin/git', '/usr/bin/git']);
+
+ if (!$git->execSafe('pull $branch', ['branch' => 'develop'])) {
+     echo 'failed to execute: ' . $git->getLastCommand() . PHP_EOL;
+ }
+
+ exit($git->lastExitCode());
+ ```
+
+ - `Disk\Temp`: Uses the system-temp directory to create a temporary file/directory. The file is automatically removed after freeing the object instance!
+
+ ```php
+ $temp = new File(new Storage\Disk\Temp());
+ $temp->write('test');
+ $temp->read();
+ $temp = null; // will delete the temp-file again!
+ ```
+
+ - `Disk\Uploaded`: Provides safe and easy uploaded-files access through native `is_uploaded_file()` and `move_uploaded_file()` functions.
+
+ ```php
+ $uploaded = new File(new Storage\Disk\Uploaded($_FILES['file']));
+ $file = $uploaded->moveTo(new Storage\Disk(__DIR__, 'uploads'));
+ ```
+
+ - `Memory\Resource`: Reads resource content into memory on construct. The resource can be closed afterwards.
+
+ ```php
+ $resource = fopen('test.json', 'r');
+ $file = new File(new Storage\Memory\Resource($resource));
+ fclose($resource);
+ $content = $file->read();
+ ```
 
 ### Binary access
 <!-- TODO -->

@@ -124,7 +124,7 @@ class Command extends Directory
      * @param array  $arguments
      * @return string|bool
      */
-    public function execSave(string $cmd = '', array $arguments = [])
+    public function execSafe(string $cmd = '', array $arguments = [])
     {
         $cmd = trim(str_ireplace(['&', ';'], '', $cmd));
         $cmd = $this->bindVariables($cmd, $arguments);

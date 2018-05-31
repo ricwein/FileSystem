@@ -28,7 +28,7 @@ class CommandTest extends TestCase
             ['/bin/ls', '/usr/local/bin/ls']
         );
 
-        $result = $ls->execSave();
+        $result = $ls->execSafe();
         $this->assertNotSame(false, $result);
 
         $files = explode(PHP_EOL, $result);
@@ -50,8 +50,8 @@ class CommandTest extends TestCase
             ['/usr/local/bin/git', '/usr/bin/git']
         );
 
-        $this->assertNotSame(false, $git->execSave('rev-parse --abbrev-ref HEAD')); // branch
-        $this->assertNotSame(false, $git->execSave('rev-parse HEAD')); // git-rev
+        $this->assertNotSame(false, $git->execSafe('rev-parse --abbrev-ref HEAD')); // branch
+        $this->assertNotSame(false, $git->execSafe('rev-parse HEAD')); // git-rev
     }
 
     /**
