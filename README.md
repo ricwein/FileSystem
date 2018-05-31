@@ -201,8 +201,7 @@ The following constraints are set as default, but can be overwritten with the se
  use ricwein\FileSystem\Storage;
  use ricwein\FileSystem\Helper\Constraint;
 
- $filename = $_GET['file'];
- // let's asume $filename = '/../file.txt'
+ // let's asume $_GET['file'] == '/../file.txt'
 
  // path concatenated as a single string
  // this runs fine but is HIGHLY UNRECOMMENDED
