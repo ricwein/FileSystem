@@ -115,7 +115,7 @@ class Disk extends Binary
     }
 
     /**
-     * @inheritDoc
+     * @inheritDoc'
      */
     public function read(int $length): string
     {

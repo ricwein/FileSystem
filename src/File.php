@@ -206,6 +206,15 @@ class File extends FileSystem
     }
 
     /**
+    * @param  bool $ifNewOnly
+    * @return bool
+     */
+    public function touch(bool $ifNewOnly = false): bool
+    {
+        return $this->storage->touch($ifNewOnly);
+    }
+
+    /**
      * @inheritDoc
      * @throws AccessDeniedException|RuntimeException
      */

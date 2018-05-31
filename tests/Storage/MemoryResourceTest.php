@@ -40,7 +40,7 @@ class MemoryResourceTest extends TestCase
         $memory = new File(new Storage\Memory\Resource($resource));
 
         $this->assertNotEmpty($memory->read());
-        
+
         $this->assertSame($memory->getType(), MimeType::getMimeFor('png'));
     }
 }
