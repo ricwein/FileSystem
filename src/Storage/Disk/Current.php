@@ -20,7 +20,8 @@ class Current extends Disk
      */
     public function __construct(... $path)
     {
-        $this->path = new Path(array_merge([getcwd()], $path));
+        array_unshift($path, getcwd());
+        $this->path = new Path($path);
     }
 
     /**

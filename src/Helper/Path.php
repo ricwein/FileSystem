@@ -239,7 +239,9 @@ class Path
         static $openBaseDirs = null;
 
         if ($openBaseDirs === null) {
-            $openBaseDirs = explode(':', trim(ini_get('open_basedir')));
+            $openBaseDirs = array_filter(explode(':', trim(ini_get('open_basedir'))), function ($dir): bool {
+                return !empty($dir);
+            });
         }
 
         // no basedir specified, therefor assume system is local only
