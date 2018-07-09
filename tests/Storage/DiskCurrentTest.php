@@ -5,6 +5,7 @@ namespace ricwein\FileSystem\Tests\Storage;
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
+use ricwein\FileSystem\Directory;
 
 /**
  * test Temp-Storage
@@ -25,5 +26,15 @@ class DiskCurrentTest extends TestCase
         $this->assertTrue($file->isFile());
 
         $this->assertNotSame($file->path()->raw, $cwdFile->path()->raw);
+    }
+
+    /**
+     * @return void
+     */
+    public function testRootDir()
+    {
+        $dir = new Directory(new Storage\Disk\Current('/'));
+
+        $this->assertSame($dir->path()->real, '/');
     }
 }

@@ -107,15 +107,16 @@ class Path
     {
         $components = [];
 
-        // fetch key of first item
-        reset($this->components);
-        $first = key($this->components);
+        // fetch key of first and last item
+        $keys = array_keys($this->components);
+        $first = reset($keys);
+        $last = end($keys);
 
         // iterate through all path-components
         foreach ($this->components as $key => $component) {
 
             /**
-             * prepare resolve path string
+             * prepare resolve-path string
              * @var string
              */
             $path = '';
@@ -124,29 +125,28 @@ class Path
             if (is_string($component)) {
                 $path = $component;
             } elseif ($component instanceof self || $component instanceof FileSystem) {
-                $path = $component instanceof FileSystem ? $component->path() : $component;
 
-                if ($first === $key) {
+                /** @var Path $pathObj */
+                $pathObj = $component instanceof FileSystem ? $component->path() : $component;
 
-                    // first component
-                    $path = $path->fileInfo()->isDir() ? $path->raw : $path->directory;
-                } elseif (next($this->components) !== false) {
-
-                    // middle part
-                    $path = $path->directory;
-                } else {
-
-                    // last part
-                    $path = $path->raw;
+                switch ($key) {
+                    case $first: $path = ($pathObj->fileInfo()->isDir() ? $pathObj->raw : $pathObj->directory); break; // first part
+                    case $last: $path = $pathObj->raw; break; // last part
+                    default: $path = $pathObj->directory; break; // middle part
                 }
             } else {
                 throw new UnexpectedValueException(sprintf('invalid path-component of type \'%s\'', gettype($component)), 500);
             }
 
-            if ($first === $key) {
-                $components[] = rtrim($path, '/\\' . DIRECTORY_SEPARATOR);
+            // normalize path
+            $path = str_replace(['/', '\\', DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR], DIRECTORY_SEPARATOR, $path);
+
+            if ($key === $first && $path === DIRECTORY_SEPARATOR) {
+                $components[] = DIRECTORY_SEPARATOR;
+            } elseif ($key === $first) {
+                $components[] = rtrim($path, DIRECTORY_SEPARATOR);
             } else {
-                $components[] = trim($path, '/\\' . DIRECTORY_SEPARATOR);
+                $components[] = trim($path, DIRECTORY_SEPARATOR);
             }
         }
 
@@ -163,9 +163,9 @@ class Path
 
         $this->safepath = reset($components);
 
-        // cleanup path variable
+        // cleanup path variable, remove duplicated DS
         $path = implode(DIRECTORY_SEPARATOR, $components);
-        $path = str_replace(['/', '\\', DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR], DIRECTORY_SEPARATOR, $path);
+        $path = str_replace(DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR, $path);
 
         $this->filepath = str_replace($this->safepath, '', $path);
 
