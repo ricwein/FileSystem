@@ -28,6 +28,11 @@ class Temp extends Disk
     protected $isFree = true;
 
     /**
+     * @var bool
+     */
+    protected $persist = false;
+
+    /**
      * @var Path|null
      */
     protected $path = null;
@@ -127,7 +132,7 @@ class Temp extends Disk
      */
     public function __destruct()
     {
-        if ($this->isFree || !file_exists($this->path->raw)) {
+        if ($this->persist || $this->isFree || !file_exists($this->path->raw)) {
             return;
         }
 
@@ -136,5 +141,17 @@ class Temp extends Disk
         } elseif (is_dir($this->path->raw)) {
             $this->removeDir();
         }
+    }
+
+    /**
+     * make temp-file persistent,
+     * even after destroying the (this) referencing object
+     * @param bool $persist
+     * @return self
+     */
+    public function persist(bool $persist = true): self
+    {
+        $this->persist = $persist;
+        return $this;
     }
 }
