@@ -29,6 +29,9 @@ class Disk extends Storage
      */
     public function __construct(... $path)
     {
+        if (empty($path)) {
+            throw new RuntimeException('unable to load Disk-Storage without a path', 400);
+        }
         $this->path = new Path($path);
     }
 

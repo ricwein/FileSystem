@@ -28,11 +28,15 @@ class Temp extends Disk
     protected $isFree = true;
 
     /**
-     * @inheritDoc
+     * @var Path|null
      */
-    public function __construct()
+    protected $path = null;
+
+    public function __construct(... $path)
     {
-        // do nothing
+        if (!empty($path)) {
+            $this->path = new Path($path);
+        }
     }
 
     /**
@@ -47,7 +51,7 @@ class Temp extends Disk
         for ($try = 0; $try < self::MAX_RETRY; $try++) {
             $this->path = new Path([
                 \sys_get_temp_dir(),
-                'tmp.' . \bin2hex(\random_bytes(16)) . '.file'
+                $this->path !== null ? basename($this->path->raw) : 'tmp.' . \bin2hex(\random_bytes(16)) . '.file'
             ]);
 
             if (!file_exists($this->path->raw) && $this->touch(true)) {
@@ -71,7 +75,7 @@ class Temp extends Disk
         for ($try = 0; $try < self::MAX_RETRY; $try++) {
             $this->path = new Path([
                 \sys_get_temp_dir(),
-                'tmp.' . \bin2hex(\random_bytes(16)) . '.dir'
+                $this->path !== null ? basename($this->path->raw) : 'tmp.' . \bin2hex(\random_bytes(16)) . '.dir'
             ]);
 
             if (!file_exists($this->path->raw) && $this->mkdir()) {
