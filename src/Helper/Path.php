@@ -46,7 +46,7 @@ class Path
     protected $raw;
 
     /**
-     * part of the path which can be assumed to be save
+     * part of the path which can be assumed to be save (can contain unresolved /../ parts!)
      * this path should not be left (protected against /../ -directory traversion)
      * e.g.: /res/
      * @var string

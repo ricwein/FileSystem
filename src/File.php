@@ -256,8 +256,15 @@ class File extends FileSystem
             throw $this->storage->getConstraintViolations();
         }
 
-        $dirpath = realpath($this->path()->directory);
-        $safepath = realpath($this->path()->safepath);
+        $dirpath  = $this->path()->directory;
+        if (is_dir($dirpath)) {
+            $dirpath = realpath($dirpath);
+        }
+
+        $safepath = $this->path()->safepath;
+        if (is_dir($safepath)) {
+            $safepath = realpath($safepath);
+        }
 
         /** @var Storage $storage */
         $storage = null;
