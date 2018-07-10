@@ -7,6 +7,8 @@ use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Directory;
 
+use ricwein\FileSystem\Storage\Disk;
+
 /**
  * test Temp-Storage
  *
@@ -36,5 +38,15 @@ class DiskCurrentTest extends TestCase
         $dir = new Directory(new Storage\Disk\Current('/'));
 
         $this->assertSame($dir->path()->real, '/');
+    }
+
+    /**
+     * @return void
+     */
+    public function testEmptyInit()
+    {
+        $current = new File(new Disk\Current());
+
+        $this->assertSame($current->path()->real, getcwd());
     }
 }
