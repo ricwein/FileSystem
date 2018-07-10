@@ -133,9 +133,9 @@ abstract class FileSystem
     /**
      * @return bool
      */
-    protected function isValid(): bool
+    public function isValid(): bool
     {
-        return $this->storage->isValid();
+        return $this->storage->doesSatisfyConstraints();
     }
 
     /**

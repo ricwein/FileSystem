@@ -240,9 +240,37 @@ class File extends FileSystem
     public function binary(): Binary
     {
         if (!$this->isFile() || !$this->storage->doesSatisfyConstraints()) {
-            throw new RuntimeException('unable to open handle for file', 500);
+            throw new RuntimeException('unable to open handle for file', 500, $this->storage->getConstraintViolations());
         }
 
         return $this->storage->binary();
+    }
+
+    /**
+     * @param int|null $constraints
+     * @return Directory
+     */
+    public function directory(?int $constraints = null): Directory
+    {
+        if (!$this->storage->doesSatisfyConstraints()) {
+            throw $this->storage->getConstraintViolations();
+        }
+
+        $dirpath = realpath($this->path()->directory);
+        $safepath = realpath($this->path()->safepath);
+
+        /** @var Storage $storage */
+        $storage = null;
+
+        if (is_dir($safepath)) {
+            $storage = new Storage\Disk($safepath, str_replace($safepath, '', $dirpath));
+        } else {
+            $storage = new Storage\Disk($dirpath);
+        }
+
+        return new Directory(
+            $storage,
+            $constraints !== null ? $constraints : $this->storage->getConstraints()
+        );
     }
 }

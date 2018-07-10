@@ -39,7 +39,7 @@ class Path
     protected $real = null;
 
     /**
-     * full but raw path
+     * full but raw path (can contain unresolved /../ parts!)
      * e.g.: /res/var/../test/test.db
      * @var string
      */
@@ -68,7 +68,7 @@ class Path
     protected $basename;
 
     /**
-     * path of directory
+     * path of directory (can contain unresolved /../ parts!)
      * e.g.: res/test/
      * @var string
      */
@@ -161,7 +161,15 @@ class Path
     {
         $components = $this->parseComponents();
 
-        $this->safepath = reset($components);
+        // save and cleanup the inital path component,
+        // which we can asume is safe for all coming path-components
+        $safepath = reset($components);
+        if (is_dir($safepath)) {
+            $safepath = realpath($safepath);
+        } elseif (is_file($safepath)) {
+            $safepath = dirname(realpath($safepath));
+        }
+        $this->safepath = $safepath;
 
         // cleanup path variable, remove duplicated DS
         $path = implode(DIRECTORY_SEPARATOR, $components);
