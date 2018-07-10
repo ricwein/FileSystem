@@ -279,24 +279,27 @@ class Path
             $this->resolvePath();
         }
 
+        $path = [
+            'rawpath' => $this->raw,
+            'realpath' => $this->real,
+            'directory' => $this->directory,
+
+            'safepath' => $this->safepath,
+            'filepath' => $this->filepath,
+
+            'basename' => $this->basename,
+            'filename' => $this->filename,
+            'extension' => $this->extension,
+        ];
+
+        $splInfo = !is_file($this->raw) ? false : [
+            'type' => $this->fileInfo->getType(),
+            'size' => $this->fileInfo->getSize(),
+        ];
+
         return [
-            'path' => [
-                'rawpath' => $this->raw,
-                'realpath' => $this->real,
-                'directory' => $this->directory,
-
-                'safepath' => $this->safepath,
-                'filepath' => $this->filepath,
-
-                'basename' => $this->basename,
-                'filename' => $this->filename,
-                'extension' => $this->extension,
-            ],
-
-            'splInfo' => [
-                'type' => $this->fileInfo->getType(),
-                'size' => $this->fileInfo->getSize(),
-            ],
+            'path' => $path,
+            'splInfo' => $splInfo,
         ];
     }
 
