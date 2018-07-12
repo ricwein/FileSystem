@@ -103,7 +103,7 @@ class Path
     * @return string[]
     * @throws UnexpectedValueException|RuntimeException
      */
-    protected function parseComponents(): array
+    protected function normalizePathComponents(): array
     {
         $components = [];
 
@@ -130,8 +130,8 @@ class Path
                 $pathObj = $component instanceof FileSystem ? $component->path() : $component;
 
                 switch ($key) {
-                    case $first: $path = ($pathObj->fileInfo()->isDir() ? $pathObj->raw : $pathObj->directory); break; // first part
                     case $last: $path = $pathObj->raw; break; // last part
+                    case $first: $path = ($pathObj->fileInfo()->isDir() ? $pathObj->raw : $pathObj->directory); break; // first part
                     default: $path = $pathObj->directory; break; // middle part
                 }
             } else {
@@ -159,7 +159,26 @@ class Path
      */
     protected function resolvePath(): void
     {
-        $components = $this->parseComponents();
+        if (count($this->components) === 1 && reset($this->components) instanceof self) {
+
+            /** @var Path $path */
+            $path = current($this->components);
+
+            $this->safepath = $path->safepath;
+            $this->raw = $path->raw;
+            $this->filepath = $path->filepath;
+            $this->directory = $path->directory;
+            $this->real = $path->real;
+            $this->basename = $path->basename;
+            $this->extension = $path->extension;
+            $this->filename = $path->filename;
+
+            $this->fileInfo = new \SplFileInfo($this->raw);
+            $this->loaded = true;
+            return;
+        }
+
+        $components = $this->normalizePathComponents();
 
         // save and cleanup the inital path component,
         // which we can asume is safe for all coming path-components

@@ -31,4 +31,15 @@ class PathParserTest extends TestCase
         $this->assertNotSame($pathA->safepath, $pathB->safepath);
         $this->assertNotSame($pathA->filepath, $pathB->filepath);
     }
+
+    /**
+     * @return void
+     */
+    public function testPathSelfSimilar()
+    {
+        $path1 = new Path([__FILE__]);
+        $path2 = new Path([$path1]);
+
+        $this->assertSame($path1->getDetails(), $path2->getDetails());
+    }
 }
