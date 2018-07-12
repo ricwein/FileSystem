@@ -132,7 +132,7 @@ class Path
                 switch ($key) {
                     case $last: $path = $pathObj->raw; break; // last part
                     case $first: $path = ($pathObj->fileInfo()->isDir() ? $pathObj->raw : $pathObj->directory); break; // first part
-                    default: $path = $pathObj->directory; break; // middle part
+                    default: $path = $pathObj->directory; break; // middle parts
                 }
             } else {
                 throw new UnexpectedValueException(sprintf('invalid path-component of type \'%s\'', gettype($component)), 500);

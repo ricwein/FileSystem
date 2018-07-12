@@ -384,4 +384,15 @@ class Disk extends Storage
     {
         return new Binary\Disk($this);
     }
+
+    /**
+     * changes current directory
+     * @param string[]|FileSystem[]|Path[] $path
+     * @return void
+     */
+    public function cd(array $path): void
+    {
+        array_unshift($path, $this->path);
+        $this->path = new Path($path);
+    }
 }

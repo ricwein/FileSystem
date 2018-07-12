@@ -36,7 +36,7 @@ class Directory extends FileSystem
      * create new dir if not exists
      * @return self
      */
-    public function mkdir():self
+    public function mkdir(): self
     {
         if (!$this->storage->isDir()) {
             if (!$this->storage->mkdir()) {
@@ -124,5 +124,64 @@ class Directory extends FileSystem
         }
 
         return hash($algo, implode(':', $fileHashes), false);
+    }
+
+    /**
+     * changes current directory
+     * @param string|FileSystem|Helper\Path $path ,...
+     * @return self
+     */
+    public function cd(... $path): self
+    {
+        $this->storage->cd($path);
+        return $this;
+    }
+
+    /**
+     * move directory upwards (like /../)
+     * @param int $move
+     * @return self
+     */
+    public function up(int $move = 1): self
+    {
+        $this->storage->cd(array_fill(0, $move, '/..'));
+        return $this;
+    }
+
+
+    /**
+     * @param string $filename
+     * @param int|null $constraints
+     * @return File
+     */
+    public function file(string $filename, ?int $constraints = null): File
+    {
+        if (!$this->storage->doesSatisfyConstraints()) {
+            throw $this->storage->getConstraintViolations();
+        }
+
+        $dirpath = $this->path()->raw;
+        if (is_dir($dirpath)) {
+            $dirpath = realpath($dirpath);
+        }
+
+        $safepath = $this->path()->safepath;
+        if (is_dir($safepath)) {
+            $safepath = realpath($safepath);
+        }
+
+        /** @var Storage $storage */
+        $storage = null;
+
+        if (is_dir($safepath) && strpos($dirpath, $safepath) === 0) {
+            $storage = new Storage\Disk($safepath, str_replace($safepath, '', $dirpath), $filename);
+        } else {
+            $storage = new Storage\Disk($dirpath, $filename);
+        }
+
+        return new File(
+            $storage,
+            $constraints !== null ? $constraints : $this->storage->getConstraints()
+        );
     }
 }
