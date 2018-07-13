@@ -1,4 +1,6 @@
-path: ./src/
+path:
+  - ./src
+  - ./tests
 jobs: 10
 cache: .build/phplint.cache
 extensions:
