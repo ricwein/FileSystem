@@ -1,6 +1,6 @@
 # FileSystem
 
-This Library provides an Filesystem abstraction layer.
+This Library provides a Filesystem abstraction layer.
 
 ```php
 use ricwein\FileSystem\File;
