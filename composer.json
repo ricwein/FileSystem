@@ -11,6 +11,7 @@
         "php": ">= 7.2.0"
     },
     "require-dev": {
+        "league/flysystem": "^1.0",
         "overtrue/phplint": "^1.1",
         "phpunit/phpunit": "^7.1"
     },
