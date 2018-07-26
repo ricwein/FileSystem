@@ -177,8 +177,8 @@ class Memory extends Storage
      * @inheritDoc
      * @return Binary\Memory
      */
-    public function binary(): Binary
+    public function getHandle(int $mode): Binary
     {
-        return new Binary\Memory($this);
+        return new Binary\Memory($this, $mode);
     }
 }

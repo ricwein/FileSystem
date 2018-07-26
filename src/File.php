@@ -234,16 +234,17 @@ class File extends FileSystem
 
     /**
      * access file for binary read/write actions
+     * @param int $mode
      * @return Binary
      * @throws RuntimeException
      */
-    public function binary(): Binary
+    public function getHandle(int $mode): Binary
     {
         if (!$this->isFile() || !$this->storage->doesSatisfyConstraints()) {
             throw new RuntimeException('unable to open handle for file', 500, $this->storage->getConstraintViolations());
         }
 
-        return $this->storage->binary();
+        return $this->storage->getHandle($mode);
     }
 
     /**

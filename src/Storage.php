@@ -177,10 +177,11 @@ abstract class Storage
 
     /**
      * access file for binary read/write actions
+     * @param int $mode
      * @return Binary
      * @throws UnsupportedException
      */
-    public function binary(): Binary
+    public function getHandle(int $mode): Binary
     {
         throw new UnsupportedException(sprintf('Binary access not supported for current "%s" Storage', get_class($this)), 500);
     }

@@ -7,7 +7,6 @@ namespace ricwein\FileSystem\Storage\Extensions\Binary;
 use ricwein\FileSystem\Storage\Disk as DiskStorage;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
-
 use ricwein\FileSystem\Storage\Extensions\Binary;
 
 /**
@@ -27,11 +26,13 @@ class Disk extends Binary
     protected $handle = null;
 
     /**
+     * @inheritDoc
      * @param DiskStorage $storage
      */
-    public function __construct(DiskStorage $storage)
+    public function __construct(DiskStorage $storage, int $mode)
     {
         $this->storage = $storage;
+        $this->openHandle($mode);
     }
 
     /**
@@ -83,7 +84,7 @@ class Disk extends Binary
      */
     public function write(string $bytes, ?int $length = null): int
     {
-        $this->openHandle(static::MODE_WRITE);
+        $this->applyAccessMode(static::MODE_WRITE);
 
         $bytesCount = mb_strlen($bytes, '8bit');
 
@@ -115,11 +116,11 @@ class Disk extends Binary
     }
 
     /**
-     * @inheritDoc'
+     * @inheritDoc
      */
     public function read(int $length): string
     {
-        $this->openHandle(static::MODE_READ);
+        $this->applyAccessMode(static::MODE_READ);
 
         if ($length < 0) {
             throw new RuntimeException('invalid byte-count', 500);

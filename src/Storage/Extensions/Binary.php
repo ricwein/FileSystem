@@ -17,17 +17,17 @@ abstract class Binary
     /**
      * @var int
      */
-    protected const MODE_CLOSED = 0;
+    public const MODE_CLOSED = 0;
 
     /**
      * @var int
      */
-    protected const MODE_READ = 1;
+    public const MODE_READ = 1;
 
     /**
      * @var int
      */
-    protected const MODE_WRITE = 2;
+    public const MODE_WRITE = 2;
 
     /**
      * @var int
@@ -46,10 +46,12 @@ abstract class Binary
 
     /**
      * @param Storage $storage
+     * @param int $mode
      */
-    public function __construct(Storage $storage)
+    public function __construct(Storage $storage, int $mode)
     {
         $this->storage = $storage;
+        $this->applyAccessMode($mode);
     }
 
 

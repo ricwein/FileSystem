@@ -380,9 +380,9 @@ class Disk extends Storage
      * @inheritDoc
      * @return Binary\Disk
      */
-    public function binary(): Binary
+    public function getHandle(int $mode): Binary
     {
-        return new Binary\Disk($this);
+        return new Binary\Disk($this, $mode);
     }
 
     /**

@@ -20,11 +20,12 @@ class Memory extends Binary
     protected $storage;
 
     /**
+     * @inheritDoc
      * @param MemoryStorage $storage
      */
-    public function __construct(MemoryStorage $storage)
+    public function __construct(MemoryStorage $storage, int $mode)
     {
-        $this->storage = $storage;
+        parent::__construct($storage, $mode);
     }
 
     /**
