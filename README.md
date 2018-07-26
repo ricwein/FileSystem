@@ -99,7 +99,7 @@ All *FileSystem*-base-classes must be initialized using a Storage.
 | `isDir()` | is selected path a directory? => always `false` for File instance |
 | `isDotfile()` | is file a hidden dot-file? |
 | `isValid()` | run constraints validation |
-| `binary()` | gets new file-Handle for binary file-access |
+| `getHandle($mode)` | gets new file-Handle for binary file-access |
 | `storage()` | access internal storage adapter |
 | `path()` | tries to access filesytem-path |
 
