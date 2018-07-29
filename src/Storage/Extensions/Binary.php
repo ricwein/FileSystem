@@ -35,11 +35,6 @@ abstract class Binary
     protected $mode = self::MODE_CLOSED;
 
     /**
-     * @var Storage
-     */
-    protected $storage;
-
-    /**
      * @var int
      */
     protected $pos = 0;
@@ -50,7 +45,6 @@ abstract class Binary
      */
     public function __construct(Storage $storage, int $mode)
     {
-        $this->storage = $storage;
         $this->applyAccessMode($mode);
     }
 
@@ -100,7 +94,10 @@ abstract class Binary
      * get number of bytes remaining
      * @return int
      */
-    abstract public function remainingBytes(): int;
+    public function remainingBytes(): int
+    {
+        return (int) (PHP_INT_MAX & ($this->getSize() - $this->pos));
+    }
 
     /**
      * current position in file-buffer
@@ -110,6 +107,12 @@ abstract class Binary
     {
         return $this->pos;
     }
+
+    /**
+     * gets file-size in bytes
+     * @return int
+     */
+    abstract public function getSize(): int;
 
     /**
      * set the current cursor position to the desired location

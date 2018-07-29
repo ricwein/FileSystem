@@ -25,7 +25,8 @@ class Memory extends Binary
      */
     public function __construct(MemoryStorage $storage, int $mode)
     {
-        parent::__construct($storage, $mode);
+        $this->storage = $storage;
+        $this->applyAccessMode($mode);
     }
 
     /**
@@ -74,9 +75,9 @@ class Memory extends Binary
     /**
      * @inheritDoc
      */
-    public function remainingBytes(): int
+    public function getSize(): int
     {
-        return (int) (PHP_INT_MAX & ((int) $this->storage->getSize() - $this->pos));
+        return $this->storage->getSize();
     }
 
     /**

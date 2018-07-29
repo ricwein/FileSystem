@@ -14,11 +14,10 @@ use ricwein\FileSystem\Storage\Extensions\Binary;
  */
 class Disk extends Binary
 {
-
     /**
-     * @var DiskStorage
+     * @var string
      */
-    protected $storage;
+    protected $filePath;
 
     /**
      * @var resource|null
@@ -31,7 +30,7 @@ class Disk extends Binary
      */
     public function __construct(DiskStorage $storage, int $mode)
     {
-        $this->storage = $storage;
+        $this->filePath = $storage->path()->real;
         $this->openHandle($mode);
     }
 
@@ -46,7 +45,7 @@ class Disk extends Binary
 
         \flock($this->handle, LOCK_UN);
         \fclose($this->handle);
-        \clearstatcache($this->storage->path()->real);
+        \clearstatcache($this->filePath);
     }
 
 
@@ -63,7 +62,7 @@ class Disk extends Binary
             return;
         }
 
-        $this->handle = @\fopen($this->storage->path()->real, ($mode === static::MODE_READ) ? 'rb' : 'wb');
+        $this->handle = @\fopen($this->filePath, ($mode === static::MODE_READ) ? 'rb' : 'wb');
         if ($this->handle === false) {
             $this->handle = null;
             $this->mode = static::MODE_CLOSED;
@@ -161,9 +160,9 @@ class Disk extends Binary
     /**
      * @inheritDoc
      */
-    public function remainingBytes(): int
+    public function getSize(): int
     {
-        return (int) (PHP_INT_MAX & ((int) $this->stat['size'] - $this->pos));
+        $this->stat['size'];
     }
 
     /**
