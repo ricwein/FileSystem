@@ -65,4 +65,33 @@ class DiskTest extends TestCase
         // try to read from write-locked handle => this must fail
         $byteHandle->read(self::MSG_LENGTH);
     }
+
+    /**
+     * @return void
+     */
+    public function testEmptyFile()
+    {
+        $file = new File(new Storage\Disk\Temp());
+        $handle = $file->getHandle(Binary::MODE_READ);
+
+        $this->assertSame(0, $handle->getSize());
+        $this->assertSame(0, $handle->getPos());
+    }
+
+    /**
+     * @return void
+     */
+    public function testSeek()
+    {
+        $file = (new File(new Storage\Disk\Temp()))->write(random_bytes(self::MSG_LENGTH));
+        $handle = $file->getHandle(Binary::MODE_READ);
+
+        $this->assertSame($file->getSize(), $handle->getSize());
+        $this->assertSame(0, $handle->getPos());
+
+        $pos = (int) floor($file->getSize() / 2);
+        $handle->seek($pos);
+        $this->assertSame($pos, $handle->getPos());
+        $this->assertSame($file->getSize() - $pos, $handle->remainingBytes());
+    }
 }

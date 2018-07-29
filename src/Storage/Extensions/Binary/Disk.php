@@ -162,7 +162,7 @@ class Disk extends Binary
      */
     public function getSize(): int
     {
-        $this->stat['size'];
+        return $this->stat['size'];
     }
 
     /**
