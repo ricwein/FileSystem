@@ -83,6 +83,7 @@ All *FileSystem*-base-classes must be initialized using a Storage.
 | method | description |
 |---|---|
 | `read(?$offset, ?$length, $mode)` | read and return file-content, allows partial read with `$offset` and `$length` parameters, file is locked while reading with `$mode`|
+| `stream(?$offset, ?$length, $mode)` | stream file into output-buffer, file is locked while reading with `$mode`|
 | `write($content, $append, $mode)` | write `$content` to file, creates new file if it doesn't already exists, allows appended writing if `$append` isset, locks file with `$mode` |
 | `copyTo($destination, $constraints)` | copy file to new `$destination` Storage-adapter |
 | `moveTo($destination, $constraints)` | like `copyTo()`, but moves files instead |

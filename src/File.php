@@ -50,6 +50,24 @@ class File extends FileSystem
     }
 
     /**
+     * @param int|null $offset
+     * @param int|null $length
+     * @param int $mode
+     * @return void
+     * @throws FileNotFoundException
+     */
+    public function stream(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): void
+    {
+
+        // validate constraints
+        if (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
+            throw new FileNotFoundException('unable to open file', 404, $this->storage->getConstraintViolations());
+        }
+
+        $this->storag->streamFile($offset, $length, $mode);
+    }
+
+    /**
      * write content to storage
      * @param  string $content
      * @param bool $append

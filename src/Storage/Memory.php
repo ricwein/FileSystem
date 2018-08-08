@@ -101,6 +101,15 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
+    public function streamFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): void
+    {
+        echo $this->readFile($offset, $length, $mode);
+    }
+
+
+    /**
+     * @inheritDoc
+     */
     public function writeFile(string $content, bool $append = false, int $mode = 0): bool
     {
         if ($append) {

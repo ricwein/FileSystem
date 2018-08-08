@@ -7,6 +7,7 @@ namespace ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Helper\Hash;
+use ricwein\FileSystem\Helper\Stream;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
@@ -127,15 +128,38 @@ class Disk extends Storage
                 throw new RuntimeException('unable to get file-lock', 500);
             }
 
-            // read whole file
-            if (($offset === null || $length === null)) {
-                $filesize = $this->path->fileInfo()->getSize();
-                return ($filesize <= 0) ? '' : \fread($handle, $filesize);
+            return (new Stream($handle))->read($offset, $length);
+        } finally {
+
+            // ensure the file in unlocked after reading and the file-handler is closed again
+            if ($mode !== 0) {
+                \flock($handle, LOCK_UN);
+            }
+            \fclose($handle);
+        }
+    }
+
+    /**
+     * @inheritDoc
+     * @throws FileNotFoundException|RuntimeException
+     */
+    public function streamFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): void
+    {
+        if (!$this->isFile() || !$this->isReadable()) {
+            throw new FileNotFoundException('file not found', 404);
+        }
+
+        // open file-handler in readonly mode
+        $handle = \fopen($this->path->real, 'r');
+
+        try {
+
+            // try to set lock if provided
+            if ($mode !== 0 && !\flock($handle, $mode | LOCK_NB)) {
+                throw new RuntimeException('unable to get file-lock', 500);
             }
 
-            // read part of file
-            \fseek($handle, $offset);
-            return \fread($handle, $length);
+            (new Stream($handle))->send($offset, $length);
         } finally {
 
             // ensure the file in unlocked after reading and the file-handler is closed again

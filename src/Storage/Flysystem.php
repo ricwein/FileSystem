@@ -8,6 +8,7 @@ use League\Flysystem\Filesystem as FlyFilesystem;
 use League\Flysystem\Adapter\AbstractAdapter;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\Hash;
+use ricwein\FileSystem\Helper\Stream;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
@@ -135,13 +136,42 @@ class Flysystem extends Storage
      */
     public function readFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string
     {
-        if ($offset !== null || $length !== null) {
-            throw new UnsupportedException('partial file-read is not supported by FlySystem Adapters', 500);
-        } elseif (!$this->isFile()) {
+        if (!$this->isFile()) {
             throw new FileNotFoundException('file not found', 404);
         }
 
-        return $this->flysystem->read($this->path);
+        try {
+            $handle = $this->flysystem->readStream($this->path);
+            if ($handle === false) {
+                throw new RuntimeException('error while reading file', 500);
+            }
+
+            return (new Stream($handle))->read($offset, $length);
+        } finally {
+            \fclose($handle);
+        }
+    }
+
+    /**
+     * @inheritDoc
+     * @throws RuntimeException
+     */
+    public function streamFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): void
+    {
+        if (!$this->isFile()) {
+            throw new FileNotFoundException('file not found', 404);
+        }
+
+        try {
+            $handle = $this->flysystem->readStream($this->path);
+            if ($handle === false) {
+                throw new RuntimeException('error while reading file', 500);
+            }
+
+            (new Stream($handle))->send($offset, $length);
+        } finally {
+            \fclose($handle);
+        }
     }
 
     /**

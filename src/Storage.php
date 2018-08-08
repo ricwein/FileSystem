@@ -126,6 +126,15 @@ abstract class Storage
     abstract public function readFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string;
 
     /**
+     * @param int|null $offset
+     * @param int|null $length
+     * @param int $mode
+     * @return void
+     * @throws FileNotFoundException
+     */
+    abstract public function streamFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): void;
+
+    /**
      * write content to storage
      * @param  string $content
      * @param bool $append
