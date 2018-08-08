@@ -75,6 +75,11 @@ class Path
     protected $directory;
 
     /**
+     * @var string
+     */
+    protected $pathname;
+
+    /**
      * file-extension of a file
      * e.g.: db
      * @var string|null
@@ -202,6 +207,7 @@ class Path
         // parse into path-details
         $this->directory = $this->fileInfo->getPath();
         $this->real = $this->fileInfo->getRealPath();
+        $this->pathname = $this->fileInfo->getPathname();
 
         if ($this->fileInfo->isFile()) {
             $this->extension = $this->fileInfo->getExtension();

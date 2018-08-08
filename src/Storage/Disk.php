@@ -283,9 +283,7 @@ class Disk extends Storage
 
         /** @var \SplFileInfo $file */
         foreach ($iterator as $file) {
-
-            // skip ourself
-            if ($file->getRealPath() === $this->path->real) {
+            if (in_array($file->getFilename(), ['.', '..'], true)) {
                 continue;
             }
 
@@ -294,8 +292,10 @@ class Disk extends Storage
                 throw new AccessDeniedException(sprintf('unable to access file for path: "%s"', $file->getPathname()), 500);
             }
 
-            $pathBase = dirname(realpath($this->path->safepath));
-            yield new self($pathBase, str_replace($pathBase, '', $file->getRealPath()));
+            yield new self(
+                $this->path->real,
+                str_replace($this->path->real, '', $file->getPathname())
+            );
         }
     }
 
