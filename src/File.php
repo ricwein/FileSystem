@@ -224,6 +224,16 @@ class File extends FileSystem
     }
 
     /**
+     * calculate size
+     * @return int
+     * @throws UnexpectedValueException
+     */
+    public function getSize(): int
+    {
+        return $this->storage->getSize();
+    }
+
+    /**
     * @param  bool $ifNewOnly
     * @return bool
      */

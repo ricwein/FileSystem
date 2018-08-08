@@ -127,6 +127,21 @@ class Directory extends FileSystem
     }
 
     /**
+     * calculate size
+     * @param bool $recursive
+     * @return int
+     * @throws UnexpectedValueException
+     */
+    public function getSize(bool $recursive = true): int
+    {
+        $size = 0;
+        foreach ($this->listFiles($recursive) as $file) {
+            $size += $file->getSize();
+        }
+        return $size;
+    }
+
+    /**
      * changes current directory
      * @param string|FileSystem|Helper\Path $path ,...
      * @return self

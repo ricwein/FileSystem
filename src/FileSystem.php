@@ -84,17 +84,6 @@ abstract class FileSystem
      */
     abstract public function remove(): self;
 
-
-    /**
-    * calculate size
-     * @return int
-     * @throws UnexpectedValueException
-     */
-    public function getSize(): int
-    {
-        return $this->storage->getSize();
-    }
-
     /**
      * check if path is readable
      * @return bool
