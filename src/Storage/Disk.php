@@ -337,7 +337,7 @@ class Disk extends Storage
 
         switch ($mode) {
             case Hash::CONTENT: return hash_file($algo, $this->path->real, false);
-            case Hash::FILENAME: return hash($algo, $this->path->basename, false);
+            case Hash::FILENAME: return hash($algo, $this->path->filename, false);
             case Hash::FILEPATH: return hash($algo, $this->path->real, false);
             default: throw new RuntimeException('unknown hashing-mode', 500);
         }

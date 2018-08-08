@@ -44,7 +44,7 @@ class DiskTempTest extends TestCase
     {
         $file = new File(new Storage\Disk\Temp('test.file'));
 
-        $this->assertSame($file->path()->basename, 'test.file');
+        $this->assertSame($file->path()->filename, 'test.file');
         $this->assertSame($file->path()->directory, sys_get_temp_dir());
     }
     /**

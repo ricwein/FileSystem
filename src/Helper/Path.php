@@ -202,14 +202,15 @@ class Path
         // parse into path-details
         $this->directory = $this->fileInfo->getPath();
         $this->real = $this->fileInfo->getRealPath();
-        $this->basename = $this->fileInfo->getBasename();
 
         if ($this->fileInfo->isFile()) {
             $this->extension = $this->fileInfo->getExtension();
             $this->filename = $this->fileInfo->getFilename();
+            $this->basename = $this->fileInfo->getBasename('.' . $this->extension);
         } else {
             $this->extension = null;
             $this->filename = null;
+            $this->basename = $this->fileInfo->getBasename();
         }
 
         $this->loaded = true;

@@ -181,7 +181,7 @@ $hashes = [];
 $dir = new Directory(new Storage\Disk(__DIR__));
 
 foreach($dir->listFiles(true) as $file) {
-    $hashes[$file->path()->basename] = $file->getHash();
+    $hashes[$file->path()->filename] = $file->getHash();
 }
 ```
 

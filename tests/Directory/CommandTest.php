@@ -34,7 +34,7 @@ class CommandTest extends TestCase
         $files = explode(PHP_EOL, $result);
         foreach ($ls->list(false) as $file) {
             if ($file instanceof File) {
-                $this->assertContains($file->path()->basename, $files);
+                $this->assertContains($file->path()->filename, $files);
             }
         }
     }

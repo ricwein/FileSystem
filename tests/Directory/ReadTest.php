@@ -55,7 +55,7 @@ class ReadTest extends TestCase
             $this->assertInstanceOf(File::class, $file);
             $this->assertInstanceOf(Storage\Disk::class, $file->storage());
 
-            $this->assertContains($file->path()->basename, $this->listTestfiles());
+            $this->assertContains($file->path()->filename, $this->listTestfiles());
         }
     }
 
@@ -73,7 +73,7 @@ class ReadTest extends TestCase
             $this->assertInstanceOf(File::class, $file);
             $this->assertInstanceOf(Storage\Disk::class, $file->storage());
 
-            $this->assertContains($file->path()->basename, $this->listTestfiles());
+            $this->assertContains($file->path()->filename, $this->listTestfiles());
         }
     }
 
