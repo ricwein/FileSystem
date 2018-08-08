@@ -73,7 +73,7 @@ class Stream
     public function send(?int $offset = null, ?int $length = null, int $bufferSize = 1024): void
     {
         if ($offset === null || $length === null) {
-            if (!\fseek($this->handle, 0) !== 0) {
+            if (\fseek($this->handle, 0) !== 0) {
                 throw new RuntimeException('error while rewinding file', 500);
             }
 

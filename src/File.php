@@ -64,7 +64,7 @@ class File extends FileSystem
             throw new FileNotFoundException('unable to open file', 404, $this->storage->getConstraintViolations());
         }
 
-        $this->storag->streamFile($offset, $length, $mode);
+        $this->storage->streamFile($offset, $length, $mode);
     }
 
     /**
