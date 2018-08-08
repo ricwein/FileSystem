@@ -389,7 +389,7 @@ class Disk extends Storage
      */
     public function isDotfile(): bool
     {
-        return strpos($this->storage->path()->basename, '.') === 0;
+        return strpos($this->path->basename, '.') === 0;
     }
 
     /**
