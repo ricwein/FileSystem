@@ -54,15 +54,15 @@ class Path
     protected $safepath;
 
     /**
-     * name of a file without file-extension
-     * e.g.: test
+     * name of a file
+     * e.g.: test.db
      * @var string|null
      */
     protected $filename = null;
 
     /**
-    * name of a file
-    * e.g.: test.db
+    * name of a directory or file without file-extension
+    * e.g.: test
     * @var string
      */
     protected $basename;
