@@ -128,7 +128,7 @@ class File extends FileSystem
             $destination->path()->reload();
         }
 
-        return new self($destination);
+        return new static($destination);
     }
 
     /**

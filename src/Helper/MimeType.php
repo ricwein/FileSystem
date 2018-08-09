@@ -55,7 +55,6 @@ class MimeType
      */
     protected const EXTENSIONS_IMAGES = [
         'png' => 'image/png',
-        'jpe' => 'image/jpeg',
         'jpeg' => 'image/jpeg',
         'jpg' => 'image/jpeg',
         'gif' => 'image/gif',
