@@ -16,7 +16,7 @@ use ricwein\FileSystem\Storage;
 
 /**
  * use gd/imagemagick for image-manipulations
- * @method File\Image copyTo(Storage $destination, ?int $constraints = null)                                                                                     Resizes the current image to new width, constraining aspect ratio. Pass an optional Closure callback as third parameter, to apply additional constraints like preventing possible upsizing.
+ * @method \ricwein\FileSystem\File\Image copyTo(Storage $destination, ?int $constraints = null)                                                                                     Resizes the current image to new width, constraining aspect ratio. Pass an optional Closure callback as third parameter, to apply additional constraints like preventing possible upsizing.
  */
 class Image extends File
 {
