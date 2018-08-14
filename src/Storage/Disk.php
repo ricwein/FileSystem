@@ -6,7 +6,7 @@ namespace ricwein\FileSystem\Storage;
 
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\FileSystem;
-use ricwein\FileSystem\Helper\Hash;
+use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Helper\Stream;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;

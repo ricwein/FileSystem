@@ -9,7 +9,7 @@ use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Helper\Constraint;
-use ricwein\FileSystem\Helper\Hash;
+use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Storage\Extensions\Binary;
 

@@ -5,7 +5,7 @@
 namespace ricwein\FileSystem;
 
 use ricwein\FileSystem\Directory;
-use ricwein\FileSystem\Helper\Hash;
+use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;

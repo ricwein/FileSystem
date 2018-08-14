@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 use Intervention\Image\Image as IImage;
-use ricwein\FileSystem\Helper\Hash;
+use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Helper\MimeType;
 use ricwein\FileSystem\Helper\Constraint;
 

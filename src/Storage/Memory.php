@@ -5,7 +5,7 @@
 namespace ricwein\FileSystem\Storage;
 
 use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Helper\Hash;
+use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Storage\Extensions\Binary;
 

@@ -4,7 +4,7 @@
  */
 namespace ricwein\FileSystem;
 
-use ricwein\FileSystem\Helper\Hash;
+use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage;

@@ -5,7 +5,7 @@
 namespace ricwein\FileSystem;
 
 use ricwein\FileSystem\Helper\Constraint;
-use ricwein\FileSystem\Helper\Hash;
+use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;

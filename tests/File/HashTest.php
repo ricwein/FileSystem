@@ -5,7 +5,7 @@ namespace ricwein\FileSystem\Tests\File;
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Helper\Hash;
+use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Helper\Constraint;
 
 /**
