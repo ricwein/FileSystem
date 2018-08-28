@@ -47,6 +47,7 @@ class DiskTempTest extends TestCase
         $this->assertSame($file->path()->filename, 'test.file');
         $this->assertSame($file->path()->directory, sys_get_temp_dir());
     }
+
     /**
      * @return void
      */
@@ -56,5 +57,28 @@ class DiskTempTest extends TestCase
 
         $this->assertSame($file->path()->basename, 'test.dir');
         $this->assertSame($file->path()->directory, sys_get_temp_dir());
+    }
+
+    /**
+     * @return void
+     */
+    public function testAbsolutePath()
+    {
+        $filename = bin2hex(random_bytes(32));
+        $path = __DIR__ . '/' . $filename;
+        touch($path);
+
+        $this->assertTrue(file_exists($path));
+        $this->assertTrue(is_file($path));
+
+        $file = new File(new Storage\Disk\Temp(__DIR__, $filename));
+
+        $this->assertSame($file->path()->basename, $filename);
+        $this->assertSame($file->path()->directory, __DIR__);
+        $this->assertSame($file->path()->real, $path);
+
+        $file = null;
+        $this->assertFalse(file_exists($path));
+        $this->assertFalse(is_file($path));
     }
 }

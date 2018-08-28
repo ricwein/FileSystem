@@ -25,8 +25,8 @@ class Directory extends FileSystem
             throw new UnexpectedValueException('in-memory directories are not supported', 500);
         }
 
-        if ($storage instanceof Storage\Disk\Temp && !$storage->createDir()) {
-            throw new AccessDeniedException('unable to create temp file', 500);
+        if ($storage instanceof Storage\Disk\Temp && !$storage->mkdir()) {
+            throw new AccessDeniedException('unable to create temp directory', 500);
         }
 
         parent::__construct($storage, $constraints);
