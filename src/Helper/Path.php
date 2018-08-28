@@ -4,6 +4,7 @@
  */
 namespace ricwein\FileSystem\Helper;
 
+use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
@@ -129,10 +130,10 @@ class Path
             // parse path-component
             if (is_string($component)) {
                 $path = $component;
-            } elseif ($component instanceof self || $component instanceof FileSystem) {
+            } elseif ($component instanceof self || $component instanceof FileSystem || $component instanceof Storage\Disk) {
 
                 /** @var Path $pathObj */
-                $pathObj = $component instanceof FileSystem ? $component->path() : $component;
+                $pathObj = $component instanceof self ? $component : $component->path();
 
                 switch ($key) {
                     case $last: $path = $pathObj->raw; break; // last part
@@ -140,7 +141,7 @@ class Path
                     default: $path = $pathObj->directory; break; // middle parts
                 }
             } else {
-                throw new UnexpectedValueException(sprintf('invalid path-component of type \'%s\'', gettype($component)), 500);
+                throw new UnexpectedValueException(sprintf('invalid path-component of type \'%s\'', is_object($component) ? get_class($component) : gettype($component)), 500);
             }
 
             // normalize path
