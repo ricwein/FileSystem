@@ -106,8 +106,10 @@ class File extends FileSystem
             throw new FileNotFoundException('unable to open source file', 404, $this->storage->getConstraintViolations());
         } elseif ($destination instanceof Storage\Disk\Temp && !$destination->createFile()) {
             throw new AccessDeniedException('unable to create temp file', 500);
-        } elseif (!$destination->doesSatisfyConstraints() || !$destination->isWriteable()) {
+        } elseif (!$destination->doesSatisfyConstraints()) {
             throw new AccessDeniedException('unable to open destination file', 404, $destination->getConstraintViolations());
+        } elseif ($destination->isFile() && !$destination->isWriteable()) {
+            throw new AccessDeniedException('unable to open destination file', 404);
         }
 
         // copy file from filesystem to filesystem
@@ -147,8 +149,12 @@ class File extends FileSystem
             throw new UnexpectedValueException('unable to move file from memory', 500);
         } elseif (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
             throw new FileNotFoundException('unable to open source file', 404, $this->storage->getConstraintViolations());
-        } elseif (!$destination->doesSatisfyConstraints() || !$destination->isWriteable()) {
-            throw new AccessDeniedException('unable to write to destination path', 404, $destination->getConstraintViolations());
+        } elseif (!$destination->doesSatisfyConstraints()) {
+            throw new AccessDeniedException('unable to write to destination file', 404, $destination->getConstraintViolations());
+        } elseif ($destination->isFile() && !$destination->isWriteable()) {
+            throw new AccessDeniedException('unable to write to destination file', 404);
+        } elseif (!$destination->isFile() && !is_writable($destination->path()->directory)) {
+            throw new AccessDeniedException('unable to write to destination directory', 404);
         }
 
         // build destination path

@@ -9,7 +9,6 @@ use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 
 /**
  * base of all FileSystem type-classes (File/Directory)
