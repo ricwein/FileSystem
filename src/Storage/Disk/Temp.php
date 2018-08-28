@@ -4,6 +4,7 @@
  */
 namespace ricwein\FileSystem\Storage\Disk;
 
+use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\Path;
@@ -32,64 +33,66 @@ class Temp extends Disk
      */
     protected $persist = false;
 
-    /**
-     * @var Path|null
-     */
-    protected $path = null;
-
     public function __construct(... $path)
     {
-        if (!empty($path)) {
+        $filename = 'tmp.' . \bin2hex(\random_bytes(16));
+
+        if (empty($path)) {
+            $this->path = new Path([\sys_get_temp_dir(), $filename]);
+            return;
+        }
+
+        $testPath = new Path($path);
+        if (file_exists($testPath->raw)) {
+            $this->path = $testPath;
+            $this->isFree = false;
+            return;
+        }
+
+        $fistComponent = reset($path);
+
+        // check if our first (left) pathcomponent references to root (/)
+        if (
+            (is_string($fistComponent) && strpos($fistComponent, DIRECTORY_SEPARATOR) !== 0) ||
+            ($fistComponent instanceof Path && strpos($fistComponent->raw, DIRECTORY_SEPARATOR) !== 0) ||
+            ($fistComponent instanceof FileSystem && strpos($fistComponent->path()->raw, DIRECTORY_SEPARATOR) !== 0)
+        ) {
+
+            // we have a filename/relative-path, so lets add the temp-dir
+            array_unshift($path, \sys_get_temp_dir());
             $this->path = new Path($path);
+            return;
         }
+
+        // we already have a directory, so we add a random temp-filename
+        array_push($path, $filename);
+        $this->path = new Path($path);
     }
 
     /**
-     * @return bool
+     * @inheritDoc
      */
-    public function createFile(): bool
+    public function touch(bool $ifNewOnly = false): bool
     {
         if (!$this->isFree) {
             return true;
         }
+        $this->isFree = false;
 
-        for ($try = 0; $try < self::MAX_RETRY; $try++) {
-            $this->path = new Path([
-                \sys_get_temp_dir(),
-                $this->path !== null ? basename($this->path->raw) : 'tmp.' . \bin2hex(\random_bytes(16)) . '.file'
-            ]);
-
-            if (!file_exists($this->path->raw) && $this->touch(true)) {
-                $this->isFree = false;
-                return true;
-            }
-        }
-
-        return false;
+        return parent::touch($ifNewOnly);
     }
 
     /**
-     * @return bool
+     * @inheritDoc
      */
-    public function createDir(): bool
+    public function mkdir(): bool
     {
         if (!$this->isFree) {
             return true;
         }
+        $this->isFree = false;
 
-        for ($try = 0; $try < self::MAX_RETRY; $try++) {
-            $this->path = new Path([
-                \sys_get_temp_dir(),
-                $this->path !== null ? basename($this->path->raw) : 'tmp.' . \bin2hex(\random_bytes(16)) . '.dir'
-            ]);
-
-            if (!file_exists($this->path->raw) && $this->mkdir()) {
-                $this->isFree = false;
-                return true;
-            }
-        }
-
-        return false;
+        return parent::mkdir();
     }
 
     /**
@@ -107,24 +110,6 @@ class Temp extends Disk
     {
         $this->isFree = true;
         return parent::removeFile();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function removeDir(): bool
-    {
-        $this->isFree = true;
-        return parent::removeDir();
-    }
-
-    /**
-    * @inheritDoc
-     */
-    public function mkdir(): bool
-    {
-        $this->isFree = false;
-        return parent::mkdir();
     }
 
     /**

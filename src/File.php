@@ -24,7 +24,7 @@ class File extends FileSystem
      */
     public function __construct(Storage $storage, int $constraints = Constraint::STRICT)
     {
-        if ($storage instanceof Storage\Disk\Temp && !$storage->createFile()) {
+        if ($storage instanceof Storage\Disk\Temp && !$storage->touch(true)) {
             throw new AccessDeniedException('unable to create temp file', 500);
         }
 
@@ -102,14 +102,18 @@ class File extends FileSystem
         $destination->setConstraints(($constraints !== null) ? $constraints : $this->storage->getConstraints());
 
         // validate constraints
-        if (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
-            throw new FileNotFoundException('unable to open source file', 404, $this->storage->getConstraintViolations());
-        } elseif ($destination instanceof Storage\Disk\Temp && !$destination->createFile()) {
-            throw new AccessDeniedException('unable to create temp file', 500);
+        if (!$this->isFile()) {
+            throw new FileNotFoundException('unable to open source file', 404);
+        } elseif (!$this->storage->doesSatisfyConstraints()) {
+            throw new AccessDeniedException('unable to open source file', 403, $this->storage->getConstraintViolations());
+        } elseif (!$this->isReadable()) {
+            throw new AccessDeniedException('unable to open source file', 403);
+        } elseif ($destination instanceof Storage\Disk\Temp && !$destination->touch(true)) {
+            throw new AccessDeniedException('unable to create temp file', 403);
         } elseif (!$destination->doesSatisfyConstraints()) {
-            throw new AccessDeniedException('unable to open destination file', 404, $destination->getConstraintViolations());
+            throw new AccessDeniedException('unable to open destination file', 403, $destination->getConstraintViolations());
         } elseif ($destination->isFile() && !$destination->isWriteable()) {
-            throw new AccessDeniedException('unable to open destination file', 404);
+            throw new AccessDeniedException('unable to open destination file', 403);
         }
 
         // copy file from filesystem to filesystem
@@ -149,12 +153,14 @@ class File extends FileSystem
             throw new UnexpectedValueException('unable to move file from memory', 500);
         } elseif (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
             throw new FileNotFoundException('unable to open source file', 404, $this->storage->getConstraintViolations());
+        } elseif ($destination instanceof Storage\Disk\Temp && !$destination->touch(true)) {
+            throw new AccessDeniedException('unable to create temp file', 403);
         } elseif (!$destination->doesSatisfyConstraints()) {
-            throw new AccessDeniedException('unable to write to destination file', 404, $destination->getConstraintViolations());
+            throw new AccessDeniedException('unable to write to destination file', 403, $destination->getConstraintViolations());
         } elseif ($destination->isFile() && !$destination->isWriteable()) {
-            throw new AccessDeniedException('unable to write to destination file', 404);
+            throw new AccessDeniedException('unable to write to destination file', 403);
         } elseif (!$destination->isFile() && !is_writable($destination->path()->directory)) {
-            throw new AccessDeniedException('unable to write to destination directory', 404);
+            throw new AccessDeniedException('unable to write to destination directory', 403);
         }
 
         // build destination path
