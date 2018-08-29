@@ -19,6 +19,11 @@ class Uploaded extends Disk
 {
 
     /**
+     * @inheritDoc
+     */
+    protected $selfdestruct = true;
+
+    /**
      * @var array
      */
     private const UPLOAD_ERRORS = [

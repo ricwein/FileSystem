@@ -169,6 +169,8 @@ class File extends FileSystem
             $destination->setConstraints(($constraints !== null) ? $constraints : $this->storage->getConstraints());
         }
 
+        $this->storage->removeOnFree(false);
+
         if ($this->storage instanceof Storage\Disk\Uploaded) {
 
             // move uploaded file

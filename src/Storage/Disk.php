@@ -226,7 +226,14 @@ class Disk extends Storage
      */
     public function removeFile(): bool
     {
-        return unlink($this->path->real ?? $this->path->raw);
+        $this->selfdestruct = false;
+
+        if (!unlink($this->path->real ?? $this->path->raw)) {
+            return false;
+        }
+
+        $this->path->reload();
+        return true;
     }
 
 
@@ -263,23 +270,24 @@ class Disk extends Storage
             $iterator = $this->getIterator(true, \RecursiveIteratorIterator::CHILD_FIRST);
 
             /** @var \SplFileInfo $file */
-            foreach ($iterator as $file) {
+            foreach ($iterator as $splFile) {
 
                 // file not readable
-                if (!$file->isReadable()) {
-                    throw new AccessDeniedException(sprintf('unable to access file for path: "%s"', $file->getPathname()), 500);
+                if (!$splFile->isReadable()) {
+                    throw new AccessDeniedException(sprintf('unable to access file for path: "%s"', $splFile->getPathname()), 500);
                 }
 
                 // try to remove files/dirs/links
-                switch ($file->getType()) {
-                    case 'dir': rmdir($file->getRealPath()); break;
-                    case 'link': unlink($file->getPathname()); break;
-                    default: unlink($file->getRealPath());
+                switch ($splFile->getType()) {
+                    case 'dir': rmdir($splFile->getRealPath()); break;
+                    case 'link': unlink($splFile->getPathname()); break;
+                    default: unlink($splFile->getRealPath());
                 }
             }
 
             return rmdir($this->path->raw);
         } finally {
+            $this->selfdestruct = false;
             $this->path->reload();
         }
     }
