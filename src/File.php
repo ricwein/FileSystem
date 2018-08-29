@@ -163,12 +163,6 @@ class File extends FileSystem
             throw new AccessDeniedException('unable to write to destination directory', 403);
         }
 
-        // build destination path
-        if (!$destination->path()->fileInfo()->isFile()) {
-            $destination = new Storage\Disk($destination, $this->storage->getOriginalName());
-            $destination->setConstraints(($constraints !== null) ? $constraints : $this->storage->getConstraints());
-        }
-
         $this->storage->removeOnFree(false);
 
         if ($this->storage instanceof Storage\Disk\Uploaded) {
