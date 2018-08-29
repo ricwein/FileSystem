@@ -146,7 +146,7 @@ class Directory extends FileSystem
      * @param string|FileSystem|Helper\Path $path ,...
      * @return self
      */
-    public function cd(... $path): self
+    public function cd(...$path): self
     {
         $this->storage->cd($path);
         return $this;

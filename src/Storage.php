@@ -24,6 +24,13 @@ abstract class Storage
     protected $constraints = null;
 
     /**
+     * remove file from filesystem on object destruction
+     * => leaving scope or removing object reference
+     * @var bool
+     */
+    protected $selfdestruct = false;
+
+    /**
      * returns all detail-informations for testing/debugging purposes
      * @return string[]
      */
@@ -193,5 +200,17 @@ abstract class Storage
     public function getHandle(int $mode): Binary
     {
         throw new UnsupportedException(sprintf('Binary access not supported for current "%s" Storage', get_class($this)), 500);
+    }
+
+    /**
+     * remove file from filesystem on object destruction
+     * => leaving scope or removing object reference
+     * @param  bool $activate
+     * @return self
+     */
+    public function removeOnFree(bool $activate = true): self
+    {
+        $this->selfdestruct = $activate;
+        return $this;
     }
 }

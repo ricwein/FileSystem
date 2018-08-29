@@ -66,12 +66,12 @@ class DiskTempTest extends TestCase
     {
         $filename = bin2hex(random_bytes(32));
         $path = __DIR__ . '/' . $filename;
-        touch($path);
+
+        $file = new File(new Storage\Disk(__DIR__, $filename));
+        $file->removeOnFree()->touch();
 
         $this->assertTrue(file_exists($path));
         $this->assertTrue(is_file($path));
-
-        $file = new File(new Storage\Disk\Temp(__DIR__, $filename));
 
         $this->assertSame($file->path()->basename, $filename);
         $this->assertSame($file->path()->directory, __DIR__);

@@ -151,4 +151,16 @@ abstract class FileSystem
     {
         return false;
     }
+
+    /**
+     * remove file from filesystem on object destruction
+     * => leaving scope or removing object reference
+     * @param  bool $activate
+     * @return static
+     */
+    public function removeOnFree(bool $activate = true): self
+    {
+        $this->storage->removeOnFree($activate);
+        return $this;
+    }
 }

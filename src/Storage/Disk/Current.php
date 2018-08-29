@@ -19,7 +19,7 @@ class Current extends Disk
     /**
      * @inheritDoc
      */
-    public function __construct(... $path)
+    public function __construct(...$path)
     {
         $fistComponent = reset($path);
 

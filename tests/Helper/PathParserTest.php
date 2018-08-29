@@ -3,7 +3,11 @@
 namespace ricwein\FileSystem\Tests\Helper;
 
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\File;
+
 use ricwein\FileSystem\Helper\Path;
+
+use ricwein\FileSystem\Storage;
 
 /**
  * test FileSyst\File bases
@@ -41,5 +45,38 @@ class PathParserTest extends TestCase
         $path2 = new Path([$path1]);
 
         $this->assertSame($path1->getDetails(), $path2->getDetails());
+    }
+
+    /**
+     * @return void
+     */
+    public function testMultiPathSelfSimilar()
+    {
+        $path1 = new Path([dirname(__FILE__), basename(__FILE__)]);
+        $path2 = new Path([$path1]);
+
+        $this->assertSame($path1->getDetails(), $path2->getDetails());
+    }
+
+    /**
+     * @return void
+     */
+    public function testFilePathReusing()
+    {
+        $file1 = new File(new Storage\Disk(__FILE__));
+        $file2 = new File(new Storage\Disk($file1->path()));
+
+        $this->assertSame($file1->storage()->getDetails(), $file2->storage()->getDetails());
+    }
+
+    /**
+     * @return void
+     */
+    public function testFileMultiPathReusing()
+    {
+        $file1 = new File(new Storage\Disk(dirname(__FILE__), basename(__FILE__)));
+        $file2 = new File(new Storage\Disk($file1->path()));
+
+        $this->assertSame($file1->storage()->getDetails(), $file2->storage()->getDetails());
     }
 }

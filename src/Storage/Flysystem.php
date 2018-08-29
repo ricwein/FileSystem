@@ -55,6 +55,22 @@ class Flysystem extends Storage
     }
 
     /**
+     * @return void
+     */
+    public function __destruct()
+    {
+        if (!$this->selfdestruct || !file_exists($this->path)) {
+            return;
+        }
+
+        if (is_file($this->path)) {
+            $this->removeFile();
+        } elseif (is_dir($this->path)) {
+            $this->removeDir();
+        }
+    }
+
+    /**
      * @inheritDoc
      */
     public function getDetails(): array

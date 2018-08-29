@@ -28,12 +28,28 @@ class Disk extends Storage
     /**
      * @param string|FileSystem|Path $path ,...
      */
-    public function __construct(... $path)
+    public function __construct(...$path)
     {
         if (empty($path)) {
             throw new RuntimeException('unable to load Disk-Storage without a path', 400);
         }
         $this->path = new Path($path);
+    }
+
+    /**
+     * @return void
+     */
+    public function __destruct()
+    {
+        if (!$this->selfdestruct || !file_exists($this->path->raw)) {
+            return;
+        }
+
+        if (is_file($this->path->raw)) {
+            $this->removeFile();
+        } elseif (is_dir($this->path->raw)) {
+            $this->removeDir();
+        }
     }
 
     /**
