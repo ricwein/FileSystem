@@ -6,7 +6,6 @@ namespace ricwein\FileSystem\Helper;
 
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\FileSystem;
-use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 
 /**
@@ -107,7 +106,7 @@ class Path
     /**
      * parse each path-component and extract path-info
     * @return string[]
-    * @throws UnexpectedValueException|RuntimeException
+    * @throws UnexpectedValueException
      */
     protected function normalizePathComponents(): array
     {
@@ -115,41 +114,21 @@ class Path
 
         // fetch key of first and last item
         $keys = array_keys($this->components);
-        $first = reset($keys);
-        $last = end($keys);
+        $positionStart = reset($keys);
+        $positionEnd = end($keys);
 
         // iterate through all path-components
-        foreach ($this->components as $key => $component) {
+        foreach ($this->components as $position => $component) {
 
-            /**
-             * prepare resolve-path string
-             * @var string
-             */
-            $path = '';
-
-            // parse path-component
-            if (is_string($component)) {
-                $path = $component;
-            } elseif ($component instanceof self || $component instanceof FileSystem || $component instanceof Storage\Disk) {
-
-                /** @var Path $pathObj */
-                $pathObj = $component instanceof self ? $component : $component->path();
-
-                switch ($key) {
-                    case $last: $path = $pathObj->raw; break; // last part
-                    case $first: $path = ($pathObj->fileInfo()->isDir() ? $pathObj->raw : $pathObj->directory); break; // first part
-                    default: $path = $pathObj->directory; break; // middle parts
-                }
-            } else {
-                throw new UnexpectedValueException(sprintf('invalid path-component of type \'%s\'', is_object($component) ? get_class($component) : gettype($component)), 500);
-            }
+            // parse single path-component
+            $path = self::normalize($component, $position === $positionStart, $position === $positionEnd);
 
             // normalize path
             $path = str_replace(['/', '\\', DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR], DIRECTORY_SEPARATOR, $path);
 
-            if ($key === $first && $path === DIRECTORY_SEPARATOR) {
+            if ($position === $positionStart && $path === DIRECTORY_SEPARATOR) {
                 $components[] = DIRECTORY_SEPARATOR;
-            } elseif ($key === $first) {
+            } elseif ($position === $positionStart) {
                 $components[] = rtrim($path, DIRECTORY_SEPARATOR);
             } else {
                 $components[] = trim($path, DIRECTORY_SEPARATOR);
@@ -157,6 +136,44 @@ class Path
         }
 
         return $components;
+    }
+
+    /**
+     * @param  string|int|self|Storage\Disk|FileSystem $component
+     * @param bool $isFirstElement
+     * @param bool $isLastElement
+     * @return string
+     * @throws UnexpectedValueException
+     */
+    protected static function normalize($component, bool $isFirstElement, bool $isLastElement): string
+    {
+        switch (true) {
+
+            case is_string($component):
+                return $component;
+
+            case is_int($component):
+            case is_float($component):
+                return (string) $component;
+
+            case $component instanceof FileSystem:
+            case $component instanceof Storage\Disk:
+                $component = $component->path();
+                // no break
+            case $component instanceof self:
+                if ($isLastElement) {
+                    return $component->raw; // last part
+                } elseif ($isFirstElement) {
+                    return ($component->fileInfo()->isDir() ? $component->raw : $component->directory); // first part
+                }
+                return $component->directory; // middle parts
+
+            case (is_object($component) && method_exists($component, '__toString')):
+                return (string) $component;
+
+        }
+
+        throw new UnexpectedValueException(sprintf('invalid path-component of type \'%s\'', is_object($component) ? get_class($component) : gettype($component)), 500);
     }
 
     /**
