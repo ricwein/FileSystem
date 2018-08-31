@@ -234,9 +234,8 @@ class Flysystem extends Storage
     }
 
     /**
-     * @param bool $recursive
-     * @return self[] list of all files
-     * @throws RuntimeException
+     * @inheritDoc
+     * @throws AccessDeniedException
      */
     public function list(bool $recursive = false): \Generator
     {

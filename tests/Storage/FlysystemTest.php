@@ -48,7 +48,7 @@ class FlysystemTest extends TestCase
         $files = [];
 
         /** @var Directory|File $entry */
-        foreach ($dir->list(false) as $file) {
+        foreach ($dir->list(false)->all() as $file) {
 
             // skip directories
             if ($file instanceof Directory) {

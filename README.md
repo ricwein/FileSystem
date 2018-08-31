@@ -143,9 +143,7 @@ Like Files, Directories must be initialized using a Storage.
 
 | method | description |
 |---|---|
-| `list($recursive, $constraints)` | lists directory-content as new `File`/`Directory` objects |
-| `listFiles($recursive, $constraints)` | like `list()` but ignores directories |
-| `listDirs($recursive, $constraints)` | like `list()` but ignores files |
+| `list($recursive)` | returns DirectoryIterator-Object to list directory-content as new `File`/`Directory` objects |
 | `mkdir()` | try to create directory |
 | `remove()` | try to remove directory |
 | `getTime()` | get last-modified unix-timestamp |
@@ -180,7 +178,7 @@ use ricwein\FileSystem\Storage;
 $hashes = [];
 $dir = new Directory(new Storage\Disk(__DIR__));
 
-foreach($dir->listFiles(true) as $file) {
+foreach($dir->list(true)->files() as $file) {
     $hashes[$file->path()->filename] = $file->getHash();
 }
 ```

@@ -32,7 +32,7 @@ class CommandTest extends TestCase
         $this->assertNotSame(false, $result);
 
         $files = explode(PHP_EOL, $result);
-        foreach ($ls->list(false) as $file) {
+        foreach ($ls->list(false)->all() as $file) {
             if ($file instanceof File) {
                 $this->assertContains($file->path()->filename, $files);
             }

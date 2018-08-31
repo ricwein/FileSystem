@@ -3,6 +3,10 @@
 namespace ricwein\FileSystem\Tests\Directory;
 
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\FileSystem;
+
+use ricwein\FileSystem\Helper\Constraint;
+
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\File;
@@ -43,7 +47,7 @@ class ReadTest extends TestCase
         $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'));
 
         /** @var Directory|File $file */
-        foreach ($dir->list(true) as $file) {
+        foreach ($dir->list(true)->all() as $file) {
 
             // skip directories
             if ($file instanceof Directory) {
@@ -67,7 +71,7 @@ class ReadTest extends TestCase
         $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'));
 
         /** @var File $file */
-        foreach ($dir->listFiles(true) as $file) {
+        foreach ($dir->list(true)->files() as $file) {
             $this->assertTrue($file->isFile());
 
             $this->assertInstanceOf(File::class, $file);
@@ -92,13 +96,49 @@ class ReadTest extends TestCase
 
 
         /** @var Directory $dir */
-        foreach ($dir->listDirs(false) as $dir) {
+        foreach ($dir->list(false)->dirs() as $dir) {
             $this->assertTrue($dir->isDir());
 
             $this->assertInstanceOf(Directory::class, $dir);
             $this->assertInstanceOf(Storage\Disk::class, $dir->storage());
 
             $this->assertContains($dir->path()->basename, $shouldDirs);
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function testListLowlevelFilters()
+    {
+        $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'), Constraint::LOOSE);
+
+        $dirIter = $dir->list(false);
+        $dirIter->filterStorage(function (Storage $storage): bool {
+            return $storage->getSize() > 1024;
+        });
+
+        /** @var File $file */
+        foreach ($dirIter->all() as $file) {
+            $this->assertSame($file->path()->filename, 'test.png');
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function testListHighlevelFilters()
+    {
+        $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'), Constraint::LOOSE);
+
+        $dirIter = $dir->list(false);
+        $dirIter->filter(function (FileSystem $file): bool {
+            return $file->isFile() && ($file->path()->extension === 'png');
+        });
+
+        /** @var File $file */
+        foreach ($dirIter->all() as $file) {
+            $this->assertSame($file->path()->filename, 'test.png');
         }
     }
 }

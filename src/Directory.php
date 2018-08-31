@@ -7,6 +7,7 @@ namespace ricwein\FileSystem;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Helper\DirectoryIterator;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
@@ -65,49 +66,12 @@ class Directory extends FileSystem
 
     /**
      * @param bool $recursive
-     * @param int|null $constraints
-     * @return File[]|Directory[]
-     */
-    public function list(bool $recursive = false, ?int $constraints = null): \Generator
-    {
-        /** @var Storage\Disk $file */
-        foreach ($this->storage->list($recursive) as $file) {
-            if ($file->isDir()) {
-                yield new Directory($file, $constraints ?? $this->storage->getConstraints());
-            } else {
-                yield new File($file, $constraints ?? $this->storage->getConstraints());
-            }
-        }
-    }
-
-    /**
      * @param bool $recursive
-     * @param int|null $constraints
-     * @return File[]
+     * @return DirectoryIterator
      */
-    public function listFiles(bool $recursive = false, ?int $constraints = null): \Generator
+    public function list(bool $recursive = false): DirectoryIterator
     {
-        /** @var Storage\Disk $file */
-        foreach ($this->storage->list($recursive) as $file) {
-            if (!$file->isDir()) {
-                yield new File($file, $constraints ?? $this->storage->getConstraints());
-            }
-        }
-    }
-
-    /**
-     * @param bool $recursive
-     * @param int|null $constraints
-     * @return Directory[]
-     */
-    public function listDirs(bool $recursive = false, ?int $constraints = null): \Generator
-    {
-        /** @var Storage\Disk $file */
-        foreach ($this->storage->list($recursive) as $file) {
-            if ($file->isDir()) {
-                yield new Directory($file, $constraints ?? $this->storage->getConstraints());
-            }
-        }
+        return new DirectoryIterator($this->storage, $recursive);
     }
 
     /**
@@ -119,7 +83,7 @@ class Directory extends FileSystem
         $fileHashes = [];
 
         /** @var Directory|File $entry */
-        foreach ($this->list($recursive) as $entry) {
+        foreach ($this->list($recursive)->all() as $entry) {
             $fileHashes[] = $entry->getHash($mode, $algo);
         }
 
@@ -135,7 +99,7 @@ class Directory extends FileSystem
     public function getSize(bool $recursive = true): int
     {
         $size = 0;
-        foreach ($this->listFiles($recursive) as $file) {
+        foreach ($this->list($recursive)->files() as $file) {
             $size += $file->getSize();
         }
         return $size;

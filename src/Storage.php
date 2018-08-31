@@ -92,7 +92,7 @@ abstract class Storage
      * check if path is directory
      * @return bool
      */
-    abstract public function isDir():bool;
+    abstract public function isDir(): bool;
 
     /**
      * check if file exists and is executable
@@ -212,5 +212,15 @@ abstract class Storage
     {
         $this->selfdestruct = $activate;
         return $this;
+    }
+
+    /**
+     * @param bool $recursive
+     * @return \Generator list of all files
+     * @throws RuntimeException|UnsupportedException
+     */
+    public function list(bool $recursive = false): \Generator
+    {
+        throw new UnsupportedException(sprintf('Listing Directory-Content is not supported for the current "%s" Storage', get_class($this)), 500);
     }
 }
