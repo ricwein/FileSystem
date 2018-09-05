@@ -211,7 +211,7 @@ The following constraints are set as default, but can be overwritten with the se
  $file = new File(new Storage\Disk(__DIR__, $_GET['file']));
 
  // disabling the safepath-constraint wold also allow ../ path attacks:
- $file = new File(new Storage\Disk(__DIR__ . $_GET['file']), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
+ $file = new File(new Storage\Disk(__DIR__, $_GET['file']), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
  ```
 
 ## Extensions
@@ -267,6 +267,3 @@ The following constraints are set as default, but can be overwritten with the se
  fclose($resource);
  $content = $file->read();
  ```
-
-### Binary access
-<!-- TODO -->

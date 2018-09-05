@@ -4,6 +4,7 @@
  */
 namespace ricwein\FileSystem;
 
+use ricwein\FileSystem\Exceptions\ConstraintsException;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
@@ -32,6 +33,32 @@ class File extends FileSystem
     }
 
     /**
+     * validate constraints and check file permissions
+     * @return void
+     * @throws FileNotFoundException
+     */
+    protected function checkFileReadPermissions(): void
+    {
+        if (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
+            throw new FileNotFoundException(sprintf('unable to open file: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->path()->raw : get_class($this->storage)), 404, $this->storage->getConstraintViolations());
+        }
+    }
+
+    /**
+     * validate constraints and check file permissions
+     * @return void
+     * @throws AccessDeniedException
+     */
+    protected function checkFileWritePermissions(): void
+    {
+        if (!$this->storage->doesSatisfyConstraints()) {
+            throw new AccessDeniedException(sprintf('unable to write file: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->path()->raw : get_class($this->storage)), 403, $this->storage->getConstraintViolations());
+        } elseif ($this->isFile() && !$this->isWriteable()) {
+            throw new AccessDeniedException(sprintf('unable to write file: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->path()->raw : get_class($this->storage)), 403);
+        }
+    }
+
+    /**
      * @param int|null $offset
      * @param int|null $length
      * @param int $mode
@@ -40,11 +67,7 @@ class File extends FileSystem
      */
     public function read(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string
     {
-
-        // validate constraints
-        if (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
-            throw new FileNotFoundException('unable to open file', 404, $this->storage->getConstraintViolations());
-        }
+        $this->checkFileReadPermissions();
 
         return $this->storage->readFile($offset, $length, $mode);
     }
@@ -58,11 +81,7 @@ class File extends FileSystem
      */
     public function stream(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): void
     {
-
-        // validate constraints
-        if (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
-            throw new FileNotFoundException('unable to open file', 404, $this->storage->getConstraintViolations());
-        }
+        $this->checkFileReadPermissions();
 
         $this->storage->streamFile($offset, $length, $mode);
     }
@@ -77,11 +96,7 @@ class File extends FileSystem
      */
     public function write(string $content, bool $append = false, int $mode = LOCK_EX): self
     {
-
-        // validate constraints
-        if (!$this->storage->doesSatisfyConstraints() || !$this->isWriteable()) {
-            throw new AccessDeniedException('unable to write file-content', 403, $this->storage->getConstraintViolations());
-        }
+        $this->checkFileWritePermissions();
 
         if (!$this->storage->writeFile($content, $append, $mode)) {
             throw new AccessDeniedException('unable to write file-content', 403);
@@ -101,14 +116,10 @@ class File extends FileSystem
     {
         $destination->setConstraints(($constraints !== null) ? $constraints : $this->storage->getConstraints());
 
+        $this->checkFileReadPermissions();
+
         // validate constraints
-        if (!$this->isFile()) {
-            throw new FileNotFoundException('unable to open source file', 404);
-        } elseif (!$this->storage->doesSatisfyConstraints()) {
-            throw new AccessDeniedException('unable to open source file', 403, $this->storage->getConstraintViolations());
-        } elseif (!$this->isReadable()) {
-            throw new AccessDeniedException('unable to open source file', 403);
-        } elseif ($destination instanceof Storage\Disk\Temp && !$destination->touch(true)) {
+        if ($destination instanceof Storage\Disk\Temp && !$destination->touch(true)) {
             throw new AccessDeniedException('unable to create temp file', 403);
         } elseif (!$destination->doesSatisfyConstraints()) {
             throw new AccessDeniedException('unable to open destination file', 403, $destination->getConstraintViolations());
@@ -148,12 +159,15 @@ class File extends FileSystem
     {
         $destination->setConstraints(($constraints !== null) ? $constraints : $this->storage->getConstraints());
 
-        // validate constraints
+        // unable to move file from memory to disk, we use copy instead
         if (!$this->storage instanceof Storage\Disk) {
-            throw new UnexpectedValueException('unable to move file from memory', 500);
-        } elseif (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
-            throw new FileNotFoundException('unable to open source file', 404, $this->storage->getConstraintViolations());
-        } elseif ($destination instanceof Storage\Disk\Temp && !$destination->touch(true)) {
+            return $this->copyTo($destination, $constraints);
+        }
+
+        $this->checkFileReadPermissions();
+
+        // validate constraints
+        if ($destination instanceof Storage\Disk\Temp && !$destination->touch(true)) {
             throw new AccessDeniedException('unable to create temp file', 403);
         } elseif (!$destination->doesSatisfyConstraints()) {
             throw new AccessDeniedException('unable to write to destination file', 403, $destination->getConstraintViolations());
@@ -185,9 +199,14 @@ class File extends FileSystem
 
     /**
      * @inheritDoc
+     * @throws ConstraintsException
      */
     public function isFile(): bool
     {
+        if (!$this->storage->doesSatisfyConstraints()) {
+            throw $this->storage->getConstraintViolations();
+        }
+
         return $this->storage->isFile();
     }
 
@@ -199,11 +218,7 @@ class File extends FileSystem
      */
     public function getType(bool $withEncoding = false): string
     {
-
-        // validate constraints
-        if (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
-            throw new FileNotFoundException('unable to open file', 404, $this->storage->getConstraintViolations());
-        }
+        $this->checkFileReadPermissions();
 
         if (null !== $mime = $this->storage->getFileType($withEncoding)) {
             return $mime;
@@ -218,11 +233,7 @@ class File extends FileSystem
      */
     public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): string
     {
-
-        // validate constraints
-        if (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
-            throw new FileNotFoundException(sprintf('unable to open file for path: "%s"', $this->path()->raw), 404, $this->storage->getConstraintViolations());
-        }
+        $this->checkFileReadPermissions();
 
         if (null !== $hash = $this->storage->getFileHash($mode, $algo)) {
             return $hash;
@@ -234,32 +245,38 @@ class File extends FileSystem
     /**
      * calculate size
      * @return int
-     * @throws UnexpectedValueException
+     * @throws UnexpectedValueException|AccessDeniedException
      */
     public function getSize(): int
     {
+        $this->checkFileReadPermissions();
+
         return $this->storage->getSize();
     }
 
     /**
     * @param  bool $ifNewOnly
     * @return bool
+    * @throws AccessDeniedException
      */
     public function touch(bool $ifNewOnly = false): bool
     {
+        $this->checkFileWritePermissions();
+
         return $this->storage->touch($ifNewOnly);
     }
 
     /**
      * @inheritDoc
-     * @throws AccessDeniedException|RuntimeException
+     * @throws AccessDeniedException|RuntimeException|FileNotFoundException
      */
     public function remove(): FileSystem
     {
+        $this->checkFileWritePermissions();
 
         // validate constraints
-        if (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isWriteable()) {
-            throw new AccessDeniedException('unable to open file', 404, $this->storage->getConstraintViolations());
+        if (!$this->isFile()) {
+            throw new FileNotFoundException(sprintf('unable to open file: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->path()->raw : get_class($this->storage)), 404);
         }
 
         if (!$this->storage->removeFile()) {
@@ -276,9 +293,7 @@ class File extends FileSystem
      */
     public function getHandle(int $mode): Binary
     {
-        if (!$this->isFile() || !$this->storage->doesSatisfyConstraints()) {
-            throw new RuntimeException('unable to open handle for file', 500, $this->storage->getConstraintViolations());
-        }
+        $this->checkFileReadPermissions();
 
         return $this->storage->getHandle($mode);
     }

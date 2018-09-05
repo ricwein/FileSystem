@@ -45,11 +45,7 @@ class Constraint
     /**
      * @var string[]
      */
-    protected const ERROR_MAP = [
-        self::IN_SAFEPATH => 'the given path is not within the safepath',
-        self::IN_OPENBASEDIR => 'the given path is not within the allowed \'open_basedir\' paths',
-        self::DISALLOW_LINK => 'the given path contains a symlink',
-    ];
+    protected $errors = [];
 
     /**
      * @var int
@@ -60,6 +56,11 @@ class Constraint
      * @var int
      */
     protected $failedFor = 0;
+
+    /**
+     * @var bool
+     */
+    protected $hasRun = false;
 
     /**
      * @param int $constraints
@@ -79,9 +80,9 @@ class Constraint
 
     /**
      * @param \Throwable|null $previous
-     * @return ConstraintsException|null
+     * @return \Throwable|ConstraintsException|null
      */
-    public function getErrors(\Throwable $previous = null): ?ConstraintsException
+    public function getErrors(\Throwable $previous = null): ?\Throwable
     {
         foreach ([
             self::DISALLOW_LINK,
@@ -89,9 +90,9 @@ class Constraint
             self::IN_SAFEPATH
         ] as $constraint) {
 
-            // unsatisfied constraint detected
+            // iterative exception chaining:
             if (($this->failedFor & $constraint) === $constraint) {
-                $previous = new ConstraintsException('[' . $constraint . '] - constraint failed'. (isset(self::ERROR_MAP[$constraint]) ? (': ' . self::ERROR_MAP[$constraint]) : ''), 500, $previous);
+                $previous = new ConstraintsException('[' . $constraint . '] - constraint failed'. (isset($this->errors[$constraint]) ? (': ' . $this->errors[$constraint]) : ''), 500, $previous);
             }
         }
 
@@ -104,12 +105,17 @@ class Constraint
      */
     public function isValidPath(Path $path): bool
     {
+        if ($this->hasRun) {
+            return $this->failedFor === 0;
+        }
+
         // not in open_basedir restrictions
         if (
             ($this->constraints & self::IN_OPENBASEDIR) === self::IN_OPENBASEDIR
             && !$path->isInOpenBasedir()
         ) {
             $this->failedFor |= self::IN_OPENBASEDIR;
+            $this->errors[self::IN_OPENBASEDIR] = sprintf('the given path (%s) is not within the allowed \'open_basedir\' paths', $path->raw);
         }
 
         // path contains a symlink
@@ -119,17 +125,22 @@ class Constraint
             && $path->fileInfo()->isLink()
         ) {
             $this->failedFor |= self::DISALLOW_LINK;
+            $this->errors[self::DISALLOW_LINK] = sprintf('the given path (%s) contains a symlink', $path->raw);
         }
 
         // ensure realpath is in original search path (prevent /../ cd's)
         if (
             ($this->constraints & self::IN_SAFEPATH) === self::IN_SAFEPATH
-            && $path->raw !== $path->real
-            && strpos($path->real, $path->safepath) !== 0
+            && (
+                (file_exists($path->raw) && $path->raw !== $path->real && strpos($path->real, $path->safepath) !== 0)
+                || (!file_exists($path->raw) && strpos($path->raw, $path->safepath) !== 0)
+            )
         ) {
             $this->failedFor |= self::IN_SAFEPATH;
+            $this->errors[self::IN_SAFEPATH] = sprintf('the given path (%s) is not within the safepath (%s)', $path->raw, $path->safepath);
         }
 
+        $this->hasRun = true;
         return $this->failedFor === 0;
     }
 }

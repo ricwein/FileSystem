@@ -18,6 +18,11 @@ use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 class Directory extends FileSystem
 {
     /**
+     * @var Storage\Disk
+     */
+    protected $storage;
+
+    /**
      * @inheritDoc
      */
     public function __construct(Storage $storage, int $constraints = Constraint::STRICT)
@@ -82,8 +87,8 @@ class Directory extends FileSystem
     {
         $fileHashes = [];
 
-        /** @var Directory|File $entry */
-        foreach ($this->list($recursive)->all() as $entry) {
+        /** @var File $entry */
+        foreach ($this->list($recursive)->files($this->storage->getConstraints()) as $entry) {
             $fileHashes[] = $entry->getHash($mode, $algo);
         }
 
@@ -99,7 +104,9 @@ class Directory extends FileSystem
     public function getSize(bool $recursive = true): int
     {
         $size = 0;
-        foreach ($this->list($recursive)->files() as $file) {
+
+        /** @var File $entry */
+        foreach ($this->list($recursive)->files($this->storage->getConstraints()) as $file) {
             $size += $file->getSize();
         }
         return $size;
