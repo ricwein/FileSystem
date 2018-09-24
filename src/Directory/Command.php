@@ -153,12 +153,9 @@ class Command extends Directory
         $cmd = trim(str_ireplace($this->bin . ' ', '', $cmd));
         $cmd = '"' . $this->bin . '" ' . $cmd;
 
-        $cmd = $this->bindVariables($cmd, array_merge($arguments, [
-            'path' => $this->storage->path(),
-        ]));
-        $cmd = $this->bindVariables($cmd, [
-            'path' => ['bin' => $this->bin],
-        ]);
+        $cmd = $this->bindVariables($cmd, $arguments);
+        $cmd = $this->bindVariables($cmd, ['path' => $this->storage->path()]);
+        $cmd = $this->bindVariables($cmd, ['path' => ['bin' => $this->bin]]);
 
         $cmd = rtrim($cmd);
         $this->lastCommand = $cmd;
