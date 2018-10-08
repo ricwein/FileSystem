@@ -186,10 +186,12 @@ abstract class Storage
 
     /**
      * @param  bool $ifNewOnly
+     * @param null|int $time last-modified time
+     * @param null|int $atime last-access time
      * @return bool
      * @throws Exception
      */
-    abstract public function touch(bool $ifNewOnly = false): bool;
+    abstract public function touch(bool $ifNewOnly = false, ?int $time = null, ?int $atime = null): bool;
 
     /**
      * access file for binary read/write actions

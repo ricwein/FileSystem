@@ -169,7 +169,7 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
-    public function touch(bool $ifNewOnly = false): bool
+    public function touch(bool $ifNewOnly = false, ?int $time = null, ?int $atime = null): bool
     {
         return true;
     }

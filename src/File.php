@@ -256,14 +256,16 @@ class File extends FileSystem
 
     /**
     * @param  bool $ifNewOnly
+    * @param null|int $time last-modified time
+    * @param null|int $atime last-access time
     * @return bool
     * @throws AccessDeniedException
      */
-    public function touch(bool $ifNewOnly = false): bool
+    public function touch(bool $ifNewOnly = false, ?int $time = null, ?int $atime = null): bool
     {
         $this->checkFileWritePermissions();
 
-        return $this->storage->touch($ifNewOnly);
+        return $this->storage->touch($ifNewOnly, $time, $atime);
     }
 
     /**

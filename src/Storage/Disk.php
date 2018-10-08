@@ -377,14 +377,14 @@ class Disk extends Storage
     /**
      * @inheritDoc
      */
-    public function touch(bool $ifNewOnly = false): bool
+    public function touch(bool $ifNewOnly = false, ?int $time = null, ?int $atime = null): bool
     {
         if ($ifNewOnly === true && $this->isFile()) {
             return true;
         }
 
         // actual touch file
-        if (!touch($this->path->raw)) {
+        if (!touch($this->path->raw, $time, $atime)) {
             return false;
         }
 
