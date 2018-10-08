@@ -116,11 +116,6 @@ class File extends FileSystem
     {
         $destination->setConstraints(($constraints !== null) ? $constraints : $this->storage->getConstraints());
 
-        // ensure the destination-path points to a filename
-        if ($destination instanceof Storage\Disk && $destination->isDir()) {
-            $destination = $destination->cd($this->path()->filename);
-        }
-
         $this->checkFileReadPermissions();
 
         // validate constraints
@@ -130,6 +125,12 @@ class File extends FileSystem
             throw new AccessDeniedException('unable to open destination file', 403, $destination->getConstraintViolations());
         } elseif ($destination->isFile() && !$destination->isWriteable()) {
             throw new AccessDeniedException('unable to open destination file', 403);
+        }
+
+        // ensure the destination-path points to a filename
+        if ($destination instanceof Storage\Disk && $destination->isDir()) {
+            $destination = clone $destination;
+            $destination->cd([$this->storage instanceof Storage\Disk ? $this->path()->filename : (uniqid() . '.file')]);
         }
 
         // copy file from filesystem to filesystem
@@ -163,11 +164,6 @@ class File extends FileSystem
     public function moveTo(Storage\Disk $destination, ?int $constraints = null): self
     {
         $destination->setConstraints(($constraints !== null) ? $constraints : $this->storage->getConstraints());
-
-        // ensure the destination-path points to a filename
-        if ($destination instanceof Storage\Disk && $destination->isDir()) {
-            $destination = $destination->cd($this->path()->filename);
-        }
 
         // unable to move file from memory to disk, we use copy instead
         if (!$this->storage instanceof Storage\Disk) {
