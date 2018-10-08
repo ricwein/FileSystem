@@ -96,10 +96,10 @@ class Command extends Directory
                 // match against current bindings tree
                 if (is_array($current) && array_key_exists($value, $current)) {
                     $current = $current[$value];
-                } elseif (is_object($current) && (property_exists($current, $value) || isset($current->$value))) {
-                    $current = $current->$value;
                 } elseif (is_object($current) && method_exists($current, $value)) {
                     $current = $current->$value();
+                } elseif (is_object($current) && (property_exists($current, $value) || isset($current->$value))) {
+                    $current = $current->$value;
                 } else {
                     return $match[0];
                 }
