@@ -395,10 +395,15 @@ class Disk extends Storage
     }
 
     /**
+     * @param bool $ifNewOnly
      * @return bool
      */
-    public function mkdir(): bool
+    public function mkdir(bool $ifNewOnly = false): bool
     {
+        if ($ifNewOnly && $this->isDir() && $this->isFile()) {
+            return true;
+        }
+
         if (mkdir($this->path->raw, 0777, true)) {
             $this->path->reload();
             return true;
