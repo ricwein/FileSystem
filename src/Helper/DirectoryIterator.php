@@ -9,7 +9,8 @@ use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\File;
 
 /**
- * provides filterable directory list support
+ * provides filterable directory list support,
+ * depends on storage->list() implementations
  */
 class DirectoryIterator
 {
@@ -64,12 +65,13 @@ class DirectoryIterator
     }
 
     /**
+     * low-level storage iterator
      * @param int|null $constraints
-     * @return File[]|Directory[]
+     * @return Storage[]
      */
-    public function all(?int $constraints = null): \Generator
+    public function storages(): \Generator
     {
-        /** @var Storage $file */
+        /** @var Storage $storage */
         foreach ($this->storage->list($this->recursive) as $storage) {
 
             // apply early lowlevel filters
@@ -79,6 +81,19 @@ class DirectoryIterator
                 }
             }
 
+            yield $storage;
+        }
+    }
+
+
+    /**
+     * @param int|null $constraints
+     * @return File[]|Directory[]
+     */
+    public function all(?int $constraints = null): \Generator
+    {
+        /** @var Storage $storage */
+        foreach ($this->storages() as $storage) {
             $constraints = $constraints ?? $this->storage->getConstraints();
             $file = $storage->isDir() ? new Directory($storage, $constraints) : new File($storage, $constraints);
 

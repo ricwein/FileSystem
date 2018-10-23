@@ -26,7 +26,7 @@ class Path
 
     /**
      * relative path to file
-     * e.g.: test/test.db
+     * e.g.: [...] /test/test.db
      * @var string|null
      */
     protected $filepath = null;

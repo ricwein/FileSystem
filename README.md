@@ -70,6 +70,22 @@ Accessing the Objects (File/Directory) Content is abstracted as `Storage`s. A Fi
 
 All Storage-Types must extend the abstract base class `Filesystem\Storage`.
 
+> WARNING: since storage-objects are mutable and php automatically handles class-objects as references when passed into a function (constructor), it's highly recommended to use the `clone` keyword when storages are recycled between to FileSystem-Objects.
+> DO NOT:
+```php
+$dirA = new Directory(new Storage\Disk(__DIR__));
+$dirB = new Directory($dirA->storage());
+
+$dirA->cd('test'); // will also changes $dirB path!
+```
+> DO:
+```php
+$dirA = new Directory(new Storage\Disk(__DIR__));
+$dirB = new Directory(clone $dirA->storage());
+
+$dirA->cd('test'); // $dirB will stay in __DIR__
+```
+
 ### Exceptions
 
 Accessing File/Directory Attributes can result in throwing Exceptions. All Exceptions extend `Exceptions\Exception`.
@@ -169,7 +185,7 @@ $dir = new Directory(new Storage\Disk(__DIR__));
 var_dump($dir->isReadable());
 ```
 
-### list all files in directory
+### list all files inside a directory
 
 ```php
 use ricwein\FileSystem\Directory;
@@ -185,15 +201,15 @@ foreach($dir->list(true)->files() as $file) {
 
 ## Security
 
-Using this filesytem layer also provides some kind of security for usage with user-defined file-paths. Accessing file-attributes or file-contents is only done after running some constraint-checks.
+Using this filesytem-layer also provides some kind of security for usage with user-defined file-paths. Accessing file-attributes or file-contents is only done after running some constraint-checks.
 
 ### Constraints
 
 The following constraints are set as default, but can be overwritten with the second argument of the `File($storage, $constraints)` or `Directory($storage, $constraints)` constructor:
 
- - `Constraint::IN_OPENBASEDIR` => the path must be withing the `open_basedir` php-ini paths, this allows throwing exceptions befor running into phps own error
+ - `Constraint::IN_OPENBASEDIR` => the path must be within the `open_basedir` php-ini paths, this allows throwing exceptions befor running into php's own errors
  - `Constraint::DISALLOW_LINK` => the path must not be a link
- - `Constraint::IN_SAFEPATH` => is a file/directory path is build out of multiple parts, all laters parts must be within the first
+ - `Constraint::IN_SAFEPATH` => if a file/directory path is build out of multiple parts, all later parts must be located within the first one
 
  ```php
  use ricwein\FileSystem\File;
@@ -206,22 +222,30 @@ The following constraints are set as default, but can be overwritten with the se
  // this runs fine but is HIGHLY UNRECOMMENDED
  $file = new File(new Storage\Disk(__DIR__ . $_GET['file']));
 
- // path is given as single parts (see comma instead of dot)
+ // path is given as single parts (commas instead of dots!)
  // this throws an error since the resulting path is not within __DIR__
  $file = new File(new Storage\Disk(__DIR__, $_GET['file']));
 
- // disabling the safepath-constraint wold also allow ../ path attacks:
+ // however: disabling the safepath-constraint wold also allow ../ path attacks:
  $file = new File(new Storage\Disk(__DIR__, $_GET['file']), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
  ```
 
 ## Extensions
 
- - `Directory\Command`: Allows running shell-commands inside the given directory.
+### Directory Extensions
 
- ```php
- $git = new Directory\Command(new Storage\Disk(__DIR__), Constraint::STRICT, ['/usr/local/bin/git', '/usr/bin/git']);
- $ref = $git->execSafe('rev-parse HEAD');
- ```
+- `Directory\Command`: Allows running shell-commands inside the given directory.
+
+```php
+$git = new Directory\Command(new Storage\Disk(__DIR__), Constraint::STRICT, ['/usr/local/bin/git', '/usr/bin/git']);
+$ref = $git->execSafe('rev-parse HEAD');
+```
+
+### File Extensions
+
+- `File\Image`:
+
+- `File\Zip`:
 
 ### Storage Extensions
 
@@ -252,7 +276,7 @@ The following constraints are set as default, but can be overwritten with the se
  $temp = null; // will delete the temp-file again!
  ```
 
- - `Disk\Uploaded`: Provides safe and easy uploaded-files access through native `is_uploaded_file()` and `move_uploaded_file()` functions.
+ - `Disk\Uploaded`: Provides safe and easy *uploaded-files* access through php's native `is_uploaded_file()` and `move_uploaded_file()` functions.
 
  ```php
  $uploaded = new File(new Storage\Disk\Uploaded($_FILES['file']));
