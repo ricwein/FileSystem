@@ -73,7 +73,7 @@ abstract class Storage
      */
     public function __toString(): string
     {
-        return sprintf('[Storage: %s]', trim(str_replace(self::class, '', get_class($this)), '/'));
+        return sprintf('[Storage: %s]', trim(str_replace(self::class, '', get_class($this)), '\\'));
     }
 
     /**

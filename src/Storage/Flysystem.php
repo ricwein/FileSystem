@@ -329,4 +329,12 @@ class Flysystem extends Storage
     {
         return strpos($this->path, '.') === 0;
     }
+
+    /**
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return sprintf('%s/[Adapter: %s] at: "%s"', parent::__toString(), get_class($this->flysystem->getAdapter()), $this->path);
+    }
 }

@@ -206,4 +206,12 @@ class Command extends Directory
     {
         return $this->lastExitCode;
     }
+
+    /**
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return sprintf('%s binary: "%s"', parent::__toString(), $this->bin);
+    }
 }
