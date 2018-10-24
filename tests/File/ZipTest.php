@@ -166,8 +166,5 @@ class ZipTest extends TestCase
         foreach ($extractDir->list(true)->files() as $file) {
             $this->assertSame($sourceFiles[$file->path()->filepath], $file->getHash());
         }
-
-        fwrite(STDERR, print_r(['zip-path' => $zip->path()->real], true));
-        $zip->removeOnFree(false);
     }
 }
