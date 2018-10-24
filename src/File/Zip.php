@@ -150,6 +150,8 @@ class Zip extends File
             $this->archive->setPassword($this->password);
         }
 
+        $this->path()->reload();
+
         $this->isOpen = true;
         return true;
     }
