@@ -26,6 +26,7 @@ class ZipTest extends TestCase
         $zip->addFile($file)->commit();
 
         $this->assertSame('No error', $zip->getStatus());
+        $this->assertSame(1, $zip->getFileCount());
 
         // extract this file again
         $extractDir = new Directory(new Storage\Disk\Temp);
@@ -51,6 +52,7 @@ class ZipTest extends TestCase
         $zip->withPassword($password)->addFile($file)->commit();
 
         $this->assertSame('No error', $zip->getStatus());
+        $this->assertSame(1, $zip->getFileCount());
 
         // extract and decrypt this file again
         $extractDir = new Directory(new Storage\Disk\Temp);
@@ -74,6 +76,7 @@ class ZipTest extends TestCase
         $zip->addFile($file)->commit();
 
         $this->assertSame('No error', $zip->getStatus());
+        $this->assertSame(1, $zip->getFileCount());
 
         // extract this file again
         $extractDir = new Directory(new Storage\Disk\Temp);
@@ -96,17 +99,19 @@ class ZipTest extends TestCase
         $zip->addDirectory($dir)->commit();
 
         $this->assertSame('No error', $zip->getStatus());
+        $this->assertSame(iterator_count($dir->list(false)->files()), $zip->getFileCount());
 
         $extractDir = new Directory(new Storage\Disk\Temp);
         $zip->extractTo($extractDir->storage());
-        $this->assertSame(iterator_count($dir->list(true)->files()), iterator_count($extractDir->list(true)->files()));
+
+        $this->assertSame(iterator_count($dir->list(false)->files()), iterator_count($extractDir->list(true)->files()));
 
         $sourceFiles = [];
-        foreach ($dir->list(true)->files() as $file) {
+        foreach ($dir->list(false)->files() as $file) {
             $sourceFiles[$file->path()->filename] = $file->getHash();
         }
 
-        foreach ($extractDir->list(true)->files() as $file) {
+        foreach ($extractDir->list(false)->files() as $file) {
             $this->assertSame($sourceFiles[$file->path()->filename], $file->getHash());
         }
     }
@@ -121,6 +126,7 @@ class ZipTest extends TestCase
         $zip->addDirectory($dir)->commit();
 
         $this->assertSame('No error', $zip->getStatus());
+        $this->assertSame(iterator_count($dir->list(true)->files()), $zip->getFileCount());
 
         $extractDir = new Directory(new Storage\Disk\Temp);
         $zip->extractTo($extractDir->storage());
@@ -150,6 +156,8 @@ class ZipTest extends TestCase
         $zip->addFile(new File(new Storage\Memory($file->read())), 'testfile2.php');
         $zip->addDirectory($dir);
         $zip->commit();
+
+        $this->assertSame(iterator_count($dir->list(true)->files()) + 2, $zip->getFileCount());
 
         $extractDir = new Directory(new Storage\Disk\Temp);
         $zip->extractTo($extractDir->storage());

@@ -32,22 +32,36 @@ class Zip extends File
         ZipArchive::ER_MEMORY => 'memory-malloc failure',
         ZipArchive::ER_NOENT => 'file not found',
         ZipArchive::ER_NOZIP => 'not a zip archive',
+        ZipArchive::ER_TMPOPEN => 'unable to create temporary file',
         ZipArchive::ER_OPEN => 'unable to open file',
+        ZipArchive::ER_CLOSE => 'closing zip archive failed',
+        ZipArchive::ER_ZIPCLOSED => 'zip archive was closed',
         ZipArchive::ER_READ => 'unable to read file',
+        ZipArchive::ER_WRITE => 'unable to write file',
         ZipArchive::ER_SEEK => 'seek failed',
+        ZipArchive::ER_MULTIDISK => 'multi-disk zip archives not supported',
+        ZipArchive::ER_RENAME => 'renaming temporary file failed',
+        ZipArchive::ER_CRC => 'invalid CRC',
+        ZipArchive::ER_ZLIB => 'error in zlib',
+        ZipArchive::ER_CHANGED => 'entry has been changed',
+        ZipArchive::ER_DELETED => 'entry has been deleted',
+        ZipArchive::ER_COMPNOTSUPP => 'compression method not supported',
+        ZipArchive::ER_EOF => 'premature EOF',
+        ZipArchive::ER_INTERNAL => 'internal error',
+        ZipArchive::ER_REMOVE => 'can\'t remove file',
     ];
-
-    /**
-     * @var int
-     */
-    const ENCRYPTION_ALG = ZipArchive::EM_AES_256;
 
     /**
      * automatically close and reopend zip-archive after x files added,
      * to prevent running into file descriptors limit
      * @var int
      */
-    const AUTO_COMMIT_AFTER = 128;
+    private const AUTO_COMMIT_AFTER = 128;
+
+    /**
+     * @var int
+     */
+    public const DEFAULT_ENCRYPTION = ZipArchive::EM_AES_256;
 
     /**
      * indicates whether the zip-archive is currently opened
@@ -73,7 +87,17 @@ class Zip extends File
     /**
      * @var int
      */
-    private $filecounter = 0;
+    protected $encryption = self::DEFAULT_ENCRYPTION;
+
+    /**
+     * @var int
+     */
+    protected $compression = ZipArchive::CM_DEFAULT;
+
+    /**
+     * @var int
+     */
+    protected $filecounter = 0;
 
     /**
      * @inheritDoc
@@ -169,16 +193,31 @@ class Zip extends File
     /**
      * en/decrypt archive with given password
      * @param  string|null $password
+     * @param int|null $encryption encryption-mode
      * @return self
      */
-    public function withPassword(?string $password = null): self
+    public function withPassword(?string $password = null, ?int $encryption = null): self
     {
         $this->password = $password;
 
         if ($password !== null && $this->isOpen) {
             $this->archive->setPassword($password);
+
+            if ($encryption !== null) {
+                $this->encryption = $encryption;
+            }
         }
 
+        return $this;
+    }
+
+    /**
+     * @param  int  $mode
+     * @return self
+     */
+    public function setCompression(int $mode): self
+    {
+        $this->compression = $mode;
         return $this;
     }
 
@@ -325,14 +364,23 @@ class Zip extends File
             default: throw new UnexpectedValueException(sprintf('invalid type for 1 Argument in %s(), expected instance of Storage or File, but "%s" given', __METHOD__, is_object($storage) ? get_class($storage) : gettype($storage)), 500);
         }
 
+        // set custom compression algorithm
+        if ($this->compression !== ZipArchive::CM_DEFAULT && !$this->archive->setCompressionName($name, $this->compression)) {
+            throw new RuntimeException(sprintf('failed to set custom compression of type %s for File "%s"', $this->compression, $name), 500);
+        }
+
         // encrypt file in archive if password isset
-        if ($this->password !== null && !$this->archive->setEncryptionName($name, static::ENCRYPTION_ALG, $this->password)) {
+        if ($this->password !== null && !$this->archive->setEncryptionName($name, $this->encryption, $this->password)) {
             throw new RuntimeException(sprintf('failed to encrypt File "%s"', $name), 500);
         }
 
         // run auto-commit after x files
         if (++$this->filecounter > static::AUTO_COMMIT_AFTER) {
-            $this->commit();
+
+            // soft commit:
+            // close (and reopen) archive but preserve internal state like: password, etc.
+            $this->archive->close();
+            $this->isOpen = false;
             $this->filecounter = 0;
         }
 
@@ -411,6 +459,75 @@ class Zip extends File
         if (!$this->isOpen) {
             $this->openArchive();
         }
-        return $this->archive->getStatusString();
+
+        if (false !== $status = $this->archive->getStatusString()) {
+            return (string) $status;
+        }
+
+        return 'ERROR!';
+    }
+
+    /**
+     * @return int
+     */
+    public function getFileCount(): int
+    {
+        if (!$this->isOpen) {
+            $this->openArchive();
+        }
+
+        return $this->archive->numFiles;
+    }
+
+    /**
+     * @param  string $comment
+     * @param  string|null $forFile
+     * @return self
+     */
+    public function setComment(string $comment, ?string $forFile = null):self
+    {
+        if (!$this->isOpen) {
+            $this->openArchive();
+        }
+
+        if ($forFile === null) {
+            $this->archive->setArchiveComment($comment);
+        } else {
+            $this->archive->setCommentName($forFile, $comment);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param  string|null $forFile
+     * @return string|null
+     */
+    public function getComment(?string $forFile = null): ?string
+    {
+        if (!$this->isOpen) {
+            $this->openArchive();
+        }
+
+        $comment = ($forFile !== null) ? $this->archive->getCommentName($forFile) : $this->archive->getArchiveComment();
+        return !empty($comment) ? $comment : null;
+    }
+
+    /**
+     * get stats-array for single entry
+     * @param  string $forFile
+     * @return array|null
+     */
+    public function getStat(string $forFile): ?array
+    {
+        if (!$this->isOpen) {
+            $this->openArchive();
+        }
+
+        if (false !== $stat = $this->archive->statName($forFile)) {
+            return $stat;
+        }
+
+        return null;
     }
 }
