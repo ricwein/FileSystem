@@ -216,21 +216,47 @@ class Zip extends File
     }
 
     /**
+     * adds directory to zip-archive
      * @param Directory $directory
+     * @param string    $toNode adds content of directory to a sub-directory, or the root of the zip-archive
      * @param  callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
      * @return self
      */
-    public function addDirectory(Directory $directory, ?callable $filter = null): self
+    public function addDirectory(Directory $directory, string $toNode = '/', ?callable $filter = null): self
     {
-        return $this->addDirectoryStorage($directory->storage(), $filter);
+        return $this->addDirectoryStorage($directory->storage(), $toNode, $filter);
     }
 
     /**
      * @param Storage $storage
+     * @param string  $toNode adds content of directory to a sub-directory, or the root of the zip-archive
      * @param  callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
      * @return self
      */
-    public function addDirectoryStorage(Storage $storage, ?callable $filter = null): self
+    public function addDirectoryStorage(Storage $storage, string $toNode = '/', ?callable $filter = null): self
+    {
+        return $this->addDirectoryStorageContent($storage, rtrim($toNode, '/') . '/' . basename($storage->path()->raw) . '/', $filter);
+    }
+
+    /**
+     * adds directory-content to zip-archive
+     * @param Directory $directory
+     * @param string    $toNode adds content of directory to a sub-directory, or the root of the zip-archive
+     * @param  callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
+     * @return self
+     */
+    public function addDirectoryContent(Directory $directory, string $toNode = '/', ?callable $filter = null): self
+    {
+        return $this->addDirectoryStorageContent($directory->storage(), $toNode, $filter);
+    }
+
+    /**
+     * @param Storage $storage
+     * @param string  $toNode adds content of directory to a sub-directory, or the root of the zip-archive
+     * @param  callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
+     * @return self
+     */
+    public function addDirectoryStorageContent(Storage $storage, string $toNode = '/', ?callable $filter = null): self
     {
         // prepare recursive directory-iterator
         $iterator = new DirectoryIterator($storage, true);
@@ -247,6 +273,9 @@ class Zip extends File
 
             // relative file-path for in-ziparchive-name:
             $filepath = str_ireplace((rtrim($storage->path()->real, '/') . '/'), '', $fileStorage->path()->real);
+            // append given directory-name:
+            $filepath = ltrim(trim($toNode, '/') . '/' . $filepath, '/');
+
             $this->addFileStorage($fileStorage, $filepath);
         }
 
@@ -317,6 +346,7 @@ class Zip extends File
     private function addFileFromDisk(Storage\Disk $file, ?string $name = null): string
     {
         $name = $name ?? $file->path()->filename;
+        $name = str_replace(['\\', DIRECTORY_SEPARATOR], '/', $name);
 
         if (!$this->archive->addFile($file->path()->real, $name)) {
             throw new RuntimeException(sprintf('failed to add File "%s" from Disk (%s) to ZipArchive', $name, $file->path()->real), 500);
@@ -343,6 +373,8 @@ class Zip extends File
             }
         }
 
+        $name = str_replace(['\\', DIRECTORY_SEPARATOR], '/', $name);
+
         if (!$this->archive->addFromString($name, $file->readFile())) {
             throw new RuntimeException('failed to add File from Memory to ZipArchive', 500);
         }
@@ -359,6 +391,7 @@ class Zip extends File
     private function addFileFromFlysystem(Storage\Flysystem $file, ?string $name = null): string
     {
         $name = $name ?? basename($file->path());
+        $name = str_replace(['\\', DIRECTORY_SEPARATOR], '/', $name);
 
         if (!$this->archive->addFromString($name, $file->readFile())) {
             throw new RuntimeException('failed to add File from Flysystem to ZipArchive', 500);

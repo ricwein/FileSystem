@@ -99,14 +99,14 @@ class ZipTest extends TestCase
 
         $extractDir = new Directory(new Storage\Disk\Temp);
         $zip->extractTo($extractDir->storage());
-        $this->assertSame(iterator_count($dir->list()->files()), iterator_count($extractDir->list()->files()));
+        $this->assertSame(iterator_count($dir->list(true)->files()), iterator_count($extractDir->list(true)->files()));
 
         $sourceFiles = [];
-        foreach ($dir->list()->files() as $file) {
+        foreach ($dir->list(true)->files() as $file) {
             $sourceFiles[$file->path()->filename] = $file->getHash();
         }
 
-        foreach ($extractDir->list()->files() as $file) {
+        foreach ($extractDir->list(true)->files() as $file) {
             $this->assertSame($sourceFiles[$file->path()->filename], $file->getHash());
         }
     }
@@ -136,6 +136,9 @@ class ZipTest extends TestCase
         }
     }
 
+    /**
+     * @return void
+     */
     public function testMixedArchive()
     {
         $zip = new File\Zip(new Storage\Disk\Temp);
@@ -163,5 +166,8 @@ class ZipTest extends TestCase
         foreach ($extractDir->list(true)->files() as $file) {
             $this->assertSame($sourceFiles[$file->path()->filepath], $file->getHash());
         }
+
+        fwrite(STDERR, print_r(['zip-path' => $zip->path()->real], true));
+        $zip->removeOnFree(false);
     }
 }
