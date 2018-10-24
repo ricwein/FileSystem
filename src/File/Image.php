@@ -61,7 +61,7 @@ class Image extends File
         /** @var IImage $image */
         if (!$image instanceof IImage) {
             throw new RuntimeException(sprintf(
-                'callback must return a \'%s\' object, but got \'%s\' instead',
+                'callback must return a object of type "%s", but "%s" given',
                 IImage::class,
                 is_object($image) ? get_class($image) : gettype($image)
             ), 400);

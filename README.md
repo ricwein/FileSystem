@@ -243,9 +243,33 @@ $ref = $git->execSafe('rev-parse HEAD');
 
 ### File Extensions
 
-- `File\Image`:
+- `File\Image`: Allows image-manipulations based on `imagemagick` or `gd` (later one is default). Requires the `Intervention\Image` package.
 
-- `File\Zip`:
+> Be aware: all image-file manipulations are directly mutating the original file!
+
+```php
+$image = new File\Image(new Storage\Disk('test.png'));
+$image->resizeToFit(1024, 1024);
+$image->compress(1048576); // iterative process to reduce filesize to be less than given filesize (1MB) by reducing the jpg-quality
+// $image->encode('jpg');
+$image->edit(function (Intervention\Image $image): Intervention\Image {
+    // add advanced image-manipulation here
+    return $image;
+});
+```
+
+- `File\Zip`: Allows basic zip-operations, like creating a new archive or extracting an existing one.
+
+```php
+$zip = new File\Zip(new Storage\Disk('archive.zip'));
+
+$zip->addFile(new File(new Storage\Disk('file.json')));
+$zip->addFile(new File(new Storage\Memory('some file-content')), 'anotherfile.txt');
+$zip->addDirectory(new Directory(new Storage\Disk(__DIR__, 'data-dir')));
+$zip->commit();
+
+$extractDir = $zip->extractTo(new Storage\Disk\Temp);
+```
 
 ### Storage Extensions
 
@@ -258,7 +282,7 @@ $ref = $git->execSafe('rev-parse HEAD');
  ```
 
  ```php
- $git = new Command(new Storage\Disk\Current(), Constraint::STRICT, ['/usr/local/bin/git', '/usr/bin/git']);
+ $git = new Command(new Storage\Disk\Current, Constraint::STRICT, ['/usr/local/bin/git', '/usr/bin/git']);
 
  if (!$git->execSafe('pull $branch', ['branch' => 'develop'])) {
      echo 'failed to execute: ' . $git->getLastCommand() . PHP_EOL;
@@ -270,7 +294,7 @@ $ref = $git->execSafe('rev-parse HEAD');
  - `Disk\Temp`: Uses the system-temp directory to create a temporary file/directory. The file is automatically removed after freeing the object instance!
 
  ```php
- $temp = new File(new Storage\Disk\Temp());
+ $temp = new File(new Storage\Disk\Temp);
  $temp->write('test');
  $temp->read();
  $temp = null; // will delete the temp-file again!

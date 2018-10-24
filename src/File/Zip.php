@@ -8,6 +8,7 @@ use ZipArchive;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Helper\MimeType;
@@ -24,7 +25,7 @@ class Zip extends File
     /**
      * @var string[]
      */
-    const ZIP_ERRORS = [
+    const ERROR_MESSAGES = [
         ZipArchive::ER_EXISTS => 'file already exists',
         ZipArchive::ER_INCONS => 'archive is inconsistent',
         ZipArchive::ER_INVAL => 'invalid argument',
@@ -39,7 +40,14 @@ class Zip extends File
     /**
      * @var int
      */
-    const ZIP_ENCRYPTION_ALG = ZipArchive::EM_AES_256;
+    const ENCRYPTION_ALG = ZipArchive::EM_AES_256;
+
+    /**
+     * automatically close and reopend zip-archive after x files added,
+     * to prevent running into file descriptors limit
+     * @var int
+     */
+    const AUTO_COMMIT_AFTER = 128;
 
     /**
      * indicates whether the zip-archive is currently opened
@@ -61,6 +69,11 @@ class Zip extends File
      * @var string|null
      */
     private $password = null;
+
+    /**
+     * @var int
+     */
+    private $filecounter = 0;
 
     /**
      * @inheritDoc
@@ -120,8 +133,8 @@ class Zip extends File
 
         // something went wrong, search and throw error-message
         if ($result !== true) {
-            if (array_key_exists($result, static::ZIP_ERRORS, true)) {
-                throw new RuntimeException(sprintf('[%d] Error while opening ZipArchive: "%s"', $result, static::ZIP_ERRORS[$result]), 500);
+            if (array_key_exists($result, static::ERROR_MESSAGES, true)) {
+                throw new RuntimeException(sprintf('[%d] Error while opening ZipArchive: "%s"', $result, static::ERROR_MESSAGES[$result]), 500);
             }
 
             throw new RuntimeException(sprintf('[%d] Error while opening ZipArchive: "unknown"', $result), 500);
@@ -249,6 +262,9 @@ class Zip extends File
      */
     public function addFile(File $file, ?string $name = null): self
     {
+        if (!$file->isFile() || !$file->isReadable()) {
+            throw new FileNotFoundException(sprintf('unable to open file: "%s"', $file->storage() instanceof Storage\Disk ? $file->path()->raw : get_class($file->storage())), 404);
+        }
         return $this->addFileStorage($file->storage(), $name);
     }
 
@@ -257,6 +273,7 @@ class Zip extends File
      * @param string|null $name
      * @throws UnexpectedValueException
      * @throws RuntimeException
+     * @throws FileNotFoundException
      * @return self
      */
     public function addFileStorage(Storage $storage, ?string $name = null): self
@@ -265,6 +282,11 @@ class Zip extends File
             $this->openArchive();
         }
 
+        if (!$storage->isFile() || !$storage->isReadable()) {
+            throw new FileNotFoundException(sprintf('unable to open file: "%s"', $storage instanceof Storage\Disk ? $storage->path()->raw : get_class($storage)), 404);
+        }
+
+        // add file to archive
         switch (true) {
             case $storage instanceof Storage\Disk: $name = $this->addFileFromDisk($storage, $name); break;
             case $storage instanceof Storage\Memory: $name = $this->addFileFromMemory($storage, $name); break;
@@ -272,8 +294,15 @@ class Zip extends File
             default: throw new UnexpectedValueException(sprintf('invalid type for 1 Argument in %s(), expected instance of Storage or File, but "%s" given', __METHOD__, is_object($storage) ? get_class($storage) : gettype($storage)), 500);
         }
 
-        if ($this->password !== null && !$this->archive->setEncryptionName($name, static::ZIP_ENCRYPTION_ALG, $this->password)) {
+        // encrypt file in archive if password isset
+        if ($this->password !== null && !$this->archive->setEncryptionName($name, static::ENCRYPTION_ALG, $this->password)) {
             throw new RuntimeException(sprintf('failed to encrypt File "%s"', $name), 500);
+        }
+
+        // run auto-commit after x files
+        if (++$this->filecounter > static::AUTO_COMMIT_AFTER) {
+            $this->commit();
+            $this->filecounter = 0;
         }
 
         return $this;
