@@ -212,7 +212,7 @@ class Zip extends File
     }
 
     /**
-     * @param  int  $mode
+     * @param  int  $mode ZipArchive::CM_DEFAULT | CM_STORE | CM_SHRINK | CM_DEFLATE
      * @return self
      */
     public function setCompression(int $mode): self

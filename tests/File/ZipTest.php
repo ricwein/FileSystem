@@ -2,6 +2,8 @@
 
 namespace ricwein\FileSystem\Tests\File;
 
+use ZipArchive;
+
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Helper\Constraint;
@@ -174,5 +176,48 @@ class ZipTest extends TestCase
         foreach ($extractDir->list(true)->files() as $file) {
             $this->assertSame($sourceFiles[$file->path()->filepath], $file->getHash());
         }
+    }
+
+    /**
+     * @return void
+     */
+    public function testComments()
+    {
+        $zip = new File\Zip(new Storage\Disk\Temp);
+        $file = new File(new Storage\Disk(__FILE__));
+
+        $zip->setComment('root comment');
+        $zip->addFile($file, 'testfile1.php')->setComment('file comment', 'testfile1.php');
+        $zip->addFile($file, 'testfile2.php');
+        $zip->commit();
+
+        $this->assertSame(2, $zip->getFileCount());
+
+        $this->assertSame('root comment', $zip->getComment());
+        $this->assertSame('file comment', $zip->getComment('testfile1.php'));
+
+        $this->assertSame(null, $zip->getComment('testfile2.php'));
+        $this->assertSame(null, $zip->getComment('testfile3.php'));
+    }
+
+
+    /**
+     * @return void
+     */
+    public function testCompression()
+    {
+        $zip = new File\Zip(new Storage\Disk\Temp);
+        $file = new File(new Storage\Disk(__FILE__));
+
+        $zip->addFile($file, 'testfile1.php');
+        $zip->setCompression(ZipArchive::CM_STORE);
+        $zip->addFile($file, 'testfile2.php');
+        $zip->setCompression(ZipArchive::CM_DEFLATE);
+        $zip->addFile($file, 'testfile3.php');
+        $zip->commit();
+
+        $this->assertSame(8, $zip->getStat('testfile1.php')['comp_method']);
+        $this->assertSame(0, $zip->getStat('testfile2.php')['comp_method']);
+        $this->assertSame(8, $zip->getStat('testfile3.php')['comp_method']);
     }
 }
