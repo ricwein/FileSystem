@@ -263,9 +263,9 @@ $image->edit(function (Intervention\Image $image): Intervention\Image {
 ```php
 $zip = new File\Zip(new Storage\Disk('archive.zip'));
 
-$zip->addFile(new File(new Storage\Disk('file.json')));
-$zip->addFile(new File(new Storage\Memory('some file-content')), 'anotherfile.txt');
-$zip->addDirectory(new Directory(new Storage\Disk(__DIR__, 'data-dir')));
+$zip->add(new File(new Storage\Disk('file.json'))); // or $zip->addFile(...)
+$zip->add(new File(new Storage\Memory('some file-content')), 'anotherfile.txt'); // or $zip->addFile(...)
+$zip->add(new Directory(new Storage\Disk(__DIR__, 'data-dir'))); // or $zip->addDirectory(...)
 $zip->commit();
 
 $extractDir = $zip->extractTo(new Storage\Disk\Temp);

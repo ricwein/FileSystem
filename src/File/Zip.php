@@ -11,6 +11,7 @@ use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\File;
+use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Helper\MimeType;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Helper\DirectoryIterator;
@@ -254,6 +255,36 @@ class Zip extends File
         }
 
         return $destinationDir;
+    }
+
+    /**
+     * add file or directory to zip-archive
+     * @param  FileSystem  $file
+     * @param  string|null $asNode
+     * @return self
+     */
+    public function add(FileSystem $file, ?string $asNode = null): self
+    {
+        if ($file instanceof Directory) {
+            return $this->addDirectory($file, $asNode ?? '/');
+        } else {
+            return $this->addFile($file, $asNode);
+        }
+    }
+
+    /**
+     * add file or directory storage to zip-archive
+     * @param  Storage     $storage
+     * @param  string|null $asNode
+     * @return self
+     */
+    public function addStorage(Storage $storage, ?string $asNode = null): self
+    {
+        if ($storage->isDir()) {
+            return $this->addDirectoryStorage($storage, $asNode ?? '/');
+        } else {
+            return $this->addFileStorage($storage, $asNode);
+        }
     }
 
     /**
