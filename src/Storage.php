@@ -225,4 +225,10 @@ abstract class Storage
     {
         throw new UnsupportedException(sprintf('Listing Directory-Content is not supported for the current "%s" Storage', get_class($this)), 500);
     }
+
+    /**
+     * @param string $mode
+     * @return resource
+     */
+    abstract public function openStream(string $mode = 'r+');
 }

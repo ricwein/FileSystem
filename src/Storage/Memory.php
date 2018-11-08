@@ -190,4 +190,26 @@ class Memory extends Storage
     {
         return new Binary\Memory($this, $mode);
     }
+
+    /**
+     * @inheritDoc
+     * @throws RuntimeException
+     */
+    public function openStream(string $mode = 'r+')
+    {
+        if (!in_array($mode, ['r+','w','w+','a+','x','x+','c+',true])) {
+            throw new RuntimeException(sprintf('unable to open stream for memory-storage in non-write mode "%s"', $mode), 500);
+        }
+
+        $stream = \fopen('php://memory', $mode);
+
+        if ($stream === false) {
+            throw new RuntimeException('failed to open stream', 500);
+        }
+
+        // pre-fill stream
+        \fwrite($stream, $this->content);
+        \rewind($stream);
+        return $stream;
+    }
 }

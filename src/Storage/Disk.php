@@ -135,7 +135,7 @@ class Disk extends Storage
         }
 
         // open file-handler in readonly mode
-        $handle = \fopen($this->path->real, 'r');
+        $handle = $this->openStream('r');
 
         try {
 
@@ -166,7 +166,7 @@ class Disk extends Storage
         }
 
         // open file-handler in readonly mode
-        $handle = \fopen($this->path->real, 'r');
+        $handle =  $this->openStream('r');
 
         try {
 
@@ -195,7 +195,7 @@ class Disk extends Storage
         $this->touch(true);
 
         // open file-handler in readonly mode
-        $handle = \fopen($this->path->real, $append ? 'a' : 'w');
+        $handle = $this->openStream($append ? 'a' : 'w');
 
         try {
 
@@ -446,5 +446,21 @@ class Disk extends Storage
     {
         array_unshift($path, $this->path);
         $this->path = new Path($path);
+    }
+
+
+    /**
+     * @inheritDoc
+     * @throws RuntimeException
+     */
+    public function openStream(string $mode = 'r+')
+    {
+        $stream = \fopen($this->path->real, $mode);
+
+        if ($stream === false) {
+            throw new RuntimeException('failed to open stream', 500);
+        }
+
+        return $stream;
     }
 }

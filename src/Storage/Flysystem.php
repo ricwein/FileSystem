@@ -350,4 +350,20 @@ class Flysystem extends Storage
     {
         return sprintf('%s/[Adapter: %s] at: "%s"', parent::__toString(), get_class($this->flysystem->getAdapter()), $this->path);
     }
+
+
+    /**
+     * @inheritDoc
+     * @throws RuntimeException
+     */
+    public function openStream(string $mode = 'r+')
+    {
+        $stream = $this->flysystem->readStream($this->path);
+
+        if ($stream === false) {
+            throw new RuntimeException('failed to open stream', 500);
+        }
+
+        return $stream;
+    }
 }
