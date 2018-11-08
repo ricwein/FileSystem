@@ -70,7 +70,7 @@ class Flysystem extends Storage
      */
     public function __destruct()
     {
-        if (!$this->selfdestruct || !file_exists($this->path)) {
+        if (!$this->selfdestruct) {
             return;
         } elseif (!$this->flysystem->has($this->path)) {
             return;
