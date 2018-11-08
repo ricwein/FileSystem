@@ -4,6 +4,8 @@ namespace ricwein\FileSystem\Tests\Storage;
 
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\File;
+use ricwein\FileSystem\Helper\Constraint;
+
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Directory;
 use League\Flysystem\Adapter\Local;
@@ -28,6 +30,7 @@ class FlysystemTest extends TestCase
      */
     public function testFileRead()
     {
+        $cmpFile = new File(new Storage\Disk(__DIR__, '/../_examples', 'test.txt'), Constraint::LOOSE);
         $file = new File(new Storage\Flysystem(new Local(__DIR__.'/../_examples'), 'test.txt'));
 
         $this->assertTrue($file->isFile());
@@ -35,6 +38,13 @@ class FlysystemTest extends TestCase
             $file->read(),
             file_get_contents(__DIR__ . '/../_examples/test.txt')
         );
+
+        $this->assertSame([
+            'type' => 'file',
+            'path' => 'test.txt',
+            'timestamp' => $cmpFile->getTime(),
+            'size' => $cmpFile->getSize(),
+        ], $file->storage()->getMetadata());
     }
 
     /**

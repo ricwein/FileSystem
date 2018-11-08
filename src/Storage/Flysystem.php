@@ -56,7 +56,7 @@ class Flysystem extends Storage
     /**
      * @return array
      */
-    protected function metadata(): array
+    public function getMetadata(): array
     {
         if ($this->metadata === null) {
             $this->metadata = $this->flysystem->getMetadata($this->path);
@@ -72,11 +72,13 @@ class Flysystem extends Storage
     {
         if (!$this->selfdestruct || !file_exists($this->path)) {
             return;
+        } elseif (!$this->flysystem->has($this->path)) {
+            return;
         }
 
-        if (is_file($this->path)) {
+        if ($this->getMetadata()['type'] === 'file') {
             $this->removeFile();
-        } elseif (is_dir($this->path)) {
+        } elseif ($this->getMetadata()['type'] === 'dir') {
             $this->removeDir();
         }
     }
@@ -114,7 +116,7 @@ class Flysystem extends Storage
      */
     public function isFile(): bool
     {
-        return $this->flysystem->has($this->path) && $this->metadata()['type'] === 'file';
+        return $this->flysystem->has($this->path) && $this->getMetadata()['type'] === 'file';
     }
 
     /**
@@ -122,7 +124,7 @@ class Flysystem extends Storage
      */
     public function isDir(): bool
     {
-        return $this->flysystem->has($this->path) && $this->metadata()['type'] === 'dir';
+        return $this->flysystem->has($this->path) && $this->getMetadata()['type'] === 'dir';
     }
 
     /**
@@ -138,7 +140,7 @@ class Flysystem extends Storage
      */
     public function isSymlink(): bool
     {
-        return $this->flysystem->has($this->path) && $this->metadata()['type'] === 'link';
+        return $this->flysystem->has($this->path) && $this->getMetadata()['type'] === 'link';
     }
 
     /**
@@ -233,15 +235,15 @@ class Flysystem extends Storage
     public function removeDir(): bool
     {
         if (!$this->isDir()) {
-            throw new AccessDeniedException(sprintf('unable to remove directory: "%s"', $this->path), 500);
+            throw new AccessDeniedException(sprintf('unable to remove path, not a directory: "%s"', $this->path), 500);
         }
 
-        if ($this->flysystem->deleteDir($this->path)) {
-            $this->metadata = null;
-            return true;
+        if (!$this->flysystem->deleteDir($this->path)) {
+            return false;
         }
 
-        return false;
+        $this->metadata = null;
+        return true;
     }
 
     /**
