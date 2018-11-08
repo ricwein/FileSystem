@@ -31,9 +31,9 @@ class Flysystem extends Storage
     protected $path;
 
     /**
-     * @var array
+     * @var array|null
      */
-    protected $metadata;
+    protected $metadata = null;
 
     /**
      * @param AbstractAdapter|FlyFilesystem $filesystem
@@ -51,7 +51,18 @@ class Flysystem extends Storage
         }
 
         $this->path = $path;
-        $this->metadata = $this->flysystem->getMetadata($this->path);
+    }
+
+    /**
+     * @return array
+     */
+    protected function metadata(): array
+    {
+        if ($this->metadata === null) {
+            $this->metadata = $this->flysystem->getMetadata($this->path);
+        }
+
+        return $this->metadata;
     }
 
     /**
@@ -103,7 +114,7 @@ class Flysystem extends Storage
      */
     public function isFile(): bool
     {
-        return $this->flysystem->has($this->path) && $this->metadata['type'] === 'file';
+        return $this->flysystem->has($this->path) && $this->metadata()['type'] === 'file';
     }
 
     /**
@@ -111,7 +122,7 @@ class Flysystem extends Storage
      */
     public function isDir(): bool
     {
-        return $this->flysystem->has($this->path) && $this->metadata['type'] === 'dir';
+        return $this->flysystem->has($this->path) && $this->metadata()['type'] === 'dir';
     }
 
     /**
@@ -127,7 +138,7 @@ class Flysystem extends Storage
      */
     public function isSymlink(): bool
     {
-        return $this->flysystem->has($this->path) && $this->metadata['type'] === 'link';
+        return $this->flysystem->has($this->path) && $this->metadata()['type'] === 'link';
     }
 
     /**
@@ -201,7 +212,7 @@ class Flysystem extends Storage
         }
 
         if ($this->flysystem->put($this->path, $content)) {
-            $this->metadata = $this->flysystem->getMetadata($this->path);
+            $this->metadata = null;
             return true;
         }
 
@@ -226,7 +237,7 @@ class Flysystem extends Storage
         }
 
         if ($this->flysystem->deleteDir($this->path)) {
-            $this->metadata = $this->flysystem->getMetadata($this->path);
+            $this->metadata = null;
             return true;
         }
 
@@ -305,7 +316,7 @@ class Flysystem extends Storage
 
             return $this->flysystem->put($this->path, $this->flysystem->read($this->path));
         } finally {
-            $this->metadata = $this->flysystem->getMetadata($this->path);
+            $this->metadata = null;
         }
     }
 
@@ -315,7 +326,7 @@ class Flysystem extends Storage
     public function mkdir(): bool
     {
         if ($this->flysystem->createDir($this->path)) {
-            $this->metadata = $this->flysystem->getMetadata($this->path);
+            $this->metadata = null;
             return true;
         }
 
