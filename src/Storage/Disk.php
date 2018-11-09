@@ -502,7 +502,6 @@ class Disk extends Storage
                 $destination->path()->reload();
                 return true;
 
-
             case $destination instanceof Flysystem:
                 $readStream = $this->getStream('r');
                 try {
@@ -510,7 +509,6 @@ class Disk extends Storage
                 } finally {
                     \fclose($readStream);
                 }
-
 
             case $destination instanceof Memory:
             default:
@@ -523,6 +521,25 @@ class Disk extends Storage
      */
     public function moveFileTo(Storage $destination): bool
     {
-        return true;
+        switch (true) {
+
+            // copy file from disk to disk
+            case $destination instanceof Disk:
+                if (!\rename($this->path->real, $destination->path()->raw)) {
+                    return false;
+                }
+                $destination->path()->reload();
+                return true;
+
+            case $destination instanceof Flysystem:
+            case $destination instanceof Memory:
+            default:
+                if (!$this->copyFileTo($destination)) {
+                    return false;
+                }
+
+                $this->removeFile();
+                return true;
+        }
     }
 }

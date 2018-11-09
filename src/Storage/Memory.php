@@ -235,7 +235,6 @@ class Memory extends Storage
         switch (true) {
 
             case $destination instanceof Disk:
-
                 if (!$destination->writeFile($this->readFile())) {
                     return false;
                 }
@@ -254,6 +253,10 @@ class Memory extends Storage
      */
     public function moveFileTo(Storage $destination): bool
     {
-        return true;
+        if (!$this->copyFileTo($destination)) {
+            return false;
+        }
+
+        return $this->removeFile();
     }
 }

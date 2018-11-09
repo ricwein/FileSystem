@@ -391,7 +391,11 @@ class Flysystem extends Storage
             case $destination instanceof Disk:
                 $readStream = $this->getStream('r');
                 try {
-                    return $destination->writeFromStream($readStream);
+                    if (!$destination->writeFromStream($readStream)) {
+                        return false;
+                    }
+                    $destination->path()->reload();
+                    return true;
                 } finally {
                     \fclose($readStream);
                 }
@@ -410,6 +414,19 @@ class Flysystem extends Storage
      */
     public function moveFileTo(Storage $destination): bool
     {
-        return true;
+        switch (true) {
+
+            case $destination instanceof Flysystem:
+                return $this->flysystem->rename($this->path, $destination->path());
+
+            case $destination instanceof Disk:
+            case $destination instanceof Memory:
+            default:
+                if (!$this->copyFileTo($destination)) {
+                    return false;
+                }
+                $this->removeFile();
+                return true;
+        }
     }
 }

@@ -126,7 +126,9 @@ class File extends FileSystem
         } elseif (!$destination->doesSatisfyConstraints()) {
             throw new AccessDeniedException('unable to open destination file', 403, $destination->getConstraintViolations());
         } elseif ($destination->isFile() && !$destination->isWriteable()) {
-            throw new AccessDeniedException('unable to open destination file', 403);
+            throw new AccessDeniedException('unable to write to destination file', 403);
+        } elseif (!$destination->isFile() && !is_writable($destination->path()->directory)) {
+            throw new AccessDeniedException('unable to write to destination directory', 403);
         }
 
         // ensure the destination-path points to a filename
@@ -154,11 +156,6 @@ class File extends FileSystem
     {
         $destination->setConstraints(($constraints !== null) ? $constraints : $this->storage->getConstraints());
 
-        // unable to move file from memory to disk, we use copy instead
-        if (!$this->storage instanceof Storage\Disk) {
-            return $this->copyTo($destination, $constraints);
-        }
-
         $this->checkFileReadPermissions();
 
         // validate constraints
@@ -172,23 +169,11 @@ class File extends FileSystem
             throw new AccessDeniedException('unable to write to destination directory', 403);
         }
 
-        $this->storage->removeOnFree(false);
-
-        if ($this->storage instanceof Storage\Disk\Uploaded) {
-
-            // move uploaded file
-            if (!move_uploaded_file($this->storage->path()->real, $destination->path()->raw)) {
-                throw new AccessDeniedException('unable to move uploaded file', 403);
-            }
-        } else {
-
-            // move file
-            if (!rename($this->storage->path()->real, $destination->path()->raw)) {
-                throw new AccessDeniedException('unable to move file', 403);
-            }
+        // actual move file to file: use native functions if possible
+        if (!$this->storage->moveFileTo($destination)) {
+            throw new AccessDeniedException('unable to move file', 403);
         }
 
-        $destination->path()->reload();
         return new static($destination);
     }
 
