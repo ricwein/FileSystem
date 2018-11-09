@@ -152,7 +152,7 @@ class File extends FileSystem
      * @return self new File-object
      * @throws AccessDeniedException|FileNotFoundException
      */
-    public function moveTo(Storage\Disk $destination, ?int $constraints = null): self
+    public function moveTo(Storage $destination, ?int $constraints = null): self
     {
         $destination->setConstraints(($constraints !== null) ? $constraints : $this->storage->getConstraints());
 
@@ -167,6 +167,12 @@ class File extends FileSystem
             throw new AccessDeniedException('unable to write to destination file', 403);
         } elseif (!$destination->isFile() && !is_writable($destination->path()->directory)) {
             throw new AccessDeniedException('unable to write to destination directory', 403);
+        }
+
+        // ensure the destination-path points to a filename
+        if ($destination instanceof Storage\Disk && $destination->isDir()) {
+            $destination = clone $destination;
+            $destination->cd([$this->storage instanceof Storage\Disk ? $this->path()->filename : (uniqid() . '.file')]);
         }
 
         // actual move file to file: use native functions if possible

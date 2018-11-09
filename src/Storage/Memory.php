@@ -18,7 +18,7 @@ class Memory extends Storage
 {
 
     /**
-     * @var string
+     * @var string|null
      */
     protected $content = '';
 
@@ -45,7 +45,7 @@ class Memory extends Storage
      */
     public function isFile(): bool
     {
-        return true;
+        return $this->content !== null;
     }
 
     /**
@@ -94,10 +94,10 @@ class Memory extends Storage
     public function readFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string
     {
         if ($offset !== null && $length !== null) {
-            return mb_substr($this->content, $offset, $length, '8bit');
+            return mb_substr($this->content ?? '', $offset, $length, '8bit');
         }
 
-        return $this->content;
+        return $this->content ?? '';
     }
 
     /**
@@ -114,6 +114,10 @@ class Memory extends Storage
      */
     public function writeFile(string $content, bool $append = false, int $mode = 0): bool
     {
+        if ($this->content === null) {
+            $this->content = '';
+        }
+
         if ($append) {
             $this->content .= $content;
         } else {
@@ -128,7 +132,7 @@ class Memory extends Storage
      */
     public function removeFile():bool
     {
-        $this->content = '';
+        $this->content = null;
         return true;
     }
 
@@ -137,7 +141,7 @@ class Memory extends Storage
      */
     public function getSize(): int
     {
-        return mb_strlen($this->content, '8bit');
+        return ($this->content === null) ? 0 : mb_strlen($this->content, '8bit');
     }
 
     /**
@@ -145,7 +149,7 @@ class Memory extends Storage
      */
     public function getFileType(bool $withEncoding = false): string
     {
-        return (new \finfo($withEncoding ? FILEINFO_MIME : FILEINFO_MIME_TYPE))->buffer($this->content);
+        return (new \finfo($withEncoding ? FILEINFO_MIME : FILEINFO_MIME_TYPE))->buffer($this->content ?? '');
     }
 
     /**
@@ -154,7 +158,7 @@ class Memory extends Storage
     public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): string
     {
         switch ($mode) {
-            case Hash::CONTENT: return hash($algo, $this->content, false);
+            case Hash::CONTENT: return hash($algo, $this->content ?? '', false);
             case Hash::FILENAME: case Hash::FILEPATH: throw new RuntimeException('unable to calculate filepath/name hash for in-memory-files', 500);
             default: throw new RuntimeException('unknown hashing-mode', 500);
         }
@@ -211,8 +215,10 @@ class Memory extends Storage
         }
 
         // pre-fill stream
-        \fwrite($stream, $this->content);
-        \rewind($stream);
+        if ($this->content !== null) {
+            \fwrite($stream, $this->content);
+            \rewind($stream);
+        }
         return $stream;
     }
 
