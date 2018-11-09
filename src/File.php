@@ -35,12 +35,14 @@ class File extends FileSystem
     /**
      * validate constraints and check file permissions
      * @return void
-     * @throws FileNotFoundException
+     * @throws FileNotFoundException|AccessDeniedException
      */
     protected function checkFileReadPermissions(): void
     {
-        if (!$this->isFile() || !$this->storage->doesSatisfyConstraints() || !$this->isReadable()) {
-            throw new FileNotFoundException(sprintf('unable to open file: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->path()->raw : get_class($this->storage)), 404, $this->storage->getConstraintViolations());
+        if (!$this->isFile() || !$this->isReadable()) {
+            throw new FileNotFoundException(sprintf('unable to open file: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->path()->raw : get_class($this->storage)), 404);
+        } elseif (!$this->storage->doesSatisfyConstraints()) {
+            throw new AccessDeniedException(sprintf('unable to open file: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->path()->raw : get_class($this->storage)), 404, $this->storage->getConstraintViolations());
         }
     }
 
@@ -63,7 +65,7 @@ class File extends FileSystem
      * @param int|null $length
      * @param int $mode
      * @return string
-     * @throws FileNotFoundException
+     * @throws FileNotFoundException|AccessDeniedException
      */
     public function read(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string
     {
@@ -77,7 +79,7 @@ class File extends FileSystem
      * @param int|null $length
      * @param int $mode
      * @return void
-     * @throws FileNotFoundException
+     * @throws FileNotFoundException|AccessDeniedException
      */
     public function stream(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): void
     {
@@ -133,22 +135,9 @@ class File extends FileSystem
             $destination->cd([$this->storage instanceof Storage\Disk ? $this->path()->filename : (uniqid() . '.file')]);
         }
 
-        // copy file from filesystem to filesystem
-        if ($this->storage instanceof Storage\Disk && $destination instanceof Storage\Disk) {
-            if (!copy($this->storage->path()->real, $destination->path()->raw)) {
-                throw new AccessDeniedException('unable to copy file', 403);
-            }
-
-            $destination->path()->reload();
-            return new static($destination);
-        }
-
-        // read content into memory and write it into destination
-        $destination->writeFile($this->storage->readFile());
-
-        // reload disk-path, since we may just created a new file
-        if ($destination instanceof Storage\Disk) {
-            $destination->path()->reload();
+        // actual copy file to file: use native functions if possible
+        if (!$this->storage->copyFileTo($destination)) {
+            throw new AccessDeniedException('unable to copy file', 403);
         }
 
         return new static($destination);
@@ -220,7 +209,7 @@ class File extends FileSystem
      * guess content-type (mime) of storage
      * @param  bool $withEncoding
      * @return string
-     * @throws UnexpectedValueException|FileNotFoundException
+     * @throws UnexpectedValueException|FileNotFoundException|AccessDeniedException
      */
     public function getType(bool $withEncoding = false): string
     {
@@ -235,7 +224,7 @@ class File extends FileSystem
 
     /**
      * @inheritDoc
-     * @throws UnexpectedValueException|FileNotFoundException
+     * @throws UnexpectedValueException|FileNotFoundException|AccessDeniedException
      */
     public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): string
     {
@@ -251,7 +240,7 @@ class File extends FileSystem
     /**
      * calculate size
      * @return int
-     * @throws UnexpectedValueException|AccessDeniedException
+     * @throws UnexpectedValueException|FileNotFoundException|AccessDeniedException
      */
     public function getSize(): int
     {
@@ -297,7 +286,7 @@ class File extends FileSystem
      * access file for binary read/write actions
      * @param int $mode
      * @return Binary
-     * @throws RuntimeException
+     * @throws RuntimeException|FileNotFoundException|AccessDeniedException
      */
     public function getHandle(int $mode): Binary
     {
@@ -339,5 +328,19 @@ class File extends FileSystem
             $storage,
             $constraints !== null ? $constraints : $this->storage->getConstraints()
         );
+    }
+
+
+    /**
+     * open and return file-stream
+     * @param  string $mode
+     * @return resource
+     * @throws FileNotFoundException|AccessDeniedException
+     */
+    public function getStream(string $mode = 'r+')
+    {
+        $this->checkFileReadPermissions();
+
+        return $this->storage->getStream($mode);
     }
 }

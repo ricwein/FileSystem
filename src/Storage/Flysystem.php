@@ -356,7 +356,7 @@ class Flysystem extends Storage
      * @inheritDoc
      * @throws RuntimeException
      */
-    public function openStream(string $mode = 'r+')
+    public function getStream(string $mode = 'r+')
     {
         $stream = $this->flysystem->readStream($this->path);
 
@@ -365,5 +365,51 @@ class Flysystem extends Storage
         }
 
         return $stream;
+    }
+
+    /**
+     * @inheritDoc
+     * @throws RuntimeException
+     */
+    public function writeFromStream($stream): bool
+    {
+        if (!is_resource($stream)) {
+            throw new RuntimeException(sprintf('file-handle must be of type \'resource\' but \'%s\' given', is_object($handle) ? get_class($handle) : gettype($handle)), 500);
+        }
+
+
+        return $this->flysystem->updateStream($this->path, $stream);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function copyFileTo(Storage $destination): bool
+    {
+        switch (true) {
+
+            case $destination instanceof Disk:
+                $readStream = $this->getStream('r');
+                try {
+                    return $destination->writeFromStream($readStream);
+                } finally {
+                    \fclose($readStream);
+                }
+
+            case $destination instanceof Flysystem:
+                return $this->flysystem->copy($this->path, $destination->path());
+
+            case $destination instanceof Memory:
+            default:
+                return $destination->writeFile($this->readFile());
+        }
+    }
+
+    /**
+    * @inheritDoc
+     */
+    public function moveFileTo(Storage $destination): bool
+    {
+        return true;
     }
 }

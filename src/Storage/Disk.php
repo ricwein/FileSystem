@@ -135,7 +135,7 @@ class Disk extends Storage
         }
 
         // open file-handler in readonly mode
-        $handle = $this->openStream('r');
+        $handle = $this->getStream('r');
 
         try {
 
@@ -166,7 +166,7 @@ class Disk extends Storage
         }
 
         // open file-handler in readonly mode
-        $handle =  $this->openStream('r');
+        $handle =  $this->getStream('r');
 
         try {
 
@@ -195,7 +195,7 @@ class Disk extends Storage
         $this->touch(true);
 
         // open file-handler in readonly mode
-        $handle = $this->openStream($append ? 'a' : 'w');
+        $handle = $this->getStream($append ? 'a' : 'w');
 
         try {
 
@@ -453,7 +453,7 @@ class Disk extends Storage
      * @inheritDoc
      * @throws RuntimeException
      */
-    public function openStream(string $mode = 'r+')
+    public function getStream(string $mode = 'r+')
     {
         $stream = \fopen($this->path->real, $mode);
 
@@ -462,5 +462,67 @@ class Disk extends Storage
         }
 
         return $stream;
+    }
+
+    /**
+     * @inheritDoc
+     * @throws RuntimeException
+     */
+    public function writeFromStream($stream): bool
+    {
+        if (!is_resource($stream)) {
+            throw new RuntimeException(sprintf('file-handle must be of type \'resource\' but \'%s\' given', is_object($handle) ? get_class($handle) : gettype($handle)), 500);
+        }
+
+        $destStream = $this->getStream('w');
+        try {
+            if (!\stream_copy_to_stream($stream, $destStream)) {
+                return false;
+            }
+
+            $destination->path()->reload();
+            return true;
+        } finally {
+            \fclose($destStream);
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function copyFileTo(Storage $destination): bool
+    {
+        switch (true) {
+
+            // copy file from disk to disk
+            case $destination instanceof Disk:
+                if (!\copy($this->path->real, $destination->path()->raw)) {
+                    return false;
+                }
+                $destination->path()->reload();
+                return true;
+
+
+            case $destination instanceof Flysystem:
+                $readStream = $this->getStream('r');
+                try {
+                    return $destination->writeFromStream($readStream);
+                } finally {
+                    \fclose($readStream);
+                }
+
+
+            case $destination instanceof Memory:
+            default:
+                return $destination->writeFile($this->readFile());
+        }
+    }
+
+    /**
+    * @inheritDoc
+     */
+    public function moveFileTo(Storage $destination): bool
+    {
+        return true;
     }
 }

@@ -4,6 +4,8 @@
  */
 namespace ricwein\FileSystem\Storage;
 
+use ricwein\FileSystem\Helper\Stream;
+
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Exceptions\RuntimeException;
@@ -192,10 +194,11 @@ class Memory extends Storage
     }
 
     /**
+     * this stream is <b>READONLY!</b>
      * @inheritDoc
      * @throws RuntimeException
      */
-    public function openStream(string $mode = 'r+')
+    public function getStream(string $mode = 'r+')
     {
         if (!in_array($mode, ['r+','w','w+','a+','x','x+','c+',true])) {
             throw new RuntimeException(sprintf('unable to open stream for memory-storage in non-write mode "%s"', $mode), 500);
@@ -211,5 +214,46 @@ class Memory extends Storage
         \fwrite($stream, $this->content);
         \rewind($stream);
         return $stream;
+    }
+
+    /**
+     * @inheritDoc
+     * @throws RuntimeException
+     */
+    public function writeFromStream($stream): bool
+    {
+        $streamer = new Stream($stream);
+        $this->content = $streamer->read();
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function copyFileTo(Storage $destination): bool
+    {
+        switch (true) {
+
+            case $destination instanceof Disk:
+
+                if (!$destination->writeFile($this->readFile())) {
+                    return false;
+                }
+                $destination->path()->reload();
+                return true;
+
+            case $destination instanceof Flysystem:
+            case $destination instanceof Memory:
+            default:
+                return $destination->writeFile($this->readFile());
+        }
+    }
+
+    /**
+    * @inheritDoc
+     */
+    public function moveFileTo(Storage $destination): bool
+    {
+        return true;
     }
 }

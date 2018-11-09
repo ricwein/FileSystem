@@ -230,5 +230,26 @@ abstract class Storage
      * @param string $mode
      * @return resource
      */
-    abstract public function openStream(string $mode = 'r+');
+    abstract public function getStream(string $mode = 'r+');
+
+    /**
+     * update content from stream
+     * @param  resource $stream file-handle
+     * @return bool
+     */
+    abstract public function writeFromStream($stream): bool;
+
+    /**
+     * <b>copy</b> file to new destination
+     * @param Storage $destination
+     * @return bool success
+     */
+    abstract public function copyFileTo(Storage $destination): bool;
+
+    /**
+     * <b>move</b> file to new destination
+     * @param Storage $destination
+     * @return bool success
+     */
+    abstract public function moveFileTo(Storage $destination): bool;
 }
