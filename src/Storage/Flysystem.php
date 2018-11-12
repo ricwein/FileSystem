@@ -292,9 +292,9 @@ class Flysystem extends Storage
         }
 
         switch ($mode) {
-            case Hash::CONTENT: return hash($algo, $this->readFile(), false);
+            case Hash::CONTENT: return (new Stream($this->getStream()))->closeOnFree()->hash($algo);
             case Hash::FILENAME: return hash($algo, $this->path, false);
-            default: throw new UnsupportedException('file-hashes are not supported by the default flysystem adapters', 500);
+            default: throw new UnsupportedException('filepath-hashes are not supported by flysystem adapters', 500);
         }
     }
 

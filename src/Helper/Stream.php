@@ -17,6 +17,11 @@ class Stream
     protected $handle;
 
     /**
+     * @var bool
+     */
+    protected $closeOnFree = false;
+
+    /**
      * @param resource $handle
      */
     public function __construct($handle)
@@ -29,6 +34,53 @@ class Stream
     }
 
     /**
+     */
+    public function __destruct()
+    {
+        if ($this->closeOnFree && is_resource($this->handle)) {
+            \fclose($this->handle);
+        }
+    }
+
+    /**
+     * @throws RuntimeException
+     * @return self
+     */
+    public function rewind(): self
+    {
+        if (\fseek($this->handle, 0) !== 0) {
+            throw new RuntimeException('error while rewinding file', 500);
+        }
+
+        return $this;
+    }
+
+    /**
+     * auto-close stream on destruction
+     * @param  bool $activate
+     * @return self
+     */
+    public function closeOnFree(bool $activate = true): self
+    {
+        $this->closeOnFree = $activate;
+        return $this;
+    }
+
+    /**
+     * [hash description]
+     * @param  string $algo [description]
+     * @return string       [description]
+     */
+    public function hash(string $algo = 'sha256'): string
+    {
+        $this->rewind();
+
+        $hc = \hash_init($algo);
+        \hash_update_stream($hc, $this->handle);
+        return \hash_final($hc);
+    }
+
+    /**
      * @param  int|null $offset
      * @param  int|null $length
      * @throws RuntimeException
@@ -37,9 +89,7 @@ class Stream
     public function read(?int $offset = null, ?int $length = null): string
     {
         if (($offset === null || $length === null)) {
-            if (\fseek($this->handle, 0) !== 0) {
-                throw new RuntimeException('error while rewinding file', 500);
-            }
+            $this->rewind();
 
             if (0 < $filesize = \fstat($this->handle)['size'] ?? 0) {
                 if (false !== $buffer = \fread($this->handle, $filesize)) {
@@ -73,9 +123,7 @@ class Stream
     public function send(?int $offset = null, ?int $length = null, int $bufferSize = 1024): void
     {
         if ($offset === null || $length === null) {
-            if (\fseek($this->handle, 0) !== 0) {
-                throw new RuntimeException('error while rewinding file', 500);
-            }
+            $this->rewind();
 
             if (\fpassthru($this->handle) !== false) {
                 \flush();

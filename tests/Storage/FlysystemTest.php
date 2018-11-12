@@ -45,6 +45,8 @@ class FlysystemTest extends TestCase
             'timestamp' => $cmpFile->getTime(),
             'size' => $cmpFile->getSize(),
         ], $file->storage()->getMetadata());
+
+        $this->assertSame($cmpFile->getHash(), $file->getHash());
     }
 
     /**
