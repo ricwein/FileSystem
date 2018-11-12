@@ -85,7 +85,6 @@ class DirectoryIterator
         }
     }
 
-
     /**
      * @param int|null $constraints
      * @return File[]|Directory[]

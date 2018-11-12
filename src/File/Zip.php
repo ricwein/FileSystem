@@ -8,6 +8,7 @@ use ZipArchive;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\File;
@@ -560,5 +561,32 @@ class Zip extends File
         }
 
         return null;
+    }
+
+    /**
+     * @inheritDoc
+     * @return File
+     */
+    public function copyTo(Storage $destination, ?int $constraints = null): File
+    {
+        if (!$this->copyFileTo($destination, $constraints)) {
+            throw new AccessDeniedException('unable to copy file', 403);
+        }
+
+        return new File($destination);
+    }
+
+    /**
+     * @inheritDoc
+     * @return File
+     */
+    public function moveTo(Storage $destination, ?int $constraints = null): File
+    {
+        // actual move file to file: use native functions if possible
+        if (!$this->moveFileTo($destination, $constraints)) {
+            throw new AccessDeniedException('unable to move file', 403);
+        }
+
+        return new File($destination);
     }
 }

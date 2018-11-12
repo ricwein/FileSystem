@@ -163,4 +163,15 @@ abstract class FileSystem
         $this->storage->removeOnFree($activate);
         return $this;
     }
+
+    /**
+     * cast current object to given class-name,
+     * reusing internal storage-objects
+     * @param  string $class
+     * @return self
+     */
+    public function as(string $class): self
+    {
+        return new $class($this->storage);
+    }
 }

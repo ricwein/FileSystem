@@ -116,6 +116,21 @@ class File extends FileSystem
      */
     public function copyTo(Storage $destination, ?int $constraints = null): self
     {
+        if (!$this->copyFileTo($destination, $constraints)) {
+            throw new AccessDeniedException('unable to copy file', 403);
+        }
+
+        return new static($destination);
+    }
+
+    /**
+    * @param Storage &$destination mutable
+    * @param int|null $constraints
+    * @return bool success
+    * @throws AccessDeniedException|FileNotFoundException
+     */
+    protected function copyFileTo(Storage &$destination, ?int $constraints = null): bool
+    {
         $destination->setConstraints(($constraints !== null) ? $constraints : $this->storage->getConstraints());
 
         $this->checkFileReadPermissions();
@@ -136,11 +151,7 @@ class File extends FileSystem
         }
 
         // actual copy file to file: use native functions if possible
-        if (!$this->storage->copyFileTo($destination)) {
-            throw new AccessDeniedException('unable to copy file', 403);
-        }
-
-        return new static($destination);
+        return $this->storage->copyFileTo($destination);
     }
 
     /**
@@ -151,6 +162,22 @@ class File extends FileSystem
      * @throws AccessDeniedException|FileNotFoundException
      */
     public function moveTo(Storage $destination, ?int $constraints = null): self
+    {
+        // actual move file to file: use native functions if possible
+        if (!$this->moveFileTo($destination, $constraints)) {
+            throw new AccessDeniedException('unable to move file', 403);
+        }
+
+        return new static($destination);
+    }
+
+    /**
+     * @param Storage &$destination mutable
+     * @param int|null $constraints
+     * @return bool success
+     * @throws AccessDeniedException|FileNotFoundException
+     */
+    public function moveFileTo(Storage &$destination, ?int $constraints = null): bool
     {
         $destination->setConstraints(($constraints !== null) ? $constraints : $this->storage->getConstraints());
 
@@ -172,11 +199,7 @@ class File extends FileSystem
         }
 
         // actual move file to file: use native functions if possible
-        if (!$this->storage->moveFileTo($destination)) {
-            throw new AccessDeniedException('unable to move file', 403);
-        }
-
-        return new static($destination);
+        return $this->storage->moveFileTo($destination);
     }
 
     /**
