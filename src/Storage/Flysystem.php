@@ -311,12 +311,18 @@ class Flysystem extends Storage
      */
     public function touch(bool $ifNewOnly = false, ?int $time = null, ?int $atime = null): bool
     {
+        $isFile = $this->isFile();
+
+        if ($ifNewOnly && $isFile) {
+            return true;
+        }
+
         try {
-            if ($this->flysystem->has($this->path)) {
-                return $ifNewOnly ? true : $this->flysystem->write($this->path, '');
+            if (!$isFile) {
+                return $this->flysystem->write($this->path, '');
             }
 
-            return $this->flysystem->put($this->path, $this->flysystem->read($this->path));
+            return $this->flysystem->rename($this->path, $this->path);
         } finally {
             $this->metadata = null;
         }
@@ -373,11 +379,7 @@ class Flysystem extends Storage
      */
     public function writeFromStream($stream): bool
     {
-        if (!is_resource($stream)) {
-            throw new RuntimeException(sprintf('file-handle must be of type \'resource\' but \'%s\' given', is_object($handle) ? get_class($handle) : gettype($handle)), 500);
-        }
-
-
+        $this->touch(true);
         return $this->flysystem->updateStream($this->path, $stream);
     }
 

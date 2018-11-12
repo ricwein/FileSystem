@@ -127,8 +127,6 @@ class File extends FileSystem
             throw new AccessDeniedException('unable to open destination file', 403, $destination->getConstraintViolations());
         } elseif ($destination->isFile() && !$destination->isWriteable()) {
             throw new AccessDeniedException('unable to write to destination file', 403);
-        } elseif (!$destination->isFile() && !is_writable($destination->path()->directory)) {
-            throw new AccessDeniedException('unable to write to destination directory', 403);
         }
 
         // ensure the destination-path points to a filename
@@ -165,8 +163,6 @@ class File extends FileSystem
             throw new AccessDeniedException('unable to write to destination file', 403, $destination->getConstraintViolations());
         } elseif ($destination->isFile() && !$destination->isWriteable()) {
             throw new AccessDeniedException('unable to write to destination file', 403);
-        } elseif (!$destination->isFile() && !is_writable($destination->path()->directory)) {
-            throw new AccessDeniedException('unable to write to destination directory', 403);
         }
 
         // ensure the destination-path points to a filename
