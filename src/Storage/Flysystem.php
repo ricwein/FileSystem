@@ -59,10 +59,16 @@ class Flysystem extends Storage
     public function getMetadata(): array
     {
         if ($this->metadata === null) {
-            $this->metadata = $this->flysystem->getMetadata($this->path);
+            if (false !== $metadata = $this->flysystem->getMetadata($this->path)) {
+                $this->metadata = $metadata;
+            } else {
+
+                // something went terrible wrong...
+                return ['type' => null];
+            }
         }
 
-        return $this->metadata;
+        return (array) $this->metadata;
     }
 
     /**
@@ -90,7 +96,8 @@ class Flysystem extends Storage
     {
         return array_merge(parent::getDetails(), [
             'type' => get_class($this->flysystem->getAdapter()),
-            'path' => $this->path
+            'path' => $this->path,
+            'metadata' => $this->getMetadata(),
         ]);
     }
 
