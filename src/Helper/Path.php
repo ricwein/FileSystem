@@ -235,6 +235,11 @@ class Path
             $this->extension = null;
             $this->filename = null;
             $this->basename = $this->fileInfo->getBasename();
+
+            // resolve self-referencing paths
+            if ($this->basename === '.') {
+                $this->basename = basename($this->real);
+            }
         }
 
         $this->loaded = true;
