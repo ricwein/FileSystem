@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @author Richard Weinhold
  */
+
 namespace ricwein\FileSystem\Storage\Disk;
 
 use ricwein\FileSystem\Helper\Constraint;

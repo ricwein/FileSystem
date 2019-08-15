@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @author Richard Weinhold
  */
+
 namespace ricwein\FileSystem\File;
 
 use Intervention\Image\Constraint as IConstraint;
@@ -172,7 +174,7 @@ class Image extends File
                 }
             }
 
-            throw new RuntimeException(sprintf('unable to reduce filesize to less than %1.2f MB', $filesize / (2**20), 2), 400);
+            throw new RuntimeException(sprintf('unable to reduce filesize to less than %1.2f MB', $filesize / (2 ** 20), 2), 400);
         });
     }
 }

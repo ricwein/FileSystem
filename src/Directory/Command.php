@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @author Richard Weinhold
  */
+
 namespace ricwein\FileSystem\Directory;
 
 use ricwein\FileSystem\Directory;
@@ -161,8 +163,11 @@ class Command extends Directory
         $this->lastCommand = $cmd;
 
         switch (true) {
-            case $this->storage instanceof Storage\Disk: $path = $this->storage->path()->real; break;
-            default: throw new RuntimeException(sprintf('unsupported storage system for Command-Execution: %s', get_class($this->storage)), 500);
+            case $this->storage instanceof Storage\Disk:
+                $path = $this->storage->path()->real;
+                break;
+            default:
+                throw new RuntimeException(sprintf('unsupported storage system for Command-Execution: %s', get_class($this->storage)), 500);
         }
 
         if (!chdir($path)) {

@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @author Richard Weinhold
  */
+
 namespace ricwein\FileSystem\Storage;
 
 use ricwein\FileSystem\Helper\Stream;
@@ -51,7 +53,7 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
-    public function isDir():bool
+    public function isDir(): bool
     {
         return true;
     }
@@ -130,7 +132,7 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
-    public function removeFile():bool
+    public function removeFile(): bool
     {
         $this->content = null;
         return true;
@@ -158,9 +160,13 @@ class Memory extends Storage
     public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): string
     {
         switch ($mode) {
-            case Hash::CONTENT: return hash($algo, $this->content ?? '', false);
-            case Hash::FILENAME: case Hash::FILEPATH: throw new RuntimeException('unable to calculate filepath/name hash for in-memory-files', 500);
-            default: throw new RuntimeException('unknown hashing-mode', 500);
+            case Hash::CONTENT:
+                return hash($algo, $this->content ?? '', false);
+            case Hash::FILENAME:
+            case Hash::FILEPATH:
+                throw new RuntimeException('unable to calculate filepath/name hash for in-memory-files', 500);
+            default:
+                throw new RuntimeException('unknown hashing-mode', 500);
         }
     }
 
@@ -204,7 +210,7 @@ class Memory extends Storage
      */
     public function getStream(string $mode = 'r+')
     {
-        if (!in_array($mode, ['r+','w','w+','a+','x','x+','c+',true])) {
+        if (!in_array($mode, ['r+', 'w', 'w+', 'a+', 'x', 'x+', 'c+', true])) {
             throw new RuntimeException(sprintf('unable to open stream for memory-storage in non-write mode "%s"', $mode), 500);
         }
 
@@ -255,7 +261,7 @@ class Memory extends Storage
     }
 
     /**
-    * @inheritDoc
+     * @inheritDoc
      */
     public function moveFileTo(Storage $destination): bool
     {

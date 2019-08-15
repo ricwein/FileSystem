@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\Directory;
 
@@ -19,11 +21,11 @@ class NavigationTest extends TestCase
      */
     public function testDirChange()
     {
-        $dir = new Directory(new Storage\Disk(__DIR__.'/../'));
-        $this->assertSame($dir->path()->real, realpath(__DIR__.'/../'));
+        $dir = new Directory(new Storage\Disk(__DIR__ . '/../'));
+        $this->assertSame($dir->path()->real, realpath(__DIR__ . '/../'));
 
         $dir->cd('_examples');
-        $this->assertSame($dir->path()->real, realpath(__DIR__.'/../_examples/'));
+        $this->assertSame($dir->path()->real, realpath(__DIR__ . '/../_examples/'));
     }
 
     /**

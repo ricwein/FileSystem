@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @author Richard Weinhold
  */
+
 namespace ricwein\FileSystem\Helper;
 
 use ricwein\FileSystem\Exceptions\ConstraintsException;
@@ -92,7 +94,7 @@ class Constraint
 
             // iterative exception chaining:
             if (($this->failedFor & $constraint) === $constraint) {
-                $previous = new ConstraintsException('[' . $constraint . '] - constraint failed'. (isset($this->errors[$constraint]) ? (': ' . $this->errors[$constraint]) : ''), 500, $previous);
+                $previous = new ConstraintsException('[' . $constraint . '] - constraint failed' . (isset($this->errors[$constraint]) ? (': ' . $this->errors[$constraint]) : ''), 500, $previous);
             }
         }
 
@@ -133,8 +135,7 @@ class Constraint
             ($this->constraints & self::IN_SAFEPATH) === self::IN_SAFEPATH
             && (
                 (file_exists($path->raw) && $path->raw !== $path->real && strpos($path->real, $path->safepath) !== 0)
-                || (!file_exists($path->raw) && strpos($path->raw, $path->safepath) !== 0)
-            )
+                || (!file_exists($path->raw) && strpos($path->raw, $path->safepath) !== 0))
         ) {
             $this->failedFor |= self::IN_SAFEPATH;
             $this->errors[self::IN_SAFEPATH] = sprintf('the given path (%s) is not within the safepath (%s)', $path->raw, $path->safepath);

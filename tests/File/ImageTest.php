@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\File;
 
@@ -33,14 +35,14 @@ class ImageTest extends TestCase
         $image = new File\Image(new Storage\Disk(__DIR__, '../_examples', 'test.txt'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
         $this->assertFalse(MimeType::isImage($image->getType()));
 
-        $image = new File\Image(new Storage\Memory(file_get_contents(__DIR__.'/../_examples/test.png')));
+        $image = new File\Image(new Storage\Memory(file_get_contents(__DIR__ . '/../_examples/test.png')));
         $this->assertTrue(MimeType::isImage($image->getType()));
 
         $image = $image->copyTo(new Storage\Memory)->encode('jpg');
         $this->assertTrue(MimeType::isImage($image->getType()));
         $this->assertSame(MimeType::getMimeFor('jpg'), $image->getType());
 
-        $image = new File\Image(new Storage\Memory(file_get_contents(__DIR__.'/../_examples/test.txt')));
+        $image = new File\Image(new Storage\Memory(file_get_contents(__DIR__ . '/../_examples/test.txt')));
         $this->assertFalse(MimeType::isImage($image->getType()));
     }
 

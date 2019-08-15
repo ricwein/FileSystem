@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\Helper;
 
@@ -20,7 +22,7 @@ class ConstraintTest extends TestCase
     {
 
         // safe-path
-        $path = new Path([realpath(__DIR__. '/../_examples'), 'test.txt']);
+        $path = new Path([realpath(__DIR__ . '/../_examples'), 'test.txt']);
 
         $this->assertTrue((new Constraint(Constraint::DISALLOW_LINK))->isValidPath($path));
         $this->assertTrue((new Constraint(Constraint::IN_SAFEPATH))->isValidPath($path));

@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @author Richard Weinhold
  */
+
 namespace ricwein\FileSystem;
 
 use ricwein\FileSystem\Exceptions\ConstraintsException;
@@ -124,10 +126,10 @@ class File extends FileSystem
     }
 
     /**
-    * @param Storage &$destination mutable
-    * @param int|null $constraints
-    * @return bool success
-    * @throws AccessDeniedException|FileNotFoundException
+     * @param Storage &$destination mutable
+     * @param int|null $constraints
+     * @return bool success
+     * @throws AccessDeniedException|FileNotFoundException
      */
     protected function copyFileTo(Storage &$destination, ?int $constraints = null): bool
     {
@@ -260,11 +262,11 @@ class File extends FileSystem
     }
 
     /**
-    * @param  bool $ifNewOnly
-    * @param null|int $time last-modified time
-    * @param null|int $atime last-access time
-    * @return bool
-    * @throws AccessDeniedException
+     * @param  bool $ifNewOnly
+     * @param null|int $time last-modified time
+     * @param null|int $atime last-access time
+     * @return bool
+     * @throws AccessDeniedException
      */
     public function touch(bool $ifNewOnly = false, ?int $time = null, ?int $atime = null): bool
     {

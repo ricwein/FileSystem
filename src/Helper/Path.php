@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @author Richard Weinhold
  */
+
 namespace ricwein\FileSystem\Helper;
 
 use ricwein\FileSystem\Storage;
@@ -61,9 +63,9 @@ class Path
     protected $filename = null;
 
     /**
-    * name of a directory or file without file-extension
-    * e.g.: test
-    * @var string
+     * name of a directory or file without file-extension
+     * e.g.: test
+     * @var string
      */
     protected $basename;
 
@@ -105,8 +107,8 @@ class Path
 
     /**
      * parse each path-component and extract path-info
-    * @return string[]
-    * @throws UnexpectedValueException
+     * @return string[]
+     * @throws UnexpectedValueException
      */
     protected function normalizePathComponents(): array
     {
@@ -170,7 +172,6 @@ class Path
 
             case (is_object($component) && method_exists($component, '__toString')):
                 return (string) $component;
-
         }
 
         throw new UnexpectedValueException(sprintf('invalid path-component of type \'%s\'', is_object($component) ? get_class($component) : gettype($component)), 500);
@@ -267,8 +268,8 @@ class Path
     }
 
     /**
-    * @return \SplFileInfo
-    */
+     * @return \SplFileInfo
+     */
     public function fileInfo(): \SplFileInfo
     {
         if (!$this->loaded) {
@@ -283,7 +284,7 @@ class Path
      * check if path is in open_basedir restrictions
      * @return bool
      */
-    public function isInOpenBasedir() : bool
+    public function isInOpenBasedir(): bool
     {
         if (!$this->loaded) {
             $this->resolvePath();

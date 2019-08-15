@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @author Richard Weinhold
  */
+
 namespace ricwein\FileSystem\Storage;
 
 use League\Flysystem\Filesystem as FlyFilesystem;
@@ -299,18 +301,26 @@ class Flysystem extends Storage
         }
 
         switch ($mode) {
-            case Hash::CONTENT: return (new Stream($this->getStream()))->closeOnFree()->hash($algo);
-            case Hash::FILENAME: return hash($algo, $this->path, false);
-            default: throw new UnsupportedException('filepath-hashes are not supported by flysystem adapters', 500);
+            case Hash::CONTENT:
+                return (new Stream($this->getStream()))->closeOnFree()->hash($algo);
+            case Hash::FILENAME:
+                return hash($algo, $this->path, false);
+            default:
+                throw new UnsupportedException('filepath-hashes are not supported by flysystem adapters', 500);
         }
     }
 
     /**
      * @inheritDoc
+     * @throws RuntimeException
      */
     public function getTime(): int
     {
-        return $this->flysystem->getTimestamp($this->path);
+        if (false !== $timestamp = $this->flysystem->getTimestamp($this->path)) {
+            return (int) $timestamp;
+        }
+
+        throw new RuntimeException('unable to fetch timestamp', 500);
     }
 
     /**
@@ -419,7 +429,7 @@ class Flysystem extends Storage
     }
 
     /**
-    * @inheritDoc
+     * @inheritDoc
      */
     public function moveFileTo(Storage $destination): bool
     {

@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\File;
 
@@ -22,7 +24,7 @@ class UploadedFileTest extends TestCase
     public function testUploadedFileConstrains()
     {
         $file = new File((new Storage\Disk\Uploaded([
-            'tmp_name' => __DIR__.'/../_examples/test.txt',
+            'tmp_name' => __DIR__ . '/../_examples/test.txt',
             'name' => 'test.txt',
             'error' => 0,
         ]))->removeOnFree(false), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
@@ -53,7 +55,7 @@ class UploadedFileTest extends TestCase
     public function testUploadedFileErrors()
     {
         $file = new File((new Storage\Disk\Uploaded([
-            'tmp_name' => __DIR__.'/../_examples/test.txt',
+            'tmp_name' => __DIR__ . '/../_examples/test.txt',
             'name' => 'test.txt',
             'error' => UPLOAD_ERR_INI_SIZE,
         ]))->removeOnFree(false), Constraint::STRICT & ~Constraint::IN_SAFEPATH);

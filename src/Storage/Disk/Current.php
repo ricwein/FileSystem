@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @author Richard Weinhold
  */
+
 namespace ricwein\FileSystem\Storage\Disk;
 
 use ricwein\FileSystem\FileSystem;
@@ -26,10 +28,7 @@ class Current extends Disk
         // check if our first (left) pathcomponent references to root (/),
         // only inject current working directory if this is not the case
         if (
-            empty($path) ||
-            (is_string($fistComponent) && strpos($fistComponent, DIRECTORY_SEPARATOR) !== 0) ||
-            ($fistComponent instanceof Path && strpos($fistComponent->raw, DIRECTORY_SEPARATOR) !== 0) ||
-            ($fistComponent instanceof FileSystem && strpos($fistComponent->path()->raw, DIRECTORY_SEPARATOR) !== 0)
+            empty($path) || (is_string($fistComponent) && strpos($fistComponent, DIRECTORY_SEPARATOR) !== 0) || ($fistComponent instanceof Path && strpos($fistComponent->raw, DIRECTORY_SEPARATOR) !== 0) || ($fistComponent instanceof FileSystem && strpos($fistComponent->path()->raw, DIRECTORY_SEPARATOR) !== 0)
         ) {
             array_unshift($path, getcwd());
         }

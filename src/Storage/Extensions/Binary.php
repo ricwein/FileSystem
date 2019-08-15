@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @author Richard Weinhold
  */
+
 namespace ricwein\FileSystem\Storage\Extensions;
 
 use ricwein\FileSystem\Storage;

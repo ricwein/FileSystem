@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\Storage;
 
@@ -31,7 +33,7 @@ class FlysystemTest extends TestCase
     public function testFileRead()
     {
         $cmpFile = new File(new Storage\Disk(__DIR__, '/../_examples', 'test.txt'), Constraint::LOOSE);
-        $file = new File(new Storage\Flysystem(new Local(__DIR__.'/../_examples'), 'test.txt'));
+        $file = new File(new Storage\Flysystem(new Local(__DIR__ . '/../_examples'), 'test.txt'));
 
         $this->assertTrue($file->isFile());
         $this->assertSame(
@@ -46,6 +48,7 @@ class FlysystemTest extends TestCase
             'size' => $cmpFile->getSize(),
         ], $file->storage()->getMetadata());
 
+        $this->assertSame($cmpFile->getTime(), $file->getTime());
         $this->assertSame($cmpFile->getHash(), $file->getHash());
     }
 
@@ -54,7 +57,7 @@ class FlysystemTest extends TestCase
      */
     public function testDirectoryRead()
     {
-        $dir = new Directory(new Storage\Flysystem(new Local(__DIR__.'/..'), '_examples'));
+        $dir = new Directory(new Storage\Flysystem(new Local(__DIR__ . '/..'), '_examples'));
         $this->assertTrue($dir->isDir());
 
         $files = [];

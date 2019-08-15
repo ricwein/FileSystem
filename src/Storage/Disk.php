@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @author Richard Weinhold
  */
+
 namespace ricwein\FileSystem\Storage;
 
 use ricwein\FileSystem\Storage;
@@ -279,9 +281,14 @@ class Disk extends Storage
 
                 // try to remove files/dirs/links
                 switch ($splFile->getType()) {
-                    case 'dir': rmdir($splFile->getRealPath()); break;
-                    case 'link': unlink($splFile->getPathname()); break;
-                    default: unlink($splFile->getRealPath());
+                    case 'dir':
+                        rmdir($splFile->getRealPath());
+                        break;
+                    case 'link':
+                        unlink($splFile->getPathname());
+                        break;
+                    default:
+                        unlink($splFile->getRealPath());
                 }
             }
 
@@ -359,10 +366,14 @@ class Disk extends Storage
         }
 
         switch ($mode) {
-            case Hash::CONTENT: return hash_file($algo, $this->path->real, false);
-            case Hash::FILENAME: return hash($algo, $this->path->filename, false);
-            case Hash::FILEPATH: return hash($algo, $this->path->real, false);
-            default: throw new RuntimeException('unknown hashing-mode', 500);
+            case Hash::CONTENT:
+                return hash_file($algo, $this->path->real, false);
+            case Hash::FILENAME:
+                return hash($algo, $this->path->filename, false);
+            case Hash::FILEPATH:
+                return hash($algo, $this->path->real, false);
+            default:
+                throw new RuntimeException('unknown hashing-mode', 500);
         }
     }
 
@@ -471,7 +482,7 @@ class Disk extends Storage
     public function writeFromStream($stream): bool
     {
         if (!is_resource($stream)) {
-            throw new RuntimeException(sprintf('file-handle must be of type \'resource\' but \'%s\' given', is_object($handle) ? get_class($handle) : gettype($handle)), 500);
+            throw new RuntimeException(sprintf('file-handle must be of type \'resource\' but \'%s\' given', is_object($stream) ? get_class($stream) : gettype($stream)), 500);
         }
 
         $destStream = $this->getStream('w');
@@ -480,7 +491,6 @@ class Disk extends Storage
                 return false;
             }
 
-            $destination->path()->reload();
             return true;
         } finally {
             \fclose($destStream);
@@ -494,7 +504,7 @@ class Disk extends Storage
     {
         switch (true) {
 
-            // copy file from disk to disk
+                // copy file from disk to disk
             case $destination instanceof Disk:
                 if (!\copy($this->path->real, $destination->path()->raw)) {
                     return false;
@@ -505,7 +515,11 @@ class Disk extends Storage
             case $destination instanceof Flysystem:
                 $readStream = $this->getStream('r');
                 try {
-                    return $destination->writeFromStream($readStream);
+                    if ($destination->writeFromStream($readStream) === true) {
+                        $destination->path()->reload();
+                        return true;
+                    }
+                    return false;
                 } finally {
                     \fclose($readStream);
                 }
@@ -517,13 +531,13 @@ class Disk extends Storage
     }
 
     /**
-    * @inheritDoc
+     * @inheritDoc
      */
     public function moveFileTo(Storage $destination): bool
     {
         switch (true) {
 
-            // copy file from disk to disk
+                // copy file from disk to disk
             case $destination instanceof Disk:
                 if (!\rename($this->path->real, $destination->path()->raw)) {
                     return false;

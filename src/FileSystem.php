@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @author Richard Weinhold
  */
+
 namespace ricwein\FileSystem;
 
 use ricwein\FileSystem\Enum\Hash;

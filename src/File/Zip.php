@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @author Richard Weinhold
  */
+
 namespace ricwein\FileSystem\File;
 
 use ZipArchive;
@@ -390,10 +392,17 @@ class Zip extends File
 
         // add file to archive
         switch (true) {
-            case $storage instanceof Storage\Disk: $name = $this->addFileFromDisk($storage, $name); break;
-            case $storage instanceof Storage\Memory: $name = $this->addFileFromMemory($storage, $name); break;
-            case $storage instanceof Storage\Flysystem: $name = $this->addFileFromFlysystem($storage, $name); break;
-            default: throw new UnexpectedValueException(sprintf('invalid type for 1 Argument in %s(), expected instance of Storage or File, but "%s" given', __METHOD__, is_object($storage) ? get_class($storage) : gettype($storage)), 500);
+            case $storage instanceof Storage\Disk:
+                $name = $this->addFileFromDisk($storage, $name);
+                break;
+            case $storage instanceof Storage\Memory:
+                $name = $this->addFileFromMemory($storage, $name);
+                break;
+            case $storage instanceof Storage\Flysystem:
+                $name = $this->addFileFromFlysystem($storage, $name);
+                break;
+            default:
+                throw new UnexpectedValueException(sprintf('invalid type for 1 Argument in %s(), expected instance of Storage or File, but "%s" given', __METHOD__, is_object($storage) ? get_class($storage) : gettype($storage)), 500);
         }
 
         // set custom compression algorithm
@@ -516,7 +525,7 @@ class Zip extends File
      * @param  string|null $forFile
      * @return self
      */
-    public function setComment(string $comment, ?string $forFile = null):self
+    public function setComment(string $comment, ?string $forFile = null): self
     {
         if (!$this->isOpen) {
             $this->openArchive();

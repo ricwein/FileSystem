@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @author Richard Weinhold
  */
+
 namespace ricwein\FileSystem\Storage\Disk;
 
 use ricwein\FileSystem\Helper\Path;
@@ -120,13 +122,13 @@ class Uploaded extends Disk
     }
 
     /**
-    * @inheritDoc
+     * @inheritDoc
      */
     public function moveFileTo(Storage $destination): bool
     {
         switch (true) {
 
-            // use native safe-move function for uploaded files
+                // use native safe-move function for uploaded files
             case $destination instanceof Disk:
                 if (!\move_uploaded_file($this->path->real, $destination->path()->raw)) {
                     return false;
@@ -134,7 +136,7 @@ class Uploaded extends Disk
                 $destination->path()->reload();
                 return true;
 
-            // use a temp-file for safe-move before moving file into destination-storage
+                // use a temp-file for safe-move before moving file into destination-storage
             case $destination instanceof Storage\Flysystem:
             case $destination instanceof Storage\Memory:
             default:
