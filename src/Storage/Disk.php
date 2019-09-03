@@ -301,7 +301,7 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @throws AccessDeniedException
+     * @throws RuntimeException
      */
     public function list(bool $recursive = false): \Generator
     {
@@ -315,11 +315,6 @@ class Disk extends Storage
         foreach ($iterator as $file) {
             if (in_array($file->getFilename(), ['.', '..'], true)) {
                 continue;
-            }
-
-            // file not readable
-            if (!$file->isReadable()) {
-                throw new AccessDeniedException(sprintf('unable to access file for path: "%s"', $file->getPathname()), 500);
             }
 
             yield new self(
@@ -504,8 +499,9 @@ class Disk extends Storage
     {
         switch (true) {
 
-                // copy file from disk to disk
             case $destination instanceof Disk:
+
+                // copy file from disk to disk
                 if (!\copy($this->path->real, $destination->path()->raw)) {
                     return false;
                 }

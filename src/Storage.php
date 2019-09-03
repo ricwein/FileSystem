@@ -221,7 +221,7 @@ abstract class Storage
     /**
      * @param bool $recursive
      * @return \Generator list of all files
-     * @throws RuntimeException|UnsupportedException
+     * @throws UnsupportedException
      */
     public function list(bool $recursive = false): \Generator
     {
