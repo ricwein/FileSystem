@@ -20,7 +20,7 @@ use League\Flysystem\Adapter\Local;
  */
 class FlysystemTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         if (!class_exists('League\Flysystem\Filesystem')) {
             $this->markTestSkipped('The required package "League\Flysystem" is not installed');

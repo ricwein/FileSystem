@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Tests\Directory;
 
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\Path;
@@ -12,16 +13,12 @@ use ricwein\FileSystem\Directory\Command;
 use ricwein\FileSystem\Helper\Constraint;
 
 /**
- * test FileSyst\File bases
+ * test FileSystem\File bases
  *
  * @author Richard Weinhold
  */
 class CommandTest extends TestCase
 {
-
-    /**
-     * @return void
-     */
     public function testLsCommand()
     {
         $ls = new Command(
@@ -41,9 +38,6 @@ class CommandTest extends TestCase
         }
     }
 
-    /**
-     * @return void
-     */
     public function testGitCommand()
     {
         $git = new Command(
@@ -56,13 +50,12 @@ class CommandTest extends TestCase
         $this->assertNotSame(false, $git->execSafe('rev-parse HEAD')); // git-rev
     }
 
-    /**
-     * @expectedException \ricwein\FileSystem\Exceptions\FileNotFoundException
-     * @return void
-     */
     public function testCommandMissing()
     {
-        $command = new Command(
+        $this->expectException(FileNotFoundException::class);
+        $this->expectExceptionMessageMatches('/unable to find binary in paths.*/');
+
+        new Command(
             new Storage\Disk(__DIR__, '../../'),
             Constraint::STRICT & ~Constraint::IN_SAFEPATH,
             ['/', new Path(['/']), new Storage\Disk('/'), new File(new Storage\Disk('/'))]

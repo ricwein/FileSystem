@@ -9,6 +9,7 @@ use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
 use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\FileSystem;
 
 use ricwein\FileSystem\Helper\Constraint;
@@ -24,11 +25,11 @@ use ricwein\FileSystem\File;
  */
 class ReadTest extends TestCase
 {
-    /**
-     * @expectedException \ricwein\FileSystem\Exceptions\UnexpectedValueException
-     */
     public function testMemoryInit()
     {
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage("in-memory directories are not supported");
+
         new Directory(new Storage\Memory());
     }
 

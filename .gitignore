@@ -4,6 +4,9 @@
 
 vendor/
 
+# Dotfiles
+.*
+
 #### joe made this: http://goel.io/joe
 #### linux ####
 *~

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Tests\Helper;
 
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\Path;
@@ -19,13 +20,14 @@ class PathFinderTest extends TestCase
 {
     public function testStrings()
     {
+        $current = __FILE__;
         $file = new File(PathFinder::try([
-            __FILE__, '.notExistingFilename',
-            __FILE__,
+            "{$current}.notExistingFilename",
+            $current,
         ]));
 
         $this->assertTrue($file->isFile());
-        $this->assertSame($file->path()->real, __FILE__);
+        $this->assertSame($file->path()->real, $current);
     }
 
     public function testPaths()
@@ -73,12 +75,12 @@ class PathFinderTest extends TestCase
         $this->assertSame($file->path()->real, __FILE__);
     }
 
-    /**
-     * @expectedException \ricwein\FileSystem\Exceptions\FileNotFoundException
-     */
     public function testErrors()
     {
-        $file = new File(PathFinder::try([
+        $this->expectException(FileNotFoundException::class);
+        $this->expectExceptionMessage("file not found");
+
+        new File(PathFinder::try([
             new Path([__FILE__, '.notExistingFilename']),
             new File(new Storage\Disk(__FILE__, '.notExistingFilename')),
             new File(new Storage\Disk(__DIR__, '.notExistingFilename')),

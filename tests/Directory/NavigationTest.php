@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Tests\Directory;
 
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Exceptions\ConstraintsException;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Helper\Constraint;
@@ -16,9 +17,6 @@ use ricwein\FileSystem\Helper\Constraint;
  */
 class NavigationTest extends TestCase
 {
-    /**
-     * @return void
-     */
     public function testDirChange()
     {
         $dir = new Directory(new Storage\Disk(__DIR__ . '/../'));
@@ -28,9 +26,6 @@ class NavigationTest extends TestCase
         $this->assertSame($dir->path()->real, realpath(__DIR__ . '/../_examples/'));
     }
 
-    /**
-     * @return void
-     */
     public function testDirUp()
     {
         $dir = new Directory(new Storage\Disk(__DIR__));
@@ -40,9 +35,6 @@ class NavigationTest extends TestCase
         $this->assertSame($dir->path()->real, realpath(__DIR__ . '/../../'));
     }
 
-    /**
-     * @return void
-     */
     public function testFileRead()
     {
         $dir = new Directory(new Storage\Disk(__DIR__), Constraint::LOOSE);
@@ -53,14 +45,13 @@ class NavigationTest extends TestCase
         );
     }
 
-    /**
-     * @expectedException \ricwein\FileSystem\Exceptions\ConstraintsException
-     * @return void
-     */
     public function testDirUpError()
     {
         $dir = new Directory(new Storage\Disk(__DIR__));
         $this->assertSame($dir->path()->real, realpath(__DIR__));
+
+        $this->expectException(ConstraintsException::class);
+        $this->expectExceptionMessageMatches('/.*constraint failed: the given path.*is not within the safepath.*/');
 
         $dir->up(2);
         $dir->file('LICENSE')->read();
