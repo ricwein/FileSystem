@@ -10,7 +10,7 @@
     }
   ],
   "require": {
-    "php": ">= 7.2.0",
+    "php": ">= 7.4.0",
     "ext-fileinfo": "*",
     "ext-gd": "*",
     "ext-zip": "*"
@@ -23,7 +23,7 @@
   },
   "config": {
     "platform": {
-      "php": "7.2"
+      "php": "7.4"
     },
     "sort-packages": true
   },

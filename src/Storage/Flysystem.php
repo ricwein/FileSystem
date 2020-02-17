@@ -34,12 +34,12 @@ class Flysystem extends Storage
     /**
      * @var string
      */
-    protected $path;
+    protected string $path;
 
     /**
      * @var array|null
      */
-    protected $metadata = null;
+    protected ?array $metadata = null;
 
     /**
      * @param AbstractAdapter|FlyFilesystem $filesystem

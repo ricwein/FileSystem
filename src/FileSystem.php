@@ -19,7 +19,7 @@ abstract class FileSystem
     /**
      * @var Storage
      */
-    protected $storage;
+    protected Storage $storage;
 
     /**
      * @param Storage $storage
@@ -36,7 +36,7 @@ abstract class FileSystem
      */
     public function __destruct()
     {
-        $this->storage = null;
+        unset($this->storage);
     }
 
     /**

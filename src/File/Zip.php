@@ -8,6 +8,7 @@ namespace ricwein\FileSystem\File;
 
 use Exception;
 use League\Flysystem\FileNotFoundException as FlySystemFileNotFoundException;
+use ricwein\FileSystem\Exceptions\Hint;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ZipArchive;
 use ricwein\FileSystem\Directory;
@@ -72,49 +73,35 @@ class Zip extends File
 
     /**
      * indicates whether the zip-archive is currently opened
-     * @var bool
      */
-    protected $isOpen = false;
+    protected bool $isOpen = false;
 
-    /**
-     * @var ZipArchive
-     */
-    protected $archive;
+    protected ZipArchive $archive;
 
-    /**
-     * @var int|null
-     */
-    protected $flags;
+    protected int $flags;
 
-    /**
-     * @var string|null
-     */
-    private $password = null;
+    private ?string $password = null;
 
-    /**
-     * @var int
-     */
-    protected $encryption = self::DEFAULT_ENCRYPTION;
+    protected int $encryption = self::DEFAULT_ENCRYPTION;
+    protected int $compression = ZipArchive::CM_DEFAULT;
 
-    /**
-     * @var int
-     */
-    protected $compression = ZipArchive::CM_DEFAULT;
-
-    /**
-     * @var int
-     */
-    protected $filecounter = 0;
+    protected int $filecounter = 0;
 
     /**
      * @inheritDoc
      * @param Storage\Disk $storage
      */
-    public function __construct(Storage\Disk $storage, int $constraints = Constraint::STRICT, ?int $flags = ZipArchive::CREATE)
+    public function __construct(Storage\Disk $storage, int $constraints = Constraint::STRICT, int $flags = ZipArchive::CREATE)
     {
         $this->flags = $flags;
         $this->archive = new ZipArchive();
-        parent::__construct($storage, $constraints);
+
+        if (($flags & ZipArchive::CREATE) === ZipArchive::CREATE && $storage instanceof Storage\Disk\Temp) {
+            FileSystem::__construct($storage, $constraints);
+        } else {
+            parent::__construct($storage, $constraints);
+        }
+
     }
 
     /**
@@ -161,6 +148,14 @@ class Zip extends File
         }
 
         $result = $this->archive->open($this->path()->raw, $this->flags);
+
+        if (($this->flags & ZipArchive::CREATE) === ZipArchive::CREATE && $result === ZipArchive::ER_NOZIP && $this->storage->isFile()) {
+            throw new RuntimeException(
+                sprintf('[%d] Error while opening ZipArchive: "%s"', $result, static::ERROR_MESSAGES[$result]),
+                500,
+                new Hint("The issue might be, that the zip-file already exists, but should be created since the ZipArchive::CREATE is set."));
+        }
+
 
         // something went wrong, search and throw error-message
         if ($result !== true) {

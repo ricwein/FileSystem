@@ -24,22 +24,22 @@ class DirectoryIterator
     /**
      * @var callable[]
      */
-    protected $storageFilters = [];
+    protected array $storageFilters = [];
 
     /**
      * @var callable[]
      */
-    protected $filesystemFilters = [];
+    protected array $filesystemFilters = [];
 
     /**
      * @var Storage
      */
-    protected $storage;
+    protected Storage $storage;
 
     /**
      * @var bool
      */
-    protected $recursive;
+    protected bool $recursive;
 
     /**
      * @param Storage $storage

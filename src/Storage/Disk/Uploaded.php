@@ -20,15 +20,8 @@ use Throwable;
  */
 class Uploaded extends Disk
 {
+    protected bool $selfdestruct = true;
 
-    /**
-     * @inheritDoc
-     */
-    protected $selfdestruct = true;
-
-    /**
-     * @var array
-     */
     private const UPLOAD_ERRORS = [
         UPLOAD_ERR_INI_SIZE => 'The file "%s" exceeds your upload_max_filesize ini directive.',
         UPLOAD_ERR_FORM_SIZE => 'The file "%s" exceeds the upload limit defined in your form.',
@@ -39,16 +32,12 @@ class Uploaded extends Disk
         UPLOAD_ERR_EXTENSION => 'File upload was stopped by a PHP extension.',
     ];
 
-    /**
-     * @var ConstraintsException|null
-     */
-    protected $previousConstraintError = null;
+    protected ?ConstraintsException $previousConstraintError = null;
 
     /**
      * original file-name
-     * @var string
      */
-    protected $name;
+    protected string $name;
 
     /**
      * @param array $file $_FILE array in the format:

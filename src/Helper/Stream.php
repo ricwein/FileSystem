@@ -20,7 +20,7 @@ class Stream
     /**
      * @var bool
      */
-    protected $closeOnFree = false;
+    protected bool $closeOnFree = false;
 
     /**
      * @param resource $handle

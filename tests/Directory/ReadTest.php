@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Tests\Directory;
 
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\ConstraintsException;
+use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\FileSystem;
 
 use ricwein\FileSystem\Helper\Constraint;
@@ -22,7 +26,6 @@ class ReadTest extends TestCase
 {
     /**
      * @expectedException \ricwein\FileSystem\Exceptions\UnexpectedValueException
-     * @return void
      */
     public function testMemoryInit()
     {
@@ -41,9 +44,6 @@ class ReadTest extends TestCase
         });
     }
 
-    /**
-     * @return void
-     */
     public function testListing()
     {
         $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'));
@@ -65,9 +65,6 @@ class ReadTest extends TestCase
         }
     }
 
-    /**
-     * @return void
-     */
     public function testListingFiles()
     {
         $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'));
@@ -83,9 +80,6 @@ class ReadTest extends TestCase
         }
     }
 
-    /**
-     * @return void
-     */
     public function testListingDirectories()
     {
         $dir = new Directory(new Storage\Disk(__DIR__, '..'));
@@ -108,9 +102,6 @@ class ReadTest extends TestCase
         }
     }
 
-    /**
-     * @return void
-     */
     public function testListLowlevelFilters()
     {
         $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'), Constraint::LOOSE);
@@ -122,13 +113,10 @@ class ReadTest extends TestCase
 
         /** @var File $file */
         foreach ($dirIter->all() as $file) {
-            $this->assertSame($file->path()->filename, 'test.png');
+            $this->assertTrue(in_array($file->path()->filename, ['test.png', 'archive.zip'], true));
         }
     }
 
-    /**
-     * @return void
-     */
     public function testListHighlevelFilters()
     {
         $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'), Constraint::LOOSE);

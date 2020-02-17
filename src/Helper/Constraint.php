@@ -47,25 +47,10 @@ class Constraint
      */
     public const STRICT = 0b11111111;
 
-    /**
-     * @var string[]
-     */
-    protected $errors = [];
-
-    /**
-     * @var int
-     */
-    protected $constraints;
-
-    /**
-     * @var int
-     */
-    protected $failedFor = 0;
-
-    /**
-     * @var bool
-     */
-    protected $hasRun = false;
+    protected array $errors = [];
+    protected int $constraints;
+    protected int $failedFor = 0;
+    protected bool $hasRun = false;
 
     /**
      * @param int $constraints

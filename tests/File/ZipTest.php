@@ -19,14 +19,12 @@ use ricwein\FileSystem\Directory;
  */
 class ZipTest extends TestCase
 {
-    /**
-     * @return void
-     */
     public function testSingleFileArchive()
     {
         // zip this file
         $file = new File(new Storage\Disk(__FILE__));
         $zip = new File\Zip(new Storage\Disk\Temp);
+
         $zip->addFile($file)->commit();
 
         $this->assertSame('No error', $zip->getStatus());

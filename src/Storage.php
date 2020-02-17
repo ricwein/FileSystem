@@ -22,21 +22,16 @@ use Throwable;
  */
 abstract class Storage
 {
-    /**
-     * @var Constraint|null
-     */
-    protected $constraints = null;
+    protected ?Constraint $constraints = null;
 
     /**
      * remove file from filesystem on object destruction
      * => leaving scope or removing object reference
-     * @var bool
      */
-    protected $selfdestruct = false;
+    protected bool $selfdestruct = false;
 
     /**
      * returns all detail-informations for testing/debugging purposes
-     * @return string[]
      */
     public function getDetails(): array
     {
@@ -225,7 +220,7 @@ abstract class Storage
      * @return Generator list of all files
      * @throws UnsupportedException
      */
-    public function list(bool $recursive = false): \Generator
+    public function list(bool $recursive = false): Generator
     {
         throw new UnsupportedException(sprintf(
             'Listing Directory-Content is not supported for the current "%s" Storage (recursive: %d)',

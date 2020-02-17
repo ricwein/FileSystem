@@ -22,11 +22,7 @@ use ricwein\FileSystem\Storage\Extensions\Binary;
  */
 class Memory extends Storage
 {
-
-    /**
-     * @var string|null
-     */
-    protected $content = '';
+    protected ?string $content = '';
 
     /**
      * @param string|null $content

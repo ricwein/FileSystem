@@ -25,25 +25,16 @@ class Command extends Directory
 
     /**
      * full path to binary
-     * @var string|null
      */
-    protected $bin = null;
+    protected ?string $bin = null;
 
     /**
      * default search paths for binaries
-     * @var array
      */
-    protected $paths = [];
+    protected array $paths = [];
 
-    /**
-     * @var int
-     */
-    protected $lastExitCode = 0;
-
-    /**
-     * @var string|null
-     */
-    protected $lastCommand = null;
+    protected int $lastExitCode = 0;
+    protected ?string $lastCommand = null;
 
     /**
      * @inheritDoc

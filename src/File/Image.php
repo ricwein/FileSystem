@@ -26,10 +26,7 @@ use ricwein\FileSystem\Storage;
  */
 class Image extends File
 {
-    /**
-     * @var IImageManager
-     */
-    protected $manager;
+    protected IImageManager $manager;
 
     /**
      * @inheritDoc

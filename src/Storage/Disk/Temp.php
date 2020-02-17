@@ -21,7 +21,7 @@ class Temp extends Disk
     /**
      * @inheritDoc
      */
-    protected $selfdestruct = true;
+    protected bool $selfdestruct = true;
 
     /**
      * @inheritDoc

@@ -26,83 +26,65 @@ use SplFileInfo;
  */
 class Path
 {
-
-    /**
-     * @var bool
-     */
-    private $loaded = false;
+    private bool $loaded = false;
 
     /**
      * @var string[]|FileSystem[]|self[]
      */
-    private $components;
+    private array $components;
 
     /**
      * relative path to file
      * e.g.: [...] /test/test.db
-     * @var string|null
      */
-    protected $filepath = null;
+    protected ?string $filepath = null;
 
     /**
      * full resolved filesystem path
      * e.g.: /res/test/test.db
-     * @var string|null
      */
-    protected $real = null;
+    protected ?string $real = null;
 
     /**
      * full but raw path (can contain unresolved /../ parts!)
      * e.g.: /res/var/../test/test.db
-     * @var string
      */
-    protected $raw;
+    protected string $raw;
 
     /**
      * part of the path which can be assumed to be save (can contain unresolved /../ parts!)
      * this path should not be left (protected against /../ -directory traversion)
      * e.g.: /res/
-     * @var string
      */
-    protected $safepath;
+    protected string $safepath;
 
     /**
      * name of a file
      * e.g.: test.db
-     * @var string|null
      */
-    protected $filename = null;
+    protected ?string $filename = null;
 
     /**
      * name of a directory or file without file-extension
      * e.g.: test
-     * @var string
      */
-    protected $basename;
+    protected string $basename;
 
     /**
      * path of directory (can contain unresolved /../ parts!)
      * e.g.: res/test/
-     * @var string
      */
-    protected $directory;
+    protected string $directory;
 
-    /**
-     * @var string
-     */
-    protected $pathname;
+    protected string $pathname;
 
     /**
      * file-extension of a file
      * e.g.: db
-     * @var string|null
      */
-    protected $extension = null;
+    protected ?string $extension = null;
 
-    /**
-     * @var SplFileInfo|null
-     */
-    protected $fileInfo = null;
+    protected ?SplFileInfo $fileInfo = null;
 
     /**
      * @param string[]|FileSystem[]|self[] $components

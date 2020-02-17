@@ -19,7 +19,7 @@ class Disk extends Binary
     /**
      * @var string
      */
-    protected $filePath;
+    protected ?string $filePath;
 
     /**
      * @var resource|null
@@ -29,7 +29,7 @@ class Disk extends Binary
     /**
      * @var array
      */
-    private $stat;
+    private array $stat;
 
     /**
      * @inheritDoc

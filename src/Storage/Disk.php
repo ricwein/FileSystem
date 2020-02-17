@@ -36,7 +36,7 @@ class Disk extends Storage
     /**
      * @var Path
      */
-    protected $path;
+    protected Path $path;
 
     /**
      * @param string[]|FileSystem[]|Path[] $path

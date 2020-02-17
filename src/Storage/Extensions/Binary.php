@@ -33,12 +33,12 @@ abstract class Binary
     /**
      * @var int
      */
-    protected $mode = self::MODE_CLOSED;
+    protected int $mode = self::MODE_CLOSED;
 
     /**
      * @var int
      */
-    protected $pos = 0;
+    protected int $pos = 0;
 
     /**
      * @param int $mode
@@ -52,7 +52,7 @@ abstract class Binary
 
     /**
      * check current access-mode and set new modes
-     * @param  int $mode
+     * @param int $mode
      * @return void
      * @throws AccessDeniedException
      */
@@ -76,8 +76,8 @@ abstract class Binary
 
     /**
      * Write to a stream
-     * @param  string $bytes bytes
-     * @param  int|null $length byte-count
+     * @param string $bytes bytes
+     * @param int|null $length byte-count
      * @return int
      */
     abstract public function write(string $bytes, ?int $length = null): int;
@@ -85,7 +85,7 @@ abstract class Binary
     /**
      * read from a stream
      * prevent partial reads (also uses run-time testing to prevent partial reads)
-     * @param  int $length byte-count
+     * @param int $length byte-count
      * @return string
      * @throws RuntimeException
      */
@@ -97,7 +97,7 @@ abstract class Binary
      */
     public function remainingBytes(): int
     {
-        return (int) (PHP_INT_MAX & ($this->getSize() - $this->pos));
+        return (int)(PHP_INT_MAX & ($this->getSize() - $this->pos));
     }
 
     /**
@@ -117,7 +117,7 @@ abstract class Binary
 
     /**
      * set the current cursor position to the desired location
-     * @param  int $position
+     * @param int $position
      * @return bool
      */
     abstract public function seek(int $position = 0): bool;

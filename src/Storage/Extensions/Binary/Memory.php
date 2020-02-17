@@ -21,7 +21,7 @@ class Memory extends Binary
     /**
      * @var MemoryStorage
      */
-    protected $storage;
+    protected MemoryStorage $storage;
 
     /**
      * @inheritDoc

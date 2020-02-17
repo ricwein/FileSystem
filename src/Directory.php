@@ -18,9 +18,9 @@ use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 class Directory extends FileSystem
 {
     /**
-     * @var Storage\Disk
+     * @var Storage
      */
-    protected $storage;
+    protected Storage $storage;
 
     /**
      * @inheritDoc
@@ -47,8 +47,6 @@ class Directory extends FileSystem
      * create new dir if not exists
      * @return self
      * @throws AccessDeniedException
-     * @throws Exceptions\RuntimeException
-     * @throws UnexpectedValueException
      */
     public function mkdir(): self
     {
