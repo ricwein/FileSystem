@@ -17,10 +17,6 @@ use ricwein\FileSystem\Helper\PathFinder;
  */
 class PathFinderTest extends TestCase
 {
-
-    /**
-     * @return void
-     */
     public function testStrings()
     {
         $file = new File(PathFinder::try([
@@ -32,9 +28,6 @@ class PathFinderTest extends TestCase
         $this->assertSame($file->path()->real, __FILE__);
     }
 
-    /**
-     * @return void
-     */
     public function testPaths()
     {
         $file = new File(PathFinder::try([
@@ -46,9 +39,6 @@ class PathFinderTest extends TestCase
         $this->assertSame($file->path()->real, __FILE__);
     }
 
-    /**
-     * @return void
-     */
     public function testStorages()
     {
         $file = new File(PathFinder::try([
@@ -60,9 +50,6 @@ class PathFinderTest extends TestCase
         $this->assertSame($file->path()->real, __FILE__);
     }
 
-    /**
-     * @return void
-     */
     public function testTempPaths()
     {
         $file = new File(PathFinder::try([
@@ -75,9 +62,6 @@ class PathFinderTest extends TestCase
         $this->assertSame($file->directory()->path()->real, realpath(sys_get_temp_dir()));
     }
 
-    /**
-     * @return void
-     */
     public function testFiles()
     {
         $file = new File(PathFinder::try([
@@ -91,7 +75,6 @@ class PathFinderTest extends TestCase
 
     /**
      * @expectedException \ricwein\FileSystem\Exceptions\FileNotFoundException
-     * @return void
      */
     public function testErrors()
     {

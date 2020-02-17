@@ -6,6 +6,8 @@
 
 namespace ricwein\FileSystem\Storage\Extensions\Binary;
 
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Storage\Memory as MemoryStorage;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Storage\Extensions\Binary;
@@ -25,14 +27,15 @@ class Memory extends Binary
      * @inheritDoc
      * @param MemoryStorage $storage
      */
-    public function __construct(MemoryStorage $storage, int $mode)
+    public function __construct(int $mode, MemoryStorage $storage)
     {
+        parent::__construct($mode);
         $this->storage = $storage;
-        $this->applyAccessMode($mode);
     }
 
     /**
      * @inheritDoc
+     * @throws AccessDeniedException
      */
     public function write(string $bytes, ?int $length = null): int
     {
@@ -50,6 +53,8 @@ class Memory extends Binary
 
     /**
      * @inheritDoc
+     * @throws AccessDeniedException
+     * @throws FileNotFoundException
      */
     public function read(int $length): string
     {
@@ -64,9 +69,6 @@ class Memory extends Binary
         if (($this->pos + $length) > $this->storage->getSize()) {
             throw new RuntimeException('Out-of-bounds read', 500);
         }
-
-        $buf = '';
-        $remaining = $length;
 
         $buf = $this->storage->readFile($this->pos, $length);
         $this->pos += $length;

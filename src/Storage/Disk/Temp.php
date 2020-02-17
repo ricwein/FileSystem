@@ -6,6 +6,7 @@
 
 namespace ricwein\FileSystem\Storage\Disk;
 
+use Exception;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\Path;
@@ -24,11 +25,12 @@ class Temp extends Disk
 
     /**
      * @inheritDoc
+     * @throws Exception
      */
     public function __construct(...$path)
     {
-        $filename = 'fs.' . \bin2hex(\random_bytes(16));
-        $tmpdir = \sys_get_temp_dir();
+        $filename = sprintf("fs.%s", bin2hex(random_bytes(16)));
+        $tmpdir = sys_get_temp_dir();
 
         if (empty($path)) {
             $this->path = new Path([$tmpdir, $filename]);

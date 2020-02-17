@@ -6,6 +6,9 @@
 
 namespace ricwein\FileSystem\File;
 
+use Exception;
+use League\Flysystem\FileNotFoundException as FlySystemFileNotFoundException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ZipArchive;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
@@ -147,9 +150,9 @@ class Zip extends File
     /**
      * open internal zip-archive with given flags
      * => this can create a new zip-file
-     * @throws RuntimeException
-     * @throws ConstraintsException
      * @return bool
+     * @throws ConstraintsException
+     * @throws RuntimeException
      */
     protected function openArchive(): bool
     {
@@ -161,7 +164,7 @@ class Zip extends File
 
         // something went wrong, search and throw error-message
         if ($result !== true) {
-            if (array_key_exists($result, static::ERROR_MESSAGES, true)) {
+            if (array_key_exists($result, static::ERROR_MESSAGES)) {
                 throw new RuntimeException(sprintf('[%d] Error while opening ZipArchive: "%s"', $result, static::ERROR_MESSAGES[$result]), 500);
             }
 
@@ -196,7 +199,7 @@ class Zip extends File
 
     /**
      * en/decrypt archive with given password
-     * @param  string|null $password
+     * @param string|null $password
      * @param int|null $encryption encryption-mode
      * @return self
      */
@@ -216,7 +219,7 @@ class Zip extends File
     }
 
     /**
-     * @param  int  $mode ZipArchive::CM_DEFAULT | CM_STORE | CM_SHRINK | CM_DEFLATE
+     * @param int $mode ZipArchive::CM_DEFAULT | CM_STORE | CM_SHRINK | CM_DEFLATE
      * @return self
      */
     public function setCompression(int $mode): self
@@ -226,11 +229,14 @@ class Zip extends File
     }
 
     /**
-     * @param Storage\Disk   $destination
-     * @param int|null       $constraints
-     * @param  string[]|null $entries
-     * @throws RuntimeException
+     * @param Storage\Disk $destination
+     * @param int|null $constraints
+     * @param string[]|null $entries
      * @return Directory<Storage\Disk>
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function extractTo(Storage\Disk $destination, ?int $constraints = null, ?array $entries = null): Directory
     {
@@ -262,24 +268,42 @@ class Zip extends File
 
     /**
      * add file or directory to zip-archive
-     * @param  FileSystem  $file
-     * @param  string|null $asNode
+     * @param FileSystem $file
+     * @param string|null $asNode
      * @return self
+     * @throws ConstraintsException
+     * @throws FileNotFoundException
+     * @throws FlySystemFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function add(FileSystem $file, ?string $asNode = null): self
     {
         if ($file instanceof Directory) {
             return $this->addDirectory($file, $asNode ?? '/');
-        } else {
+        } elseif ($file instanceof File) {
             return $this->addFile($file, $asNode);
+        } else {
+            throw new UnexpectedValueException(sprintf('%s::%s($file) only supports Directory and File as $file type, but is %s',
+                static::class,
+                __METHOD__,
+                get_class($file)
+            ));
         }
     }
 
     /**
      * add file or directory storage to zip-archive
-     * @param  Storage     $storage
-     * @param  string|null $asNode
+     * @param Storage $storage
+     * @param string|null $asNode
      * @return self
+     * @throws ConstraintsException
+     * @throws FileNotFoundException
+     * @throws FlySystemFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function addStorage(Storage $storage, ?string $asNode = null): self
     {
@@ -293,9 +317,15 @@ class Zip extends File
     /**
      * adds directory to zip-archive
      * @param Directory $directory
-     * @param string    $toNode adds content of directory to a sub-directory, or the root of the zip-archive
-     * @param  callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
+     * @param string $toNode adds content of directory to a sub-directory, or the root of the zip-archive
+     * @param callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
      * @return self
+     * @throws ConstraintsException
+     * @throws FileNotFoundException
+     * @throws FlySystemFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function addDirectory(Directory $directory, string $toNode = '/', ?callable $filter = null): self
     {
@@ -304,9 +334,15 @@ class Zip extends File
 
     /**
      * @param Storage $storage
-     * @param string  $toNode adds content of directory to a sub-directory, or the root of the zip-archive
-     * @param  callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
+     * @param string $toNode adds content of directory to a sub-directory, or the root of the zip-archive
+     * @param callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
      * @return self
+     * @throws ConstraintsException
+     * @throws FileNotFoundException
+     * @throws FlySystemFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function addDirectoryStorage(Storage $storage, string $toNode = '/', ?callable $filter = null): self
     {
@@ -316,9 +352,15 @@ class Zip extends File
     /**
      * adds directory-content to zip-archive
      * @param Directory $directory
-     * @param string    $toNode adds content of directory to a sub-directory, or the root of the zip-archive
-     * @param  callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
+     * @param string $toNode adds content of directory to a sub-directory, or the root of the zip-archive
+     * @param callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
      * @return self
+     * @throws ConstraintsException
+     * @throws FileNotFoundException
+     * @throws FlySystemFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function addDirectoryContent(Directory $directory, string $toNode = '/', ?callable $filter = null): self
     {
@@ -327,9 +369,15 @@ class Zip extends File
 
     /**
      * @param Storage $storage
-     * @param string  $toNode adds content of directory to a sub-directory, or the root of the zip-archive
-     * @param  callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
+     * @param string $toNode adds content of directory to a sub-directory, or the root of the zip-archive
+     * @param callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
      * @return self
+     * @throws ConstraintsException
+     * @throws FileNotFoundException
+     * @throws FlySystemFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function addDirectoryStorageContent(Storage $storage, string $toNode = '/', ?callable $filter = null): self
     {
@@ -360,9 +408,12 @@ class Zip extends File
     /**
      * @param File $file
      * @param string|null $name
-     * @throws UnexpectedValueException
-     * @throws RuntimeException
      * @return self
+     * @throws ConstraintsException
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws FlySystemFileNotFoundException
      */
     public function addFile(File $file, ?string $name = null): self
     {
@@ -375,10 +426,12 @@ class Zip extends File
     /**
      * @param Storage $storage
      * @param string|null $name
-     * @throws UnexpectedValueException
-     * @throws RuntimeException
-     * @throws FileNotFoundException
      * @return self
+     * @throws ConstraintsException
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws FlySystemFileNotFoundException
      */
     public function addFileStorage(Storage $storage, ?string $name = null): self
     {
@@ -431,8 +484,8 @@ class Zip extends File
     /**
      * @param Storage\Disk $file
      * @param string|null $name
-     * @throws RuntimeException
      * @return string filename in zip-archive
+     * @throws RuntimeException
      */
     private function addFileFromDisk(Storage\Disk $file, ?string $name = null): string
     {
@@ -449,14 +502,16 @@ class Zip extends File
     /**
      * @param Storage\Memory $file
      * @param string|null $name
-     * @throws RuntimeException
      * @return string filename in zip-archive
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws Exception
      */
     private function addFileFromMemory(Storage\Memory $file, ?string $name = null): string
     {
         // create new file-name
         if ($name === null) {
-            $name = 'file.' . \bin2hex(\random_bytes(8));
+            $name = sprintf("file.%s", bin2hex(random_bytes(8)));
             $mime = $file->getFileType();
 
             if (null !== $mime && null !== $extension = MimeType::getExtensionFor($mime)) {
@@ -476,8 +531,10 @@ class Zip extends File
     /**
      * @param Storage\Flysystem $file
      * @param string|null $name
-     * @throws RuntimeException
      * @return string filename in zip-archive
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws FlySystemFileNotFoundException
      */
     private function addFileFromFlysystem(Storage\Flysystem $file, ?string $name = null): string
     {
@@ -494,6 +551,8 @@ class Zip extends File
     /**
      * get archive status
      * @return string
+     * @throws ConstraintsException
+     * @throws RuntimeException
      */
     public function getStatus(): string
     {
@@ -502,7 +561,7 @@ class Zip extends File
         }
 
         if (false !== $status = $this->archive->getStatusString()) {
-            return (string) $status;
+            return (string)$status;
         }
 
         return 'ERROR!';
@@ -510,6 +569,8 @@ class Zip extends File
 
     /**
      * @return int
+     * @throws ConstraintsException
+     * @throws RuntimeException
      */
     public function getFileCount(): int
     {
@@ -521,9 +582,11 @@ class Zip extends File
     }
 
     /**
-     * @param  string $comment
-     * @param  string|null $forFile
+     * @param string $comment
+     * @param string|null $forFile
      * @return self
+     * @throws ConstraintsException
+     * @throws RuntimeException
      */
     public function setComment(string $comment, ?string $forFile = null): self
     {
@@ -541,8 +604,10 @@ class Zip extends File
     }
 
     /**
-     * @param  string|null $forFile
+     * @param string|null $forFile
      * @return string|null
+     * @throws ConstraintsException
+     * @throws RuntimeException
      */
     public function getComment(?string $forFile = null): ?string
     {
@@ -556,8 +621,10 @@ class Zip extends File
 
     /**
      * get stats-array for single entry
-     * @param  string $forFile
+     * @param string $forFile
      * @return array|null
+     * @throws ConstraintsException
+     * @throws RuntimeException
      */
     public function getStat(string $forFile): ?array
     {

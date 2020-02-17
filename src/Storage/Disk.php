@@ -6,6 +6,15 @@
 
 namespace ricwein\FileSystem\Storage;
 
+use DirectoryIterator;
+use finfo;
+use Generator;
+use Iterator;
+use League\Flysystem\FileExistsException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Enum\Hash;
@@ -16,6 +25,8 @@ use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\MimeType;
 use ricwein\FileSystem\Storage\Extensions\Binary;
+use SplFileInfo;
+use League\Flysystem\FileNotFoundException as FlySystemFileNotFoundException;
 
 /**
  * represents a file/directory at the local filesystem
@@ -28,7 +39,9 @@ class Disk extends Storage
     protected $path;
 
     /**
-     * @param string|FileSystem|Path $path ,...
+     * @param string[]|FileSystem[]|Path[] $path
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function __construct(...$path)
     {
@@ -40,6 +53,9 @@ class Disk extends Storage
 
     /**
      * @return void
+     * @throws AccessDeniedException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function __destruct()
     {
@@ -56,6 +72,9 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
+     * @return array
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function getDetails(): array
     {
@@ -64,6 +83,9 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
+     * @return bool
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function doesSatisfyConstraints(): bool
     {
@@ -80,6 +102,8 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function isFile(): bool
     {
@@ -88,6 +112,9 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
+     * @return bool
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function isDir(): bool
     {
@@ -96,6 +123,9 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
+     * @return bool
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function isExecutable(): bool
     {
@@ -104,6 +134,9 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
+     * @return bool
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function isSymlink(): bool
     {
@@ -112,6 +145,9 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
+     * @return bool
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function isReadable(): bool
     {
@@ -120,6 +156,9 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
+     * @return bool
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function isWriteable(): bool
     {
@@ -128,7 +167,13 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @throws FileNotFoundException|RuntimeException
+     * @param int|null $offset
+     * @param int|null $length
+     * @param int $mode
+     * @return string
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function readFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string
     {
@@ -142,7 +187,7 @@ class Disk extends Storage
         try {
 
             // try to set lock if provided
-            if ($mode !== 0 && !\flock($handle, $mode | LOCK_NB)) {
+            if ($mode !== 0 && !flock($handle, $mode | LOCK_NB)) {
                 throw new RuntimeException('unable to get file-lock', 500);
             }
 
@@ -151,15 +196,20 @@ class Disk extends Storage
 
             // ensure the file in unlocked after reading and the file-handler is closed again
             if ($mode !== 0) {
-                \flock($handle, LOCK_UN);
+                flock($handle, LOCK_UN);
             }
-            \fclose($handle);
+            fclose($handle);
         }
     }
 
     /**
      * @inheritDoc
-     * @throws FileNotFoundException|RuntimeException
+     * @param int|null $offset
+     * @param int|null $length
+     * @param int $mode
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function streamFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): void
     {
@@ -168,12 +218,12 @@ class Disk extends Storage
         }
 
         // open file-handler in readonly mode
-        $handle =  $this->getStream('r');
+        $handle = $this->getStream('r');
 
         try {
 
             // try to set lock if provided
-            if ($mode !== 0 && !\flock($handle, $mode | LOCK_NB)) {
+            if ($mode !== 0 && !flock($handle, $mode | LOCK_NB)) {
                 throw new RuntimeException('unable to get file-lock', 500);
             }
 
@@ -182,14 +232,15 @@ class Disk extends Storage
 
             // ensure the file in unlocked after reading and the file-handler is closed again
             if ($mode !== 0) {
-                \flock($handle, LOCK_UN);
+                flock($handle, LOCK_UN);
             }
-            \fclose($handle);
+            fclose($handle);
         }
     }
 
     /**
      * @inheritDoc
+     * @throws Exception
      */
     public function writeFile(string $content, bool $append = false, int $mode = LOCK_EX): bool
     {
@@ -202,12 +253,12 @@ class Disk extends Storage
         try {
 
             // try to set lock if provided
-            if ($mode !== 0 && !\flock($handle, $mode | LOCK_NB)) {
+            if ($mode !== 0 && !flock($handle, $mode | LOCK_NB)) {
                 throw new RuntimeException('unable to get file-lock', 500);
             }
 
             // write content
-            if (\fwrite($handle, $content) <= 0) {
+            if (fwrite($handle, $content) <= 0) {
                 return false;
             }
 
@@ -217,9 +268,9 @@ class Disk extends Storage
 
             // ensure the file in unlocked after reading and the file-handler is closed again
             if ($mode !== 0) {
-                \flock($handle, LOCK_UN);
+                flock($handle, LOCK_UN);
             }
-            \fclose($handle);
+            fclose($handle);
         }
     }
 
@@ -242,16 +293,16 @@ class Disk extends Storage
     /**
      * @param bool $recursive
      * @param int $mode
-     * @return \Iterator
+     * @return Iterator
      */
-    protected function getIterator(bool $recursive, int $mode = \RecursiveIteratorIterator::SELF_FIRST): \Iterator
+    protected function getIterator(bool $recursive, int $mode = RecursiveIteratorIterator::SELF_FIRST): Iterator
     {
         if (!$recursive) {
-            return new \DirectoryIterator($this->path->real);
+            return new DirectoryIterator($this->path->real);
         }
 
-        return new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->path->real, \RecursiveDirectoryIterator::SKIP_DOTS),
+        return new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->path->real, RecursiveDirectoryIterator::SKIP_DOTS),
             $mode
         );
     }
@@ -261,6 +312,8 @@ class Disk extends Storage
      * removes directory from disk
      * @return bool
      * @throws AccessDeniedException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function removeDir(): bool
     {
@@ -269,9 +322,9 @@ class Disk extends Storage
         }
 
         try {
-            $iterator = $this->getIterator(true, \RecursiveIteratorIterator::CHILD_FIRST);
+            $iterator = $this->getIterator(true, RecursiveIteratorIterator::CHILD_FIRST);
 
-            /** @var \SplFileInfo $file */
+            /** @var SplFileInfo $file */
             foreach ($iterator as $splFile) {
 
                 // file not readable
@@ -301,9 +354,12 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
+     * @param bool $recursive
+     * @return Generator
      * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    public function list(bool $recursive = false): \Generator
+    public function list(bool $recursive = false): Generator
     {
         if (!$this->isDir()) {
             throw new RuntimeException(sprintf('unable to open directory "%s"', $this->path->raw), 500);
@@ -311,7 +367,7 @@ class Disk extends Storage
 
         $iterator = $this->getIterator($recursive);
 
-        /** @var \SplFileInfo $file */
+        /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
             if (in_array($file->getFilename(), ['.', '..'], true)) {
                 continue;
@@ -326,6 +382,9 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
+     * @return int
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function getSize(): int
     {
@@ -342,7 +401,7 @@ class Disk extends Storage
         }
 
         // detect mimetype by magic.mime
-        $type = (new \finfo($withEncoding ? FILEINFO_MIME : FILEINFO_MIME_TYPE))->file($this->path->raw);
+        $type = (new finfo($withEncoding ? FILEINFO_MIME : FILEINFO_MIME_TYPE))->file($this->path->raw);
         if (!in_array($type, [false, 'text/plain', 'application/octet-stream', 'inode/x-empty'], true)) {
             return $type;
         }
@@ -374,6 +433,9 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
+     * @return int
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function getTime(): int
     {
@@ -403,6 +465,8 @@ class Disk extends Storage
     /**
      * @param bool $ifNewOnly
      * @return bool
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function mkdir(bool $ifNewOnly = false): bool
     {
@@ -431,22 +495,26 @@ class Disk extends Storage
      */
     public function __toString(): string
     {
-        return sprintf('%s at: "%s"', parent::__toString(), (string) $this->path);
+        return sprintf('%s at: "%s"', parent::__toString(), (string)$this->path);
     }
 
     /**
      * @inheritDoc
+     * @param int $mode
      * @return Binary\Disk
+     * @throws AccessDeniedException
+     * @throws RuntimeException
      */
     public function getHandle(int $mode): Binary
     {
-        return new Binary\Disk($this, $mode);
+        return new Binary\Disk($mode, $this);
     }
 
     /**
      * changes current directory
      * @param string[]|FileSystem[]|Path[] $path
      * @return void
+     * @throws UnexpectedValueException
      */
     public function cd(array $path): void
     {
@@ -461,7 +529,7 @@ class Disk extends Storage
      */
     public function getStream(string $mode = 'r+')
     {
-        $stream = \fopen($this->path->real, $mode);
+        $stream = fopen($this->path->real, $mode);
 
         if ($stream === false) {
             throw new RuntimeException('failed to open stream', 500);
@@ -482,18 +550,26 @@ class Disk extends Storage
 
         $destStream = $this->getStream('w');
         try {
-            if (!\stream_copy_to_stream($stream, $destStream)) {
+            if (!stream_copy_to_stream($stream, $destStream)) {
                 return false;
             }
 
             return true;
         } finally {
-            \fclose($destStream);
+            fclose($destStream);
         }
     }
 
     /**
      * @inheritDoc
+     * @param Storage $destination
+     * @return bool
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws FileExistsException
+     * @throws FlySystemFileNotFoundException
      */
     public function copyFileTo(Storage $destination): bool
     {
@@ -502,7 +578,7 @@ class Disk extends Storage
             case $destination instanceof Disk:
 
                 // copy file from disk to disk
-                if (!\copy($this->path->real, $destination->path()->raw)) {
+                if (!copy($this->path->real, $destination->path()->raw)) {
                     return false;
                 }
                 $destination->path()->reload();
@@ -512,12 +588,11 @@ class Disk extends Storage
                 $readStream = $this->getStream('r');
                 try {
                     if ($destination->writeFromStream($readStream) === true) {
-                        $destination->path()->reload();
                         return true;
                     }
                     return false;
                 } finally {
-                    \fclose($readStream);
+                    fclose($readStream);
                 }
 
             case $destination instanceof Memory:
@@ -528,14 +603,22 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
+     * @param Storage $destination
+     * @return bool
+     * @throws Exception
+     * @throws FileExistsException
+     * @throws FileNotFoundException
+     * @throws FlySystemFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function moveFileTo(Storage $destination): bool
     {
         switch (true) {
 
-                // copy file from disk to disk
+            // copy file from disk to disk
             case $destination instanceof Disk:
-                if (!\rename($this->path->real, $destination->path()->raw)) {
+                if (!rename($this->path->real, $destination->path()->raw)) {
                     return false;
                 }
                 $destination->path()->reload();

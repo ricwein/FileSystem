@@ -13,6 +13,7 @@ use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use Throwable;
 
 /**
  * like Disk, but for temporary files
@@ -29,13 +30,13 @@ class Uploaded extends Disk
      * @var array
      */
     private const UPLOAD_ERRORS = [
-        UPLOAD_ERR_INI_SIZE   => 'The file "%s" exceeds your upload_max_filesize ini directive.',
-        UPLOAD_ERR_FORM_SIZE  => 'The file "%s" exceeds the upload limit defined in your form.',
-        UPLOAD_ERR_PARTIAL    => 'The file "%s" was only partially uploaded.',
-        UPLOAD_ERR_NO_FILE    => 'No file was uploaded.',
+        UPLOAD_ERR_INI_SIZE => 'The file "%s" exceeds your upload_max_filesize ini directive.',
+        UPLOAD_ERR_FORM_SIZE => 'The file "%s" exceeds the upload limit defined in your form.',
+        UPLOAD_ERR_PARTIAL => 'The file "%s" was only partially uploaded.',
+        UPLOAD_ERR_NO_FILE => 'No file was uploaded.',
         UPLOAD_ERR_CANT_WRITE => 'The file "%s" could not be written to disk.',
         UPLOAD_ERR_NO_TMP_DIR => 'File could not be uploaded: missing temporary directory.',
-        UPLOAD_ERR_EXTENSION  => 'File upload was stopped by a PHP extension.',
+        UPLOAD_ERR_EXTENSION => 'File upload was stopped by a PHP extension.',
     ];
 
     /**
@@ -52,6 +53,7 @@ class Uploaded extends Disk
     /**
      * @param array $file $_FILE array in the format:
      *  ['tmp_name' => string, 'name' => string, 'error' => int]
+     * @throws RuntimeException
      * @throws UnexpectedValueException
      */
     public function __construct(array $file)
@@ -92,6 +94,7 @@ class Uploaded extends Disk
             throw new RuntimeException(sprintf(self::UPLOAD_ERRORS[$error], $this->path->raw), 500);
         }
     }
+
     /**
      * @inheritDoc
      */
@@ -108,7 +111,7 @@ class Uploaded extends Disk
     /**
      * @inheritDoc
      */
-    public function getConstraintViolations(\Throwable $previous = null): ?ConstraintsException
+    public function getConstraintViolations(Throwable $previous = null): ?ConstraintsException
     {
         return parent::getConstraintViolations(($previous !== null) ? $previous : $this->previousConstraintError);
     }
@@ -128,20 +131,20 @@ class Uploaded extends Disk
     {
         switch (true) {
 
-                // use native safe-move function for uploaded files
+            // use native safe-move function for uploaded files
             case $destination instanceof Disk:
-                if (!\move_uploaded_file($this->path->real, $destination->path()->raw)) {
+                if (!move_uploaded_file($this->path->real, $destination->path()->raw)) {
                     return false;
                 }
                 $destination->path()->reload();
                 return true;
 
-                // use a temp-file for safe-move before moving file into destination-storage
+            // use a temp-file for safe-move before moving file into destination-storage
             case $destination instanceof Storage\Flysystem:
             case $destination instanceof Storage\Memory:
             default:
                 $temp = new Storage\Disk\Temp();
-                if (!\move_uploaded_file($this->path->real, $temp->path()->raw)) {
+                if (!move_uploaded_file($this->path->real, $temp->path()->raw)) {
                     return false;
                 }
                 return $temp->moveFileTo($destination);

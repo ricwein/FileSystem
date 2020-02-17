@@ -2,6 +2,7 @@
 /**
  * @author Richard Weinhold
  */
+
 namespace ricwein\FileSystem\Helper;
 
 use ricwein\FileSystem\Exceptions\RuntimeException;
@@ -23,6 +24,7 @@ class Stream
 
     /**
      * @param resource $handle
+     * @throws RuntimeException
      */
     public function __construct($handle)
     {
@@ -38,17 +40,17 @@ class Stream
     public function __destruct()
     {
         if ($this->closeOnFree && is_resource($this->handle)) {
-            \fclose($this->handle);
+            fclose($this->handle);
         }
     }
 
     /**
-     * @throws RuntimeException
      * @return self
+     * @throws RuntimeException
      */
     public function rewind(): self
     {
-        if (\fseek($this->handle, 0) !== 0) {
+        if (fseek($this->handle, 0) !== 0) {
             throw new RuntimeException('error while rewinding file', 500);
         }
 
@@ -57,7 +59,7 @@ class Stream
 
     /**
      * auto-close stream on destruction
-     * @param  bool $activate
+     * @param bool $activate
      * @return self
      */
     public function closeOnFree(bool $activate = true): self
@@ -68,31 +70,32 @@ class Stream
 
     /**
      * [hash description]
-     * @param  string $algo [description]
+     * @param string $algo [description]
      * @return string       [description]
+     * @throws RuntimeException
      */
     public function hash(string $algo = 'sha256'): string
     {
         $this->rewind();
 
-        $hc = \hash_init($algo);
-        \hash_update_stream($hc, $this->handle);
-        return \hash_final($hc);
+        $hc = hash_init($algo);
+        hash_update_stream($hc, $this->handle);
+        return hash_final($hc);
     }
 
     /**
-     * @param  int|null $offset
-     * @param  int|null $length
-     * @throws RuntimeException
+     * @param int|null $offset
+     * @param int|null $length
      * @return string
+     * @throws RuntimeException
      */
     public function read(?int $offset = null, ?int $length = null): string
     {
         if (($offset === null || $length === null)) {
             $this->rewind();
 
-            if (0 < $filesize = \fstat($this->handle)['size'] ?? 0) {
-                if (false !== $buffer = \fread($this->handle, $filesize)) {
+            if (0 < $filesize = fstat($this->handle)['size'] ?? 0) {
+                if (false !== $buffer = fread($this->handle, $filesize)) {
                     return $buffer;
                 }
                 throw new RuntimeException('error while reading file', 500);
@@ -101,12 +104,12 @@ class Stream
             return '';
         }
 
-        if (\fseek($this->handle, $offset) !== 0) {
+        if (fseek($this->handle, $offset) !== 0) {
             throw new RuntimeException('error while seeking file', 500);
         }
 
         // read part of file
-        if (false !== $result = \fread($this->handle, $length)) {
+        if (false !== $result = fread($this->handle, $length)) {
             return $result;
         }
 
@@ -114,38 +117,38 @@ class Stream
     }
 
     /**
-     * @param  int|null $offset
-     * @param  int|null $length
-     * @param  int      $bufferSize
-     * @throws RuntimeException
+     * @param int|null $offset
+     * @param int|null $length
+     * @param int $bufferSize
      * @return void
+     * @throws RuntimeException
      */
     public function send(?int $offset = null, ?int $length = null, int $bufferSize = 1024): void
     {
         if ($offset === null || $length === null) {
             $this->rewind();
 
-            if (\fpassthru($this->handle) !== false) {
-                \flush();
+            if (fpassthru($this->handle) !== false) {
+                flush();
                 return;
             }
 
             throw new RuntimeException('error while reading file', 500);
         }
 
-        if (\fseek($this->handle, $offset) !== 0) {
+        if (fseek($this->handle, $offset) !== 0) {
             throw new RuntimeException('error while seeking file', 500);
         }
 
         $remaining = $length;
 
-        while ($remaining > 0 && !\feof($this->handle)) {
+        while ($remaining > 0 && !feof($this->handle)) {
             $readLength = ($remaining > $bufferSize) ? $bufferSize : $remaining;
             $remaining -= $readLength;
 
-            if (false !== $result = \fread($this->handle, $readLength)) {
+            if (false !== $result = fread($this->handle, $readLength)) {
                 echo $result;
-                \flush();
+                flush();
             } else {
                 throw new RuntimeException('error while reading file', 500);
             }

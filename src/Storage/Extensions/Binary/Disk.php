@@ -27,11 +27,19 @@ class Disk extends Binary
     protected $handle = null;
 
     /**
+     * @var array
+     */
+    private $stat;
+
+    /**
      * @inheritDoc
      * @param DiskStorage $storage
+     * @throws RuntimeException
      */
-    public function __construct(DiskStorage $storage, int $mode)
+    public function __construct(int $mode, DiskStorage $storage)
     {
+        parent::__construct($mode);
+
         $this->filePath = $storage->path()->real;
         $this->openHandle($mode);
     }
@@ -45,26 +53,24 @@ class Disk extends Binary
             return;
         }
 
-        \flock($this->handle, LOCK_UN);
-        \fclose($this->handle);
-        \clearstatcache($this->filePath);
+        flock($this->handle, LOCK_UN);
+        fclose($this->handle);
+        clearstatcache($this->filePath);
     }
 
 
     /**
-     * @param  int $mode
+     * @param int $mode
      * @return void
      * @throws RuntimeException
      */
     protected function openHandle(int $mode)
     {
-        $this->applyAccessMode($mode);
-
         if ($this->handle !== null) {
             return;
         }
 
-        $this->handle = @\fopen($this->filePath, ($mode === static::MODE_READ) ? 'rb' : 'wb');
+        $this->handle = @fopen($this->filePath, ($mode === static::MODE_READ) ? 'rb' : 'wb');
         if ($this->handle === false) {
             $this->handle = null;
             $this->mode = static::MODE_CLOSED;
@@ -72,16 +78,18 @@ class Disk extends Binary
             throw new RuntimeException('unable to open file-handle', 500);
         }
 
-        if (!\flock($this->handle, LOCK_NB | (($mode === self::MODE_READ) ? LOCK_SH : LOCK_EX))) {
+        if (!flock($this->handle, LOCK_NB | (($mode === self::MODE_READ) ? LOCK_SH : LOCK_EX))) {
             throw new RuntimeException('unable to get file-lock', 500);
         }
 
-        $this->stat = \fstat($this->handle);
-        $this->pos  = 0;
+        $this->stat = fstat($this->handle);
+        $this->pos = 0;
     }
 
     /**
      * @inheritDoc
+     * @throws AccessDeniedException
+     * @throws RuntimeException
      */
     public function write(string $bytes, ?int $length = null): int
     {
@@ -102,14 +110,14 @@ class Disk extends Binary
                 break;
             }
 
-            $written = \fwrite($this->handle, $bytes, $remaining);
+            $written = fwrite($this->handle, $bytes, $remaining);
             if ($written === false) {
                 throw new RuntimeException('Could not write to the file', 500);
             }
 
-            $bytes = \mb_substr($bytes, $written, null, '8bit');
+            $bytes = mb_substr($bytes, $written, null, '8bit');
             $this->pos += $written;
-            $this->stat = \fstat($this->handle);
+            $this->stat = fstat($this->handle);
             $remaining -= $written;
         } while ($remaining > 0);
 
@@ -118,6 +126,7 @@ class Disk extends Binary
 
     /**
      * @inheritDoc
+     * @throws AccessDeniedException
      */
     public function read(int $length): string
     {
@@ -144,9 +153,9 @@ class Disk extends Binary
             }
 
             /** @var string $read */
-            $read = \fread($this->handle, $remaining);
+            $read = fread($this->handle, $remaining);
 
-            if (!\is_string($read)) {
+            if (!is_string($read)) {
                 throw new AccessDeniedException('reading file failed', 500);
             }
 
@@ -169,6 +178,7 @@ class Disk extends Binary
 
     /**
      * @inheritDoc
+     * @throws RuntimeException
      */
     public function seek(int $position = 0): bool
     {
@@ -176,7 +186,7 @@ class Disk extends Binary
 
         if ($this->handle === null) {
             throw new RuntimeException('no file-handle found', 500);
-        } elseif (\fseek($this->handle, $position, SEEK_SET) !== 0) {
+        } elseif (fseek($this->handle, $position, SEEK_SET) !== 0) {
             throw new RuntimeException('fseek() failed', 500);
         }
 
@@ -187,18 +197,18 @@ class Disk extends Binary
      * runtime test to prevent TOCTOU attacks (race conditions) through
      * verifying that the hash matches and the current cursor position/file
      * size matches their values when the file was first opened
-     * @throws RuntimeException
      * @return void
+     * @throws RuntimeException
      */
     protected function toctouTest()
     {
         if ($this->handle === null) {
             throw new RuntimeException('no file-handle found', 500);
-        } elseif (\ftell($this->handle) !== $this->pos) {
+        } elseif (ftell($this->handle) !== $this->pos) {
             throw new RuntimeException('Read-only file has been modified since it was opened for reading', 500);
         }
 
-        $stat = \fstat($this->handle);
+        $stat = fstat($this->handle);
         if ($stat['size'] !== $this->stat['size']) {
             throw new RuntimeException('Read-only file has been modified since it was opened for reading', 500);
         }

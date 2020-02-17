@@ -6,12 +6,23 @@
 
 namespace ricwein\FileSystem\Helper;
 
+use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use SplFileInfo;
 
 /**
  * path-resolver for filesystem
+ * @property-read string|null filepath relative path to file, e.g.: [...] /test/test.db
+ * @property-read string|null real full resolved filesystem path, e.g.: /res/test/test.db
+ * @property-read string raw full but raw path (can contain unresolved /../ parts!), e.g.: /res/var/../test/test.db
+ * @property-read string safepath part of the path which can be assumed to be save (can contain unresolved /../ parts! this path should not be left (protected against /../ -directory traversion), e.g.: /res/
+ * @property-read string|null filename name of a file, e.g.: test.db
+ * @property-read string basename name of a directory or file without file-extension, e.g.: test
+ * @property-read string directory path of directory (can contain unresolved /../ parts!), e.g.: res/test/
+ * @property-read string pathname
+ * @property-read string|null extension file-extension of a file, e.g.: db
  */
 class Path
 {
@@ -89,7 +100,7 @@ class Path
     protected $extension = null;
 
     /**
-     * @var \SplFileInfo|null
+     * @var SplFileInfo|null
      */
     protected $fileInfo = null;
 
@@ -108,6 +119,7 @@ class Path
     /**
      * parse each path-component and extract path-info
      * @return string[]
+     * @throws RuntimeException
      * @throws UnexpectedValueException
      */
     protected function normalizePathComponents(): array
@@ -141,27 +153,21 @@ class Path
     }
 
     /**
-     * @param  string|int|self|Storage\Disk|FileSystem $component
+     * @param string|int|self|Storage\Disk|FileSystem $component
      * @param bool $isFirstElement
      * @param bool $isLastElement
      * @return string
      * @throws UnexpectedValueException
+     * @throws RuntimeException
      */
     protected static function normalize($component, bool $isFirstElement, bool $isLastElement): string
     {
         switch (true) {
 
-            case is_string($component):
-                return $component;
-
-            case is_int($component):
-            case is_float($component):
-                return (string) $component;
-
             case $component instanceof FileSystem:
             case $component instanceof Storage\Disk:
-                $component = $component->path();
-                // no break
+                return static::normalize($component->path(), $isFirstElement, $isLastElement);
+
             case $component instanceof self:
                 if ($isLastElement) {
                     return $component->raw; // last part
@@ -171,7 +177,10 @@ class Path
                 return $component->directory; // middle parts
 
             case (is_object($component) && method_exists($component, '__toString')):
-                return (string) $component;
+            case is_string($component):
+            case is_int($component):
+            case is_float($component):
+                return (string)$component;
         }
 
         throw new UnexpectedValueException(sprintf('invalid path-component of type \'%s\'', is_object($component) ? get_class($component) : gettype($component)), 500);
@@ -180,6 +189,7 @@ class Path
     /**
      * @return void
      * @throws UnexpectedValueException
+     * @throws RuntimeException
      */
     protected function resolvePath(): void
     {
@@ -197,7 +207,7 @@ class Path
             $this->extension = $path->extension;
             $this->filename = $path->filename;
 
-            $this->fileInfo = new \SplFileInfo($this->raw);
+            $this->fileInfo = new SplFileInfo($this->raw);
             $this->loaded = true;
             return;
         }
@@ -221,7 +231,7 @@ class Path
         $this->filepath = str_replace($this->safepath, '', $path);
 
         $this->raw = $path;
-        $this->fileInfo = new \SplFileInfo($path);
+        $this->fileInfo = new SplFileInfo($path);
 
         // parse into path-details
         $this->directory = $this->fileInfo->getPath();
@@ -268,9 +278,11 @@ class Path
     }
 
     /**
-     * @return \SplFileInfo
+     * @return SplFileInfo
+     * @throws UnexpectedValueException
+     * @throws RuntimeException
      */
-    public function fileInfo(): \SplFileInfo
+    public function fileInfo(): SplFileInfo
     {
         if (!$this->loaded) {
             $this->resolvePath();
@@ -283,6 +295,8 @@ class Path
     /**
      * check if path is in open_basedir restrictions
      * @return bool
+     * @throws UnexpectedValueException
+     * @throws RuntimeException
      */
     public function isInOpenBasedir(): bool
     {
@@ -308,7 +322,7 @@ class Path
         }
 
         // check against open_basedir paths
-        foreach ((array) $openBaseDirs as $dir) {
+        foreach ((array)$openBaseDirs as $dir) {
             $dir = realpath($dir);
             if (stripos($this->raw, $dir) === 0) {
                 return true;
@@ -322,6 +336,8 @@ class Path
     /**
      * returns all path-properties for testing/debugging purposes
      * @return string[]
+     * @throws UnexpectedValueException
+     * @throws RuntimeException
      */
     public function getDetails(): array
     {
@@ -354,9 +370,10 @@ class Path
     }
 
     /**
-     * @param  string $key
+     * @param string $key
      * @return string|null
      * @throws UnexpectedValueException
+     * @throws RuntimeException
      */
     public function __get(string $key): ?string
     {
@@ -373,6 +390,8 @@ class Path
 
     /**
      * @return string
+     * @throws UnexpectedValueException
+     * @throws RuntimeException
      */
     public function __toString(): string
     {

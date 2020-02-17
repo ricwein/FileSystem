@@ -6,8 +6,12 @@
 
 namespace ricwein\FileSystem\Storage;
 
+use finfo;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Helper\Stream;
-
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Exceptions\RuntimeException;
@@ -151,7 +155,7 @@ class Memory extends Storage
      */
     public function getFileType(bool $withEncoding = false): string
     {
-        return (new \finfo($withEncoding ? FILEINFO_MIME : FILEINFO_MIME_TYPE))->buffer($this->content ?? '');
+        return (new finfo($withEncoding ? FILEINFO_MIME : FILEINFO_MIME_TYPE))->buffer($this->content ?? '');
     }
 
     /**
@@ -197,10 +201,11 @@ class Memory extends Storage
     /**
      * @inheritDoc
      * @return Binary\Memory
+     * @throws AccessDeniedException
      */
     public function getHandle(int $mode): Binary
     {
-        return new Binary\Memory($this, $mode);
+        return new Binary\Memory($mode, $this);
     }
 
     /**
@@ -214,7 +219,7 @@ class Memory extends Storage
             throw new RuntimeException(sprintf('unable to open stream for memory-storage in non-write mode "%s"', $mode), 500);
         }
 
-        $stream = \fopen('php://memory', $mode);
+        $stream = fopen('php://memory', $mode);
 
         if ($stream === false) {
             throw new RuntimeException('failed to open stream', 500);
@@ -222,8 +227,8 @@ class Memory extends Storage
 
         // pre-fill stream
         if ($this->content !== null) {
-            \fwrite($stream, $this->content);
-            \rewind($stream);
+            fwrite($stream, $this->content);
+            rewind($stream);
         }
         return $stream;
     }
@@ -241,6 +246,11 @@ class Memory extends Storage
 
     /**
      * @inheritDoc
+     * @param Storage $destination
+     * @return bool
+     * @throws FileNotFoundException
+     * @throws UnsupportedException
+     * @throws Exception
      */
     public function copyFileTo(Storage $destination): bool
     {
@@ -262,6 +272,11 @@ class Memory extends Storage
 
     /**
      * @inheritDoc
+     * @param Storage $destination
+     * @return bool
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws UnsupportedException
      */
     public function moveFileTo(Storage $destination): bool
     {

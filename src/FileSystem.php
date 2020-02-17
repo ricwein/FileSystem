@@ -9,7 +9,6 @@ namespace ricwein\FileSystem;
 use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\Constraint;
-use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 
 /**
@@ -41,8 +40,8 @@ abstract class FileSystem
     }
 
     /**
-     * @internal this should only be used for debugging purposes
      * @return Storage
+     * @internal this should only be used for debugging purposes
      */
     public function storage(): Storage
     {
@@ -133,7 +132,7 @@ abstract class FileSystem
      */
     public function __toString(): string
     {
-        return (string) $this->storage;
+        return (string)$this->storage;
     }
 
     /**
@@ -157,7 +156,7 @@ abstract class FileSystem
     /**
      * remove file from filesystem on object destruction
      * => leaving scope or removing object reference
-     * @param  bool $activate
+     * @param bool $activate
      * @return self
      */
     public function removeOnFree(bool $activate = true): self
@@ -169,7 +168,7 @@ abstract class FileSystem
     /**
      * cast current object to given class-name,
      * reusing internal storage-objects
-     * @param  string $class
+     * @param string $class
      * @return self
      */
     public function as(string $class): self

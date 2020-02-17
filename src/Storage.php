@@ -6,6 +6,7 @@
 
 namespace ricwein\FileSystem;
 
+use Generator;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Exceptions\Exception;
@@ -14,6 +15,7 @@ use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
 use ricwein\FileSystem\Storage\Extensions\Binary;
+use Throwable;
 
 /**
  * base-implementation for all Storage Adapters
@@ -44,7 +46,7 @@ abstract class Storage
     }
 
     /**
-     * @param  int  $constraints
+     * @param int $constraints
      * @return self
      */
     public function setConstraints(int $constraints): self
@@ -62,10 +64,10 @@ abstract class Storage
     }
 
     /**
-     * @param \Throwable|null $previous
+     * @param Throwable|null $previous
      * @return ConstraintsException|null
      */
-    public function getConstraintViolations(\Throwable $previous = null): ?ConstraintsException
+    public function getConstraintViolations(Throwable $previous = null): ?ConstraintsException
     {
         return $this->constraints->getErrors($previous);
     }
@@ -145,7 +147,7 @@ abstract class Storage
 
     /**
      * write content to storage
-     * @param  string $content
+     * @param string $content
      * @param bool $append
      * @param int $mode LOCK_EX
      * @return bool
@@ -187,7 +189,7 @@ abstract class Storage
     abstract public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): ?string;
 
     /**
-     * @param  bool $ifNewOnly
+     * @param bool $ifNewOnly
      * @param null|int $time last-modified time
      * @param null|int $atime last-access time
      * @return bool
@@ -203,13 +205,13 @@ abstract class Storage
      */
     public function getHandle(int $mode): Binary
     {
-        throw new UnsupportedException(sprintf('Binary access not supported for current "%s" Storage', get_class($this)), 500);
+        throw new UnsupportedException(sprintf('Binary access not supported for current "%s" Storage (mode: %d)', get_class($this), $mode), 500);
     }
 
     /**
      * remove file from filesystem on object destruction
      * => leaving scope or removing object reference
-     * @param  bool $activate
+     * @param bool $activate
      * @return self
      */
     public function removeOnFree(bool $activate = true): self
@@ -220,12 +222,16 @@ abstract class Storage
 
     /**
      * @param bool $recursive
-     * @return \Generator list of all files
+     * @return Generator list of all files
      * @throws UnsupportedException
      */
     public function list(bool $recursive = false): \Generator
     {
-        throw new UnsupportedException(sprintf('Listing Directory-Content is not supported for the current "%s" Storage', get_class($this)), 500);
+        throw new UnsupportedException(sprintf(
+            'Listing Directory-Content is not supported for the current "%s" Storage (recursive: %d)',
+            get_class($this),
+            $recursive ? 'true' : 'false'
+        ), 500);
     }
 
     /**
@@ -236,7 +242,7 @@ abstract class Storage
 
     /**
      * update content from stream
-     * @param  resource $stream file-handle
+     * @param resource $stream file-handle
      * @return bool
      */
     abstract public function writeFromStream($stream): bool;

@@ -7,6 +7,8 @@
 namespace ricwein\FileSystem\Directory;
 
 use ricwein\FileSystem\Directory;
+use ricwein\FileSystem\Exceptions\ConstraintsException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\Constraint;
@@ -45,24 +47,33 @@ class Command extends Directory
 
     /**
      * @inheritDoc
+     * @param Storage\Disk $storage
+     * @param int $constraints
      * @param File|File[]|Storage\Disk|Storage\Disk[]|Path|Path[]|string|string[] $executablePath
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
      * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    public function __construct(Storage\Disk $storage, int $constraints = Constraint::STRICT, $executablePath)
+    public function __construct(Storage\Disk $storage, int $constraints = Constraint::STRICT, array $executablePath = [])
     {
         parent::__construct($storage, $constraints);
 
         // try to find binary in given file-paths
-        $this->bin = $this->selectBinaryPath(array_merge((array) $executablePath, $this->paths));
+        $this->bin = $this->selectBinaryPath(array_merge((array)$executablePath, $this->paths));
 
         if ($this->bin === null) {
-            throw new FileNotFoundException(sprintf('unable to find binary in paths: "%s"', implode('", "', (array) $executablePath)), 500);
+            throw new FileNotFoundException(sprintf('unable to find binary in paths: "%s"', implode('", "', (array)$executablePath)), 500);
         }
     }
 
     /**
-     * @param  File[]|Path[]|string[] $paths
+     * @param File[]|Path[]|string[] $paths
      * @return string|null
+     * @throws RuntimeException
+     * @throws ConstraintsException
+     * @throws UnexpectedValueException
      */
     protected function selectBinaryPath(array $paths): ?string
     {
@@ -82,8 +93,8 @@ class Command extends Directory
     }
 
     /**
-     * @param  string $cmd
-     * @param  array|object $variables
+     * @param string $cmd
+     * @param array|object $variables
      * @return string
      */
     protected function bindVariables(string $cmd, $variables): string
@@ -113,7 +124,7 @@ class Command extends Directory
             } elseif (is_scalar($current)) {
                 return $current;
             } elseif (is_object($current) && method_exists($current, '__toString')) {
-                return (string) $current;
+                return (string)$current;
             }
 
             return $match[0];
@@ -123,8 +134,12 @@ class Command extends Directory
 
     /**
      * @param string $cmd
-     * @param array  $arguments
+     * @param array $arguments
      * @return string|bool
+     * @throws AccessDeniedException
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function execSafe(string $cmd = '', array $arguments = [])
     {
@@ -136,9 +151,12 @@ class Command extends Directory
 
     /**
      * @param string $cmd
-     * @param array  $arguments
+     * @param array $arguments
      * @return string|bool
-     * @throws AccessDeniedException|RuntimeException
+     * @throws AccessDeniedException
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function exec(string $cmd = '', array $arguments = [])
     {

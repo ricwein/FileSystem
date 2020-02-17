@@ -7,6 +7,9 @@
 namespace ricwein\FileSystem\Helper;
 
 use ricwein\FileSystem\Exceptions\ConstraintsException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use Throwable;
 
 /**
  * file-path validation class
@@ -81,16 +84,16 @@ class Constraint
     }
 
     /**
-     * @param \Throwable|null $previous
-     * @return \Throwable|ConstraintsException|null
+     * @param Throwable|null $previous
+     * @return Throwable|ConstraintsException|null
      */
-    public function getErrors(\Throwable $previous = null): ?\Throwable
+    public function getErrors(Throwable $previous = null): ?Throwable
     {
         foreach ([
-            self::DISALLOW_LINK,
-            self::IN_OPENBASEDIR,
-            self::IN_SAFEPATH
-        ] as $constraint) {
+                     self::DISALLOW_LINK,
+                     self::IN_OPENBASEDIR,
+                     self::IN_SAFEPATH
+                 ] as $constraint) {
 
             // iterative exception chaining:
             if (($this->failedFor & $constraint) === $constraint) {
@@ -104,6 +107,8 @@ class Constraint
     /**
      * @param Path $path
      * @return bool
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function isValidPath(Path $path): bool
     {

@@ -6,6 +6,11 @@
 
 namespace ricwein\FileSystem\Helper;
 
+use Generator;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\File;
@@ -38,7 +43,7 @@ class DirectoryIterator
 
     /**
      * @param Storage $storage
-     * @param bool    $recursive
+     * @param bool $recursive
      */
     public function __construct(Storage $storage, bool $recursive = false)
     {
@@ -47,7 +52,7 @@ class DirectoryIterator
     }
 
     /**
-     * @param  callable $filter in format: function(Storage $file): bool
+     * @param callable $filter in format: function(Storage $file): bool
      * @return self
      */
     public function filterStorage(callable $filter): self
@@ -57,7 +62,7 @@ class DirectoryIterator
     }
 
     /**
-     * @param  callable $filter in format: function(FileSystem $file): bool
+     * @param callable $filter in format: function(FileSystem $file): bool
      * @return self
      */
     public function filter(callable $filter): self
@@ -68,10 +73,10 @@ class DirectoryIterator
 
     /**
      * low-level storage iterator
-     * @param int|null $constraints
-     * @return Storage[]
+     * @return Generator
+     * @throws UnsupportedException
      */
-    public function storages(): \Generator
+    public function storages(): Generator
     {
         /** @var Storage $storage */
         foreach ($this->storage->list($this->recursive) as $storage) {
@@ -89,9 +94,13 @@ class DirectoryIterator
 
     /**
      * @param int|null $constraints
-     * @return File[]|Directory[]
+     * @return Generator
+     * @throws UnsupportedException
+     * @throws AccessDeniedException
+     * @throws Exception
+     * @throws UnexpectedValueException
      */
-    public function all(?int $constraints = null): \Generator
+    public function all(?int $constraints = null): Generator
     {
         /** @var Storage $storage */
         foreach ($this->storages() as $storage) {
@@ -112,9 +121,13 @@ class DirectoryIterator
     /**
      * list only files
      * @param int|null $constraints
-     * @return File[]
+     * @return Generator
+     * @throws AccessDeniedException
+     * @throws Exception
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
-    public function files(?int $constraints = null): \Generator
+    public function files(?int $constraints = null): Generator
     {
         foreach ($this->all($constraints) as $file) {
             if (!$file->isDir()) {
@@ -126,9 +139,13 @@ class DirectoryIterator
     /**
      * list only directories
      * @param int|null $constraints
-     * @return Directory[]
+     * @return Generator
+     * @throws AccessDeniedException
+     * @throws Exception
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
-    public function dirs(?int $constraints = null): \Generator
+    public function dirs(?int $constraints = null): Generator
     {
         foreach ($this->all($constraints) as $directory) {
             if ($directory->isDir()) {

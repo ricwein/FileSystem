@@ -9,7 +9,6 @@ namespace ricwein\FileSystem;
 use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Helper\DirectoryIterator;
-use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 
@@ -25,6 +24,11 @@ class Directory extends FileSystem
 
     /**
      * @inheritDoc
+     * @param Storage $storage
+     * @param int $constraints
+     * @throws AccessDeniedException
+     * @throws Exceptions\RuntimeException
+     * @throws UnexpectedValueException
      */
     public function __construct(Storage $storage, int $constraints = Constraint::STRICT)
     {
@@ -42,6 +46,9 @@ class Directory extends FileSystem
     /**
      * create new dir if not exists
      * @return self
+     * @throws AccessDeniedException
+     * @throws Exceptions\RuntimeException
+     * @throws UnexpectedValueException
      */
     public function mkdir(): self
     {
@@ -55,6 +62,10 @@ class Directory extends FileSystem
 
     /**
      * @inheritDoc
+     * @return FileSystem
+     * @throws AccessDeniedException
+     * @throws Exceptions\RuntimeException
+     * @throws UnexpectedValueException
      */
     public function remove(): FileSystem
     {
@@ -64,6 +75,9 @@ class Directory extends FileSystem
 
     /**
      * @inheritDoc
+     * @return bool
+     * @throws Exceptions\RuntimeException
+     * @throws UnexpectedValueException
      */
     public function isDir(): bool
     {
@@ -71,7 +85,6 @@ class Directory extends FileSystem
     }
 
     /**
-     * @param bool $recursive
      * @param bool $recursive
      * @return DirectoryIterator
      */
@@ -82,7 +95,17 @@ class Directory extends FileSystem
 
     /**
      * @inheritDoc
+     * @param int $mode
+     * @param string $algo
      * @param bool $recursive
+     * @return string
+     * @throws AccessDeniedException
+     * @throws Exceptions\ConstraintsException
+     * @throws Exceptions\Exception
+     * @throws Exceptions\FileNotFoundException
+     * @throws Exceptions\RuntimeException
+     * @throws Exceptions\UnsupportedException
+     * @throws UnexpectedValueException
      */
     public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $recursive = true): string
     {
@@ -100,6 +123,9 @@ class Directory extends FileSystem
      * calculate size
      * @param bool $recursive
      * @return int
+     * @throws AccessDeniedException
+     * @throws Exceptions\Exception
+     * @throws Exceptions\UnsupportedException
      * @throws UnexpectedValueException
      */
     public function getSize(bool $recursive = true): int
@@ -115,8 +141,9 @@ class Directory extends FileSystem
 
     /**
      * changes current directory
-     * @param string|FileSystem|Helper\Path $path ,...
+     * @param string[]|FileSystem[]|Helper\Path[] $path
      * @return self
+     * @throws UnexpectedValueException
      */
     public function cd(...$path): self
     {
@@ -128,6 +155,7 @@ class Directory extends FileSystem
      * move directory upwards (like /../)
      * @param int $move
      * @return self
+     * @throws UnexpectedValueException
      */
     public function up(int $move = 1): self
     {
@@ -140,6 +168,10 @@ class Directory extends FileSystem
      * @param string $filename
      * @param int|null $constraints
      * @return File
+     * @throws AccessDeniedException
+     * @throws Exceptions\ConstraintsException
+     * @throws Exceptions\Exception
+     * @throws Exceptions\RuntimeException
      */
     public function file(string $filename, ?int $constraints = null): File
     {

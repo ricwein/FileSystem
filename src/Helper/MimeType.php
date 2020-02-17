@@ -98,7 +98,7 @@ class MimeType
 
     /**
      * fetch file-extension for given mimetype
-     * @param  string $mimetype
+     * @param string $mimetype
      * @return string|null
      */
     public static function getExtensionFor(string $mimetype): ?string
@@ -113,7 +113,7 @@ class MimeType
 
     /**
      * fetch mimetype for given file-extension
-     * @param  string $extension
+     * @param string $extension
      * @return string|null
      */
     public static function getMimeFor(string $extension): ?string
@@ -127,7 +127,7 @@ class MimeType
     }
 
     /**
-     * @param  string $mimetype
+     * @param string $mimetype
      * @return bool
      */
     public static function isImage(string $mimetype): bool
@@ -136,7 +136,7 @@ class MimeType
     }
 
     /**
-     * @param  string $mimetype
+     * @param string $mimetype
      * @return bool
      */
     public static function isVideo(string $mimetype): bool

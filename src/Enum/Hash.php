@@ -7,7 +7,7 @@
 namespace ricwein\FileSystem\Enum;
 
 /**
- * enum-like hash-type consts
+ * enum like hash-type const
  */
 class Hash
 {

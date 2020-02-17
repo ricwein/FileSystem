@@ -6,7 +6,6 @@
 
 namespace ricwein\FileSystem\Storage\Extensions;
 
-use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 
@@ -42,10 +41,10 @@ abstract class Binary
     protected $pos = 0;
 
     /**
-     * @param Storage $storage
      * @param int $mode
+     * @throws AccessDeniedException
      */
-    public function __construct(Storage $storage, int $mode)
+    public function __construct(int $mode)
     {
         $this->applyAccessMode($mode);
     }

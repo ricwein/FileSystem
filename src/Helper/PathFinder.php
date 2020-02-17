@@ -6,9 +6,9 @@
 
 namespace ricwein\FileSystem\Helper;
 
+use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\FileSystem;
-use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 
@@ -20,8 +20,11 @@ class PathFinder
     /**
      * list of possible paths
      * => !not components of a single path!
-     * @param  string[]|Path[]|Storage[]|FileSystem[] $paths
+     * @param string[]|Path[]|Storage[]|FileSystem[] $paths
      * @return Storage
+     * @throws FileNotFoundException
+     * @throws UnexpectedValueException
+     * @throws RuntimeException
      */
     public static function try(array $paths): Storage
     {

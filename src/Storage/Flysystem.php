@@ -6,8 +6,12 @@
 
 namespace ricwein\FileSystem\Storage;
 
+use Generator;
+use League\Flysystem\FileExistsException;
 use League\Flysystem\Filesystem as FlyFilesystem;
 use League\Flysystem\Adapter\AbstractAdapter;
+use League\Flysystem\FileNotFoundException as FlySystemFileNotFoundException;
+use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Helper\Stream;
@@ -57,6 +61,7 @@ class Flysystem extends Storage
 
     /**
      * @return array
+     * @throws FlySystemFileNotFoundException
      */
     public function getMetadata(): array
     {
@@ -70,11 +75,13 @@ class Flysystem extends Storage
             }
         }
 
-        return (array) $this->metadata;
+        return (array)$this->metadata;
     }
 
     /**
      * @return void
+     * @throws FlySystemFileNotFoundException
+     * @throws AccessDeniedException
      */
     public function __destruct()
     {
@@ -93,6 +100,7 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @throws FlySystemFileNotFoundException
      */
     public function getDetails(): array
     {
@@ -122,6 +130,7 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @throws FlySystemFileNotFoundException
      */
     public function isFile(): bool
     {
@@ -130,6 +139,7 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @throws FlySystemFileNotFoundException
      */
     public function isDir(): bool
     {
@@ -146,6 +156,7 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @throws FlySystemFileNotFoundException
      */
     public function isSymlink(): bool
     {
@@ -170,7 +181,13 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @throws UnsupportedException
+     * @param int|null $offset
+     * @param int|null $length
+     * @param int $mode
+     * @return string
+     * @throws FileNotFoundException
+     * @throws FlySystemFileNotFoundException
+     * @throws RuntimeException
      */
     public function readFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string
     {
@@ -186,12 +203,17 @@ class Flysystem extends Storage
 
             return (new Stream($handle))->read($offset, $length);
         } finally {
-            \fclose($handle);
+            fclose($handle);
         }
     }
 
     /**
      * @inheritDoc
+     * @param int|null $offset
+     * @param int|null $length
+     * @param int $mode
+     * @throws FileNotFoundException
+     * @throws FlySystemFileNotFoundException
      * @throws RuntimeException
      */
     public function streamFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): void
@@ -208,7 +230,7 @@ class Flysystem extends Storage
 
             (new Stream($handle))->send($offset, $length);
         } finally {
-            \fclose($handle);
+            fclose($handle);
         }
     }
 
@@ -232,6 +254,7 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @throws FlySystemFileNotFoundException
      */
     public function removeFile(): bool
     {
@@ -240,6 +263,9 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @return bool
+     * @throws AccessDeniedException
+     * @throws FlySystemFileNotFoundException
      */
     public function removeDir(): bool
     {
@@ -257,9 +283,13 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @throws AccessDeniedException
+     * @param bool $recursive
+     * @return Generator
+     * @throws FlySystemFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    public function list(bool $recursive = false): \Generator
+    public function list(bool $recursive = false): Generator
     {
         if (!$this->isDir()) {
             throw new RuntimeException(sprintf('unable to open directory "%s"', $this->path), 500);
@@ -272,6 +302,7 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @throws FlySystemFileNotFoundException
      */
     public function getSize(): int
     {
@@ -280,6 +311,7 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @throws FlySystemFileNotFoundException
      */
     public function getFileType(bool $withEncoding = false): ?string
     {
@@ -292,6 +324,12 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @param int $mode
+     * @param string $algo
+     * @return string|null
+     * @throws FileNotFoundException
+     * @throws FlySystemFileNotFoundException
+     * @throws RuntimeException
      * @throws UnsupportedException
      */
     public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): ?string
@@ -302,7 +340,8 @@ class Flysystem extends Storage
 
         switch ($mode) {
             case Hash::CONTENT:
-                return (new Stream($this->getStream()))->closeOnFree()->hash($algo);
+                $stream = $this->getStream();
+                return (new Stream($stream))->closeOnFree()->hash($algo);
             case Hash::FILENAME:
                 return hash($algo, $this->path, false);
             default:
@@ -312,12 +351,14 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @return int
+     * @throws FlySystemFileNotFoundException
      * @throws RuntimeException
      */
     public function getTime(): int
     {
         if (false !== $timestamp = $this->flysystem->getTimestamp($this->path)) {
-            return (int) $timestamp;
+            return (int)$timestamp;
         }
 
         throw new RuntimeException('unable to fetch timestamp', 500);
@@ -325,6 +366,12 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @param bool $ifNewOnly
+     * @param int|null $time
+     * @param int|null $atime
+     * @return bool
+     * @throws FlySystemFileNotFoundException
+     * @throws FileExistsException
      */
     public function touch(bool $ifNewOnly = false, ?int $time = null, ?int $atime = null): bool
     {
@@ -377,13 +424,16 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @param string $mode
+     * @return resource
+     * @throws FlySystemFileNotFoundException
      * @throws RuntimeException
      */
     public function getStream(string $mode = 'r+')
     {
         $stream = $this->flysystem->readStream($this->path);
 
-        if ($stream === false) {
+        if ($stream === false || !is_resource($stream)) {
             throw new RuntimeException('failed to open stream', 500);
         }
 
@@ -392,7 +442,11 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @throws RuntimeException
+     * @param $stream
+     * @return bool
+     * @throws FileExistsException
+     * @throws FlySystemFileNotFoundException
+     * @throws Exception
      */
     public function writeFromStream($stream): bool
     {
@@ -402,6 +456,12 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @param Storage $destination
+     * @return bool
+     * @throws FileExistsException
+     * @throws FileNotFoundException
+     * @throws FlySystemFileNotFoundException
+     * @throws RuntimeException
      */
     public function copyFileTo(Storage $destination): bool
     {
@@ -416,7 +476,7 @@ class Flysystem extends Storage
                     $destination->path()->reload();
                     return true;
                 } finally {
-                    \fclose($readStream);
+                    fclose($readStream);
                 }
 
             case $destination instanceof Flysystem:
@@ -430,6 +490,12 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @param Storage $destination
+     * @return bool
+     * @throws FileExistsException
+     * @throws FileNotFoundException
+     * @throws FlySystemFileNotFoundException
+     * @throws RuntimeException
      */
     public function moveFileTo(Storage $destination): bool
     {

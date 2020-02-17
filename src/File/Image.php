@@ -9,7 +9,11 @@ namespace ricwein\FileSystem\File;
 use Intervention\Image\Constraint as IConstraint;
 use Intervention\Image\Image as IImage;
 use Intervention\Image\ImageManager as IImageManager;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\ConstraintsException;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Helper\Constraint;
@@ -18,7 +22,7 @@ use ricwein\FileSystem\Storage;
 
 /**
  * use gd/imagemagick for image-manipulations
- * @method \ricwein\FileSystem\File\Image copyTo(Storage $destination, ?int $constraints = null)
+ * @method Image copyTo(Storage $destination, ?int $constraints = null)
  */
 class Image extends File
 {
@@ -44,9 +48,13 @@ class Image extends File
     }
 
     /**
-     * @param  callable $callback
-     * @throws RuntimeException
+     * @param callable $callback
      * @return self
+     * @throws RuntimeException
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws FileNotFoundException
+     * @throws UnexpectedValueException
      */
     public function edit(callable $callback): self
     {
@@ -75,7 +83,7 @@ class Image extends File
         }
 
         // save image into file (memory/disk/flysystem)
-        $this->write((string) $image);
+        $this->write((string)$image);
 
         if ($this->storage instanceof Storage\Disk) {
             $this->storage->path()->reload();
@@ -85,9 +93,14 @@ class Image extends File
     }
 
     /**
-     * @param  string $newFormat
-     * @param  float|null  $quality
+     * @param string $newFormat
+     * @param float|null $quality
      * @return self
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function encode(string $newFormat, ?float $quality = null): self
     {
@@ -97,11 +110,15 @@ class Image extends File
     }
 
     /**
-     * @param  int|null $width
-     * @param  int|null $height
-     * @param  bool     $aspectRatio
-     * @throws RuntimeException
+     * @param int|null $width
+     * @param int|null $height
+     * @param bool $aspectRatio
      * @return self
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function resize(?int $width = null, ?int $height = null, bool $aspectRatio = true): self
     {
@@ -119,10 +136,15 @@ class Image extends File
     }
 
     /**
-     * @param  int  $width
-     * @param  int  $height
-     * @param  bool $upsize allows upsizing of the image
+     * @param int $width
+     * @param int $height
+     * @param bool $upsize allows upsizing of the image
      * @return self
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function resizeToFit(int $width, int $height, bool $upsize = false): self
     {
@@ -147,15 +169,20 @@ class Image extends File
                     $constraint->aspectRatio();
                 });
             }
+            return $image;
         });
     }
 
     /**
-     * @param int          $filesize destination filesize in bytes
-     * @param  string|null $format
-     * @param  int         $minQuality
-     * @throws RuntimeException
+     * @param int $filesize destination filesize in bytes
+     * @param string|null $format
+     * @param int $minQuality
      * @return self
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function compress(int $filesize, ?string $format = 'jpg', int $minQuality = 0): self
     {
@@ -167,14 +194,14 @@ class Image extends File
             for ($quality = 100; $quality >= $minQuality; $quality -= 5) {
 
                 // re-encode image
-                $encodedImage =  $image->encode($format, $quality);
+                $encodedImage = $image->encode($format, $quality);
 
-                if (mb_strlen((string) $encodedImage, '8bit') <= $filesize) {
+                if (mb_strlen((string)$encodedImage, '8bit') <= $filesize) {
                     return $encodedImage;
                 }
             }
 
-            throw new RuntimeException(sprintf('unable to reduce filesize to less than %1.2f MB', $filesize / (2 ** 20), 2), 400);
+            throw new RuntimeException(sprintf('unable to reduce filesize to less than %1.2f MB', $filesize / (2 ** 20)), 400);
         });
     }
 }

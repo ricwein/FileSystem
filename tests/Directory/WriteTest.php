@@ -15,9 +15,6 @@ use ricwein\FileSystem\Storage;
  */
 class WriteTest extends TestCase
 {
-    /**
-     * @return void
-     */
     public function testCreateDir()
     {
         $dir = new Directory(new Storage\Disk\Temp());
@@ -26,9 +23,6 @@ class WriteTest extends TestCase
         $this->assertTrue(is_dir($dir->path()->real));
     }
 
-    /**
-     * @return void
-     */
     public function testCreateRecursiveDir()
     {
         $dir1 = new Directory(new Storage\Disk\Temp());
@@ -48,9 +42,6 @@ class WriteTest extends TestCase
         $this->assertSame('/dir3/dir4/dir5', str_replace($dir1->path()->real, '', $dir3->path()->real));
     }
 
-    /**
-     * @return void
-     */
     public function testTempDirRemoval()
     {
         $tmpDir = new Directory(new Storage\Disk\Temp());

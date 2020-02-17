@@ -15,9 +15,6 @@ use ricwein\FileSystem\Helper\Path;
  */
 class ConstraintTest extends TestCase
 {
-    /**
-     * @return void
-     */
     public function testPathConstraints()
     {
 
