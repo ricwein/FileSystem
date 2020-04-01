@@ -132,6 +132,11 @@ abstract class Storage
     abstract public function readFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string;
 
     /**
+     * @return string[]
+     */
+    abstract public function readFileAsLines(): array;
+
+    /**
      * @param int|null $offset
      * @param int|null $length
      * @param int $mode

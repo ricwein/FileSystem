@@ -105,6 +105,14 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
+    public function readFileAsLines(): array
+    {
+        return explode(PHP_EOL, $this->content);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function streamFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): void
     {
         echo $this->readFile($offset, $length, $mode);

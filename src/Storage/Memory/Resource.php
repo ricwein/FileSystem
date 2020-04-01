@@ -28,17 +28,21 @@ class Resource extends Memory
 
         $type = get_resource_type($resource);
 
-        switch ($type) {
-            case 'stream':
-                $this->content = stream_get_contents($resource);
-                break;
-            case 'gd':
-                ob_start();
-                imagepng($resource);
-                $this->content = ob_get_clean();
-                break;
-            default:
-                throw new UnsupportedException(sprintf('unsupported resource of type %s', $type !== null ? $type : 'NULL'), 500);
+        if ($type === 'stream') {
+
+            $this->content = stream_get_contents($resource);
+
+        } elseif ($type === 'gd' && function_exists('imagepng')) {
+
+            ob_start();
+            imagepng($resource);
+            $this->content = ob_get_clean();
+
+        } else {
+
+            throw new UnsupportedException(sprintf('unsupported resource of type %s', $type ?? 'NULL'), 500);
+
         }
+
     }
 }

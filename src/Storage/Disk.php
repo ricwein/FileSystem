@@ -204,6 +204,22 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
+     * @return array
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     */
+    public function readFileAsLines(): array
+    {
+        if (!$this->isFile() || !$this->isReadable()) {
+            throw new FileNotFoundException('file not found', 404);
+        }
+
+        return file($this->path->real);
+    }
+
+    /**
+     * @inheritDoc
      * @param int|null $offset
      * @param int|null $length
      * @param int $mode

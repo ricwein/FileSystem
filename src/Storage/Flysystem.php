@@ -209,6 +209,17 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @throws FileNotFoundException
+     * @throws FlySystemFileNotFoundException
+     * @throws RuntimeException
+     */
+    public function readFileAsLines(): array
+    {
+        return explode(PHP_EOL, $this->readFile());
+    }
+
+    /**
+     * @inheritDoc
      * @param int|null $offset
      * @param int|null $length
      * @param int $mode

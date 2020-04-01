@@ -83,6 +83,19 @@ class File extends FileSystem
     }
 
     /**
+     * @return string[]
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws FileNotFoundException
+     */
+    public function readAsLines(): array
+    {
+        $this->checkFileReadPermissions();
+        return $this->storage->readFileAsLines();
+
+    }
+
+    /**
      * @param int|null $offset
      * @param int|null $length
      * @param int $mode
