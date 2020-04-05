@@ -95,10 +95,12 @@ class Disk extends Binary
     {
         $this->applyAccessMode(static::MODE_WRITE);
 
-        $bytesCount = mb_strlen($bytes, '8bit');
+        if (false === $bytesCount = mb_strlen($bytes, '8bit')) {
+            throw new RuntimeException('invalid byte-count', 500);
+        }
 
-        if ($length === null || $length > $bytesCount) {
-            $length = $bytesCount;
+        if (($length === null) || ($length > $bytesCount)) {
+            $length = (int)$bytesCount;
         } elseif ($length < 0) {
             throw new RuntimeException('invalid byte-count', 500);
         }
@@ -134,7 +136,9 @@ class Disk extends Binary
 
         if ($length < 0) {
             throw new RuntimeException('invalid byte-count', 500);
-        } elseif ($length === 0) {
+        }
+
+        if ($length === 0) {
             return '';
         }
 
@@ -186,7 +190,9 @@ class Disk extends Binary
 
         if ($this->handle === null) {
             throw new RuntimeException('no file-handle found', 500);
-        } elseif (fseek($this->handle, $position, SEEK_SET) !== 0) {
+        }
+
+        if (fseek($this->handle, $position, SEEK_SET) !== 0) {
             throw new RuntimeException('fseek() failed', 500);
         }
 
@@ -204,7 +210,9 @@ class Disk extends Binary
     {
         if ($this->handle === null) {
             throw new RuntimeException('no file-handle found', 500);
-        } elseif (ftell($this->handle) !== $this->pos) {
+        }
+
+        if (ftell($this->handle) !== $this->pos) {
             throw new RuntimeException('Read-only file has been modified since it was opened for reading', 500);
         }
 

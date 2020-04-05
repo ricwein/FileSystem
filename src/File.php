@@ -47,7 +47,9 @@ class File extends FileSystem
     {
         if (!$this->isFile() || !$this->isReadable()) {
             throw new FileNotFoundException(sprintf('unable to open file: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->path()->raw : get_class($this->storage)), 404);
-        } elseif (!$this->storage->doesSatisfyConstraints()) {
+        }
+
+        if (!$this->storage->doesSatisfyConstraints()) {
             throw new AccessDeniedException(sprintf('unable to open file: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->path()->raw : get_class($this->storage)), 404, $this->storage->getConstraintViolations());
         }
     }
@@ -62,7 +64,9 @@ class File extends FileSystem
     {
         if (!$this->storage->doesSatisfyConstraints()) {
             throw new AccessDeniedException(sprintf('unable to write file: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->path()->raw : get_class($this->storage)), 403, $this->storage->getConstraintViolations());
-        } elseif ($this->isFile() && !$this->isWriteable()) {
+        }
+
+        if ($this->isFile() && !$this->isWriteable()) {
             throw new AccessDeniedException(sprintf('unable to write file: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->path()->raw : get_class($this->storage)), 403);
         }
     }
@@ -175,16 +179,20 @@ class File extends FileSystem
         // validate constraints
         if ($destination instanceof Storage\Disk\Temp && !$destination->touch(true)) {
             throw new AccessDeniedException('unable to create temp file', 403);
-        } elseif (!$destination->doesSatisfyConstraints()) {
+        }
+
+        if (!$destination->doesSatisfyConstraints()) {
             throw new AccessDeniedException('unable to open destination file', 403, $destination->getConstraintViolations());
-        } elseif ($destination->isFile() && !$destination->isWriteable()) {
+        }
+
+        if ($destination->isFile() && !$destination->isWriteable()) {
             throw new AccessDeniedException('unable to write to destination file', 403);
         }
 
         // ensure the destination-path points to a filename
         if ($destination instanceof Storage\Disk && $destination->isDir()) {
             $destination = clone $destination;
-            $destination->cd([$this->storage instanceof Storage\Disk ? $this->path()->filename : (uniqid() . '.file')]);
+            $destination->cd([$this->storage instanceof Storage\Disk ? $this->path()->filename : (uniqid('', true) . '.file')]);
         }
 
         // actual copy file to file: use native functions if possible
@@ -237,16 +245,20 @@ class File extends FileSystem
         // validate constraints
         if ($destination instanceof Storage\Disk\Temp && !$destination->touch(true)) {
             throw new AccessDeniedException('unable to create temp file', 403);
-        } elseif (!$destination->doesSatisfyConstraints()) {
+        }
+
+        if (!$destination->doesSatisfyConstraints()) {
             throw new AccessDeniedException('unable to write to destination file', 403, $destination->getConstraintViolations());
-        } elseif ($destination->isFile() && !$destination->isWriteable()) {
+        }
+
+        if ($destination->isFile() && !$destination->isWriteable()) {
             throw new AccessDeniedException('unable to write to destination file', 403);
         }
 
         // ensure the destination-path points to a filename
         if ($destination instanceof Storage\Disk && $destination->isDir()) {
             $destination = clone $destination;
-            $destination->cd([$this->storage instanceof Storage\Disk ? $this->path()->filename : (uniqid() . '.file')]);
+            $destination->cd([$this->storage instanceof Storage\Disk ? $this->path()->filename : (uniqid('', true) . '.file')]);
         }
 
         // actual move file to file: use native functions if possible

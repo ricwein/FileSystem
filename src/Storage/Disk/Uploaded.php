@@ -44,6 +44,7 @@ class Uploaded extends Disk
      *  ['tmp_name' => string, 'name' => string, 'error' => int]
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @noinspection MagicMethodsValidityInspection
      */
     public function __construct(array $file)
     {

@@ -33,7 +33,7 @@ class Current extends Disk
             array_unshift($path, getcwd());
         }
 
-        $this->path = new Path($path);
+        parent::__construct(...$path);
     }
 
     /**

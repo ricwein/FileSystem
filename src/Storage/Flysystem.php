@@ -87,7 +87,9 @@ class Flysystem extends Storage
     {
         if (!$this->selfdestruct) {
             return;
-        } elseif (!$this->flysystem->has($this->path)) {
+        }
+
+        if (!$this->flysystem->has($this->path)) {
             return;
         }
 
@@ -355,6 +357,8 @@ class Flysystem extends Storage
                 return (new Stream($stream))->closeOnFree()->hash($algo);
             case Hash::FILENAME:
                 return hash($algo, $this->path, false);
+            case Hash::LAST_MODIFIED:
+                return hash($algo, $this->getTime(), false);
             default:
                 throw new UnsupportedException('filepath-hashes are not supported by flysystem adapters', 500);
         }

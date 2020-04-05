@@ -23,6 +23,7 @@ use ricwein\FileSystem\Storage\Extensions\Binary;
 class Memory extends Storage
 {
     protected ?string $content = '';
+    protected int $lastModified = 0;
 
     /**
      * @param string|null $content
@@ -32,6 +33,7 @@ class Memory extends Storage
         if ($content !== null) {
             $this->content = $content;
         }
+        $this->lastModified = time();
     }
 
     /**
@@ -124,6 +126,8 @@ class Memory extends Storage
      */
     public function writeFile(string $content, bool $append = false, int $mode = 0): bool
     {
+        $this->lastModified = time();
+
         if ($this->content === null) {
             $this->content = '';
         }
@@ -170,6 +174,8 @@ class Memory extends Storage
         switch ($mode) {
             case Hash::CONTENT:
                 return hash($algo, $this->content ?? '', false);
+            case Hash::LAST_MODIFIED:
+                return hash($algo, $this->lastModified, false);
             case Hash::FILENAME:
             case Hash::FILEPATH:
                 throw new RuntimeException('unable to calculate filepath/name hash for in-memory-files', 500);
@@ -183,7 +189,7 @@ class Memory extends Storage
      */
     public function getTime(): int
     {
-        return time();
+        return $this->lastModified;
     }
 
     /**
@@ -191,6 +197,7 @@ class Memory extends Storage
      */
     public function touch(bool $ifNewOnly = false, ?int $time = null, ?int $atime = null): bool
     {
+        $this->lastModified = time();
         return true;
     }
 
@@ -217,9 +224,9 @@ class Memory extends Storage
      * @inheritDoc
      * @throws RuntimeException
      */
-    public function getStream(string $mode = 'r+')
+    public function getStream(string $mode = 'rb+')
     {
-        if (!in_array($mode, ['r+', 'w', 'w+', 'a+', 'x', 'x+', 'c+', true])) {
+        if (!in_array($mode, ['r+', 'w', 'w+', 'a+', 'x', 'x+', 'c+'], true)) {
             throw new RuntimeException(sprintf('unable to open stream for memory-storage in non-write mode "%s"', $mode), 500);
         }
 
@@ -268,7 +275,7 @@ class Memory extends Storage
                 return true;
 
             case $destination instanceof Flysystem:
-            case $destination instanceof Memory:
+            case $destination instanceof self:
             default:
                 return $destination->writeFile($this->readFile());
         }

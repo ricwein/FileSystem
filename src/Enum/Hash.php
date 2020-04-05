@@ -27,5 +27,11 @@ class Hash
      * hash over file-content
      * @var int
      */
-    public const CONTENT  = 0b0100;
+    public const CONTENT = 0b0100;
+
+    /**
+     * hash over last-modified timestamp, fine to check for changes
+     * @var int
+     */
+    public const LAST_MODIFIED = 0b1000;
 }

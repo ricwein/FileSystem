@@ -61,9 +61,6 @@ class Directory extends FileSystem
     /**
      * @inheritDoc
      * @return FileSystem
-     * @throws AccessDeniedException
-     * @throws Exceptions\RuntimeException
-     * @throws UnexpectedValueException
      */
     public function remove(): FileSystem
     {
@@ -74,8 +71,6 @@ class Directory extends FileSystem
     /**
      * @inheritDoc
      * @return bool
-     * @throws Exceptions\RuntimeException
-     * @throws UnexpectedValueException
      */
     public function isDir(): bool
     {
@@ -141,7 +136,6 @@ class Directory extends FileSystem
      * changes current directory
      * @param string[]|FileSystem[]|Helper\Path[] $path
      * @return self
-     * @throws UnexpectedValueException
      */
     public function cd(...$path): self
     {
@@ -153,7 +147,6 @@ class Directory extends FileSystem
      * move directory upwards (like /../)
      * @param int $move
      * @return self
-     * @throws UnexpectedValueException
      */
     public function up(int $move = 1): self
     {
@@ -198,7 +191,7 @@ class Directory extends FileSystem
 
         return new File(
             $storage,
-            $constraints !== null ? $constraints : $this->storage->getConstraints()
+            $constraints ?? $this->storage->getConstraints()
         );
     }
 }

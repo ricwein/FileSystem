@@ -29,7 +29,7 @@ class Temp extends Disk
      */
     public function __construct(...$path)
     {
-        $filename = sprintf("fs.%s", bin2hex(random_bytes(16)));
+        $filename = sprintf('fs.%s', bin2hex(random_bytes(16)));
         $tmpdir = sys_get_temp_dir();
 
         if (empty($path)) {
@@ -38,7 +38,7 @@ class Temp extends Disk
         }
 
         array_unshift($path, $tmpdir);
-        $this->path = new Path($path);
+        parent::__construct(...$path);
     }
 
     /**

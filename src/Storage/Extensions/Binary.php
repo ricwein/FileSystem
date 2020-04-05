@@ -63,7 +63,9 @@ abstract class Binary
             // set new mode
             $this->mode = $mode;
             return;
-        } elseif ($mode === $this->mode) {
+        }
+
+        if ($mode === $this->mode) {
 
             // nothing to do
             return;

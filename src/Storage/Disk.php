@@ -428,6 +428,7 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
+     * @throws UnexpectedValueException
      */
     public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): ?string
     {
@@ -442,6 +443,8 @@ class Disk extends Storage
                 return hash($algo, $this->path->filename, false);
             case Hash::FILEPATH:
                 return hash($algo, $this->path->real, false);
+            case Hash::LAST_MODIFIED:
+                return hash($algo, $this->getTime(), false);
             default:
                 throw new RuntimeException('unknown hashing-mode', 500);
         }
@@ -460,6 +463,7 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
+     * @noinspection PotentialMalwareInspection dafuq?
      */
     public function touch(bool $ifNewOnly = false, ?int $time = null, ?int $atime = null): bool
     {
@@ -490,7 +494,7 @@ class Disk extends Storage
             return true;
         }
 
-        if (mkdir($this->path->raw, 0777, true)) {
+        if (mkdir($concurrentDirectory = $this->path->raw, 0777, true) || !is_dir($concurrentDirectory)) {
             $this->path->reload();
             return true;
         }
@@ -543,7 +547,7 @@ class Disk extends Storage
      * @inheritDoc
      * @throws RuntimeException
      */
-    public function getStream(string $mode = 'r+')
+    public function getStream(string $mode = 'rb+')
     {
         $stream = fopen($this->path->real, $mode);
 
@@ -603,10 +607,7 @@ class Disk extends Storage
             case $destination instanceof Flysystem:
                 $readStream = $this->getStream('r');
                 try {
-                    if ($destination->writeFromStream($readStream) === true) {
-                        return true;
-                    }
-                    return false;
+                    return $destination->writeFromStream($readStream) === true;
                 } finally {
                     fclose($readStream);
                 }

@@ -83,7 +83,7 @@ class ReadTest extends TestCase
      * @throws UnexpectedValueException
      * @throws \Exception
      */
-    public function testPartialFileRead()
+    public function testPartialFileRead(): void
     {
         $file = new File(new Storage\Disk(__DIR__ . '/../_examples', 'test.txt'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
 

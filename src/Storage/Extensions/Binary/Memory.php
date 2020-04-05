@@ -45,10 +45,10 @@ class Memory extends Binary
             return 0;
         }
 
-        $length = mb_strlen($bytes, '8bit');
-        $this->pos += $length;
+        $writtenLength = mb_strlen($bytes, '8bit');
+        $this->pos += $writtenLength;
 
-        return $length;
+        return $writtenLength;
     }
 
     /**
@@ -62,7 +62,9 @@ class Memory extends Binary
 
         if ($length < 0) {
             throw new RuntimeException('invalid byte-count', 500);
-        } elseif ($length === 0) {
+        }
+
+        if ($length === 0) {
             return '';
         }
 

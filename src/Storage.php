@@ -182,7 +182,7 @@ abstract class Storage
     /**
      * calculate file-hash
      * @param int $mode Hash::CONTENT | Hash::FILENAME | Hash::FILEPATH
-     * @param string $algo hashing-algorigthm
+     * @param string $algo hashing-algorithm
      * @return string|null
      * @throws RuntimeException
      */

@@ -30,13 +30,13 @@ class Resource extends Memory
 
         if ($type === 'stream') {
 
-            $this->content = stream_get_contents($resource);
+            parent::__construct(stream_get_contents($resource));
 
         } elseif ($type === 'gd' && function_exists('imagepng')) {
 
             ob_start();
             imagepng($resource);
-            $this->content = ob_get_clean();
+            parent::__construct(ob_get_clean());
 
         } else {
 
