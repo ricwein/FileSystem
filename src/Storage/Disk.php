@@ -6,11 +6,13 @@
 
 namespace ricwein\FileSystem\Storage;
 
+use CallbackFilterIterator;
 use DirectoryIterator;
 use finfo;
 use Generator;
 use Iterator;
 use League\Flysystem\FileExistsException;
+use RecursiveCallbackFilterIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ricwein\FileSystem\Exceptions\Exception;
@@ -308,19 +310,29 @@ class Disk extends Storage
 
     /**
      * @param bool $recursive
+     * @param callable|null $filter
      * @param int $mode
      * @return Iterator
      */
-    protected function getIterator(bool $recursive, int $mode = RecursiveIteratorIterator::SELF_FIRST): Iterator
+    protected function getIterator(bool $recursive, ?callable $filter = null, int $mode = RecursiveIteratorIterator::SELF_FIRST): Iterator
     {
         if (!$recursive) {
-            return new DirectoryIterator($this->path->real);
+            $innerIterator = new DirectoryIterator($this->path->real);
+
+            if ($filter === null) {
+                return $innerIterator;
+            }
+
+            return new CallbackFilterIterator($innerIterator, $filter);
         }
 
-        return new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->path->real, RecursiveDirectoryIterator::SKIP_DOTS),
-            $mode
-        );
+        $innerIterator = new RecursiveDirectoryIterator($this->path->real, RecursiveDirectoryIterator::SKIP_DOTS);
+
+        if ($filter === null) {
+            return new RecursiveIteratorIterator($innerIterator, $mode);
+        }
+
+        return new RecursiveIteratorIterator(new RecursiveCallbackFilterIterator($innerIterator, $filter), $mode);
     }
 
 
@@ -338,7 +350,7 @@ class Disk extends Storage
         }
 
         try {
-            $iterator = $this->getIterator(true, RecursiveIteratorIterator::CHILD_FIRST);
+            $iterator = $this->getIterator(true, null, RecursiveIteratorIterator::CHILD_FIRST);
 
             /** @var SplFileInfo $file */
             foreach ($iterator as $splFile) {
@@ -375,13 +387,13 @@ class Disk extends Storage
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function list(bool $recursive = false): Generator
+    public function list(bool $recursive = false, ?callable $iteratorFilter = null): Generator
     {
         if (!$this->isDir()) {
             throw new RuntimeException(sprintf('unable to open directory "%s"', $this->path->raw), 500);
         }
 
-        $iterator = $this->getIterator($recursive);
+        $iterator = $this->getIterator($recursive, $iteratorFilter);
 
         /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
@@ -565,7 +577,7 @@ class Disk extends Storage
     public function writeFromStream($stream): bool
     {
         if (!is_resource($stream)) {
-            throw new RuntimeException(sprintf('file-handle must be of type \'resource\' but \'%s\' given', is_object($stream) ? get_class($stream) : gettype($stream)), 500);
+            throw new RuntimeException(sprintf("file-handle must be of type 'resource' but '%s' given", is_object($stream) ? sprintf('class (%s)', get_class($stream)) : gettype($stream)), 500);
         }
 
         $destStream = $this->getStream('w');

@@ -9,11 +9,13 @@ namespace ricwein\FileSystem\Helper;
 use Generator;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\File;
+use SplFileInfo;
 
 /**
  * provides filterable directory list support,
@@ -30,6 +32,11 @@ class DirectoryIterator
      * @var callable[]
      */
     protected array $filesystemFilters = [];
+
+    /**
+     * @var callable|null
+     */
+    protected $pathFilter = null;
 
     /**
      * @var Storage
@@ -72,18 +79,48 @@ class DirectoryIterator
     }
 
     /**
+     * fastest, but most low-level filter
+     * @param callable $filter in format: function(SplFileInfo $file, mixed $key): bool
+     * @return $this
+     */
+    public function filterPath(callable $filter): self
+    {
+        if ($this->pathFilter === null) {
+            $this->pathFilter = $filter;
+            return $this;
+        }
+
+        $this->pathFilter = function (SplFileInfo $file, $key) use ($filter): bool {
+            return call_user_func($this->pathFilter, $file, $key) && $filter($file, $key);
+        };
+
+        return $this;
+    }
+
+    /**
      * low-level storage iterator
      * @return Generator
+     * @throws UnexpectedValueException
      * @throws UnsupportedException
+     * @throws RuntimeException
      */
     public function storages(): Generator
     {
-        /** @var Storage $storage */
-        foreach ($this->storage->list($this->recursive) as $storage) {
+        /** @var Generator $iterator */
+        if ($this->pathFilter === null) {
+            $iterator = $this->storage->list($this->recursive);
+        } elseif ($this->storage instanceof Storage\Disk) {
+            $iterator = $this->storage->list($this->recursive, $this->pathFilter);
+        } else {
+            throw new RuntimeException(sprintf('Found Unsupported Storage Engine (%s) for pathFilter.', get_class($this->storage)), 400);
+        }
 
-            // apply early lowlevel filters
+        /** @var Storage $storage */
+        foreach ($iterator as $storage) {
+
+            // apply middle low level filters
             foreach ($this->storageFilters as $filter) {
-                if (!call_user_func($filter, $storage)) {
+                if (!$filter($storage)) {
                     continue 2; // continue outer storage-loop
                 }
             }
