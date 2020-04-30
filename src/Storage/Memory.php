@@ -7,6 +7,7 @@
 namespace ricwein\FileSystem\Storage;
 
 use finfo;
+use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
@@ -24,6 +25,8 @@ class Memory extends Storage
 {
     protected ?string $content = '';
     protected int $lastModified = 0;
+    protected int $lastAccessed = 0;
+    protected int $created = 0;
 
     /**
      * @param string|null $content
@@ -33,7 +36,11 @@ class Memory extends Storage
         if ($content !== null) {
             $this->content = $content;
         }
-        $this->lastModified = time();
+
+        $now = time();
+        $this->lastModified = $now;
+        $this->lastAccessed = $now;
+        $this->created = $now;
     }
 
     /**
@@ -97,6 +104,7 @@ class Memory extends Storage
      */
     public function readFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string
     {
+        $this->lastAccessed = time();
         if ($offset !== null && $length !== null) {
             return mb_substr($this->content ?? '', $offset, $length, '8bit');
         }
@@ -109,6 +117,7 @@ class Memory extends Storage
      */
     public function readFileAsLines(): array
     {
+        $this->lastAccessed = time();
         return explode(PHP_EOL, $this->content);
     }
 
@@ -117,6 +126,7 @@ class Memory extends Storage
      */
     public function streamFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): void
     {
+        $this->lastAccessed = time();
         echo $this->readFile($offset, $length, $mode);
     }
 
@@ -187,9 +197,18 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
-    public function getTime(): int
+    public function getTime(int $type = Time::LAST_MODIFIED): ?int
     {
-        return $this->lastModified;
+        switch ($type) {
+            case Time::LAST_MODIFIED:
+                return $this->lastModified;
+            case Time::LAST_ACCESSED:
+                return $this->lastAccessed;
+            case Time::CREATED:
+                return $this->created;
+        }
+
+        return null;
     }
 
     /**

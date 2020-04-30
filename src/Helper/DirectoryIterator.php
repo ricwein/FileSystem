@@ -139,14 +139,15 @@ class DirectoryIterator
      */
     public function all(?int $constraints = null): Generator
     {
+        $constraints = $constraints ?? $this->storage->getConstraints();
+
         /** @var Storage $storage */
         foreach ($this->storages() as $storage) {
-            $constraints = $constraints ?? $this->storage->getConstraints();
             $file = $storage->isDir() ? new Directory($storage, $constraints) : new File($storage, $constraints);
 
             // apply late highlevel filters
             foreach ($this->filesystemFilters as $filter) {
-                if (!call_user_func($filter, $file)) {
+                if (!$filter($file)) {
                     continue 2; // continue outer storage-loop
                 }
             }

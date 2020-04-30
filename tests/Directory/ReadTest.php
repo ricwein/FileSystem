@@ -127,7 +127,6 @@ class ReadTest extends TestCase
             $this->assertInstanceOf(Directory::class, $dir);
             $this->assertInstanceOf(Storage\Disk::class, $dir->storage());
 
-            /** @var array $shouldDirs */
             $this->assertContains($dir->path()->basename, $shouldDirs);
         }
     }

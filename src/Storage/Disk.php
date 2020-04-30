@@ -15,6 +15,7 @@ use League\Flysystem\FileExistsException;
 use RecursiveCallbackFilterIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Storage;
@@ -456,7 +457,7 @@ class Disk extends Storage
             case Hash::FILEPATH:
                 return hash($algo, $this->path->real, false);
             case Hash::LAST_MODIFIED:
-                return hash($algo, $this->getTime(), false);
+                return hash($algo, $this->getTime(Time::LAST_MODIFIED), false);
             default:
                 throw new RuntimeException('unknown hashing-mode', 500);
         }
@@ -468,9 +469,18 @@ class Disk extends Storage
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function getTime(): int
+    public function getTime(int $type = Time::LAST_MODIFIED): ?int
     {
-        return $this->path->fileInfo()->getMTime();
+        switch ($type) {
+            case Time::LAST_MODIFIED:
+                return $this->path->fileInfo()->getMTime();
+            case Time::LAST_ACCESSED:
+                return $this->path->fileInfo()->getATime();
+            case Time::CREATED:
+                return $this->path->fileInfo()->getCTime();
+        }
+
+        return null;
     }
 
     /**

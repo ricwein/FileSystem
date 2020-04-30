@@ -7,6 +7,7 @@
 namespace ricwein\FileSystem;
 
 use Generator;
+use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Exceptions\Exception;
@@ -168,9 +169,10 @@ abstract class Storage
 
     /**
      * get last-modified timestamp
-     * @return int
+     * @param int $type
+     * @return int|null
      */
-    abstract public function getTime(): int;
+    abstract public function getTime(int $type = Time::LAST_MODIFIED): ?int;
 
     /**
      * guess content-type (mime) of file

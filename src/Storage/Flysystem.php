@@ -11,6 +11,7 @@ use League\Flysystem\FileExistsException;
 use League\Flysystem\Filesystem as FlyFilesystem;
 use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\FileNotFoundException as FlySystemFileNotFoundException;
+use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Enum\Hash;
@@ -358,7 +359,7 @@ class Flysystem extends Storage
             case Hash::FILENAME:
                 return hash($algo, $this->path, false);
             case Hash::LAST_MODIFIED:
-                return hash($algo, $this->getTime(), false);
+                return hash($algo, $this->getTime(Time::LAST_MODIFIED), false);
             default:
                 throw new UnsupportedException('filepath-hashes are not supported by flysystem adapters', 500);
         }
@@ -369,9 +370,13 @@ class Flysystem extends Storage
      * @return int
      * @throws FlySystemFileNotFoundException
      * @throws RuntimeException
+     * @throws UnsupportedException
      */
-    public function getTime(): int
+    public function getTime(int $type = Time::LAST_MODIFIED): int
     {
+        if ($type !== Time::LAST_MODIFIED) {
+            throw new UnsupportedException('Unable to fetch timestamp from Flysystem adapter. Only LAST_MODIFIED is currently supported.', 500);
+        }
         if (false !== $timestamp = $this->flysystem->getTimestamp($this->path)) {
             return (int)$timestamp;
         }

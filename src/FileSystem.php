@@ -7,6 +7,7 @@
 namespace ricwein\FileSystem;
 
 use ricwein\FileSystem\Enum\Hash;
+use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Exceptions\RuntimeException;
@@ -71,11 +72,12 @@ abstract class FileSystem
 
     /**
      * get last-modified timestamp
-     * @return int
+     * @param int $type
+     * @return int|null
      */
-    public function getTime(): int
+    public function getTime(int $type = Time::LAST_MODIFIED): ?int
     {
-        return $this->storage->getTime();
+        return $this->storage->getTime($type);
     }
 
     /**
