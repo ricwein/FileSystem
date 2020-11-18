@@ -124,13 +124,13 @@ abstract class Storage
     abstract public function isDotfile(): bool;
 
     /**
-     * @param int|null $offset
+     * @param int $offset
      * @param int|null $length
      * @param int $mode
      * @return string
      * @throws FileNotFoundException
      */
-    abstract public function readFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string;
+    abstract public function readFile(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): string;
 
     /**
      * @return string[]
@@ -138,13 +138,13 @@ abstract class Storage
     abstract public function readFileAsLines(): array;
 
     /**
-     * @param int|null $offset
+     * @param int $offset
      * @param int|null $length
      * @param int $mode
      * @return void
      * @throws FileNotFoundException
      */
-    abstract public function streamFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): void;
+    abstract public function streamFile(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): void;
 
     /**
      * write content to storage
@@ -185,10 +185,11 @@ abstract class Storage
      * calculate file-hash
      * @param int $mode Hash::CONTENT | Hash::FILENAME | Hash::FILEPATH
      * @param string $algo hashing-algorithm
+     * @param bool $raw
      * @return string|null
      * @throws RuntimeException
      */
-    abstract public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): ?string;
+    abstract public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): ?string;
 
     /**
      * @param bool $ifNewOnly
@@ -240,7 +241,7 @@ abstract class Storage
      * @param string $mode
      * @return resource
      */
-    abstract public function getStream(string $mode = 'r+');
+    abstract public function getStream(string $mode = 'rb+');
 
     /**
      * update content from stream

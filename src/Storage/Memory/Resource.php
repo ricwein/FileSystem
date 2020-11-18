@@ -16,7 +16,7 @@ use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 class Resource extends Memory
 {
     /**
-     * @param resource $resource
+     * @param mixed $resource
      * @throws UnexpectedValueException
      * @throws UnsupportedException
      */

@@ -170,7 +170,7 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @param int|null $offset
+     * @param int $offset
      * @param int|null $length
      * @param int $mode
      * @return string
@@ -178,7 +178,7 @@ class Disk extends Storage
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function readFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string
+    public function readFile(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): string
     {
         if (!$this->isFile() || !$this->isReadable()) {
             throw new FileNotFoundException('file not found', 404);
@@ -223,14 +223,14 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @param int|null $offset
+     * @param int $offset
      * @param int|null $length
      * @param int $mode
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function streamFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): void
+    public function streamFile(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): void
     {
         if (!$this->isFile() || !$this->isReadable()) {
             throw new FileNotFoundException('file not found', 404);
@@ -246,7 +246,7 @@ class Disk extends Storage
                 throw new RuntimeException('unable to get file-lock', 500);
             }
 
-            (new Stream($handle))->send($offset, $length);
+            (new Stream($handle))->passthru($offset, $length);
         } finally {
 
             // ensure the file in unlocked after reading and the file-handler is closed again
@@ -267,7 +267,7 @@ class Disk extends Storage
         $this->touch(true);
 
         // open file-handler in readonly mode
-        $handle = $this->getStream($append ? 'a' : 'w');
+        $handle = $this->getStream($append ? 'ab' : 'wb');
 
         try {
 
@@ -443,7 +443,7 @@ class Disk extends Storage
      * @inheritDoc
      * @throws UnexpectedValueException
      */
-    public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): ?string
+    public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): ?string
     {
         if ($this->path->real === null) {
             return null;
@@ -451,13 +451,13 @@ class Disk extends Storage
 
         switch ($mode) {
             case Hash::CONTENT:
-                return hash_file($algo, $this->path->real, false);
+                return hash_file($algo, $this->path->real, $raw);
             case Hash::FILENAME:
-                return hash($algo, $this->path->filename, false);
+                return hash($algo, $this->path->filename, $raw);
             case Hash::FILEPATH:
-                return hash($algo, $this->path->real, false);
+                return hash($algo, $this->path->real, $raw);
             case Hash::LAST_MODIFIED:
-                return hash($algo, $this->getTime(Time::LAST_MODIFIED), false);
+                return hash($algo, $this->getTime(Time::LAST_MODIFIED), $raw);
             default:
                 throw new RuntimeException('unknown hashing-mode', 500);
         }
@@ -586,19 +586,16 @@ class Disk extends Storage
      */
     public function writeFromStream($stream): bool
     {
-        if (!is_resource($stream)) {
-            throw new RuntimeException(sprintf("file-handle must be of type 'resource' but '%s' given", is_object($stream) ? sprintf('class (%s)', get_class($stream)) : gettype($stream)), 500);
-        }
+        $sourceStream = new Stream($stream);
+        $destHandle = $this->getStream('wb');
 
-        $destStream = $this->getStream('w');
         try {
-            if (!stream_copy_to_stream($stream, $destStream)) {
-                return false;
-            }
-
+            $sourceStream->copyTo($destHandle);
             return true;
+        } catch (RuntimeException$e) {
+            return false;
         } finally {
-            fclose($destStream);
+            fclose($destHandle);
         }
     }
 
@@ -617,7 +614,7 @@ class Disk extends Storage
     {
         switch (true) {
 
-            case $destination instanceof Disk:
+            case $destination instanceof self:
 
                 // copy file from disk to disk
                 if (!copy($this->path->real, $destination->path()->raw)) {
@@ -627,7 +624,7 @@ class Disk extends Storage
                 return true;
 
             case $destination instanceof Flysystem:
-                $readStream = $this->getStream('r');
+                $readStream = $this->getStream('rb');
                 try {
                     return $destination->writeFromStream($readStream) === true;
                 } finally {

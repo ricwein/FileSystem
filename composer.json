@@ -27,11 +27,9 @@
     "sort-packages": true
   },
   "suggest": {
+    "ext-gd": "Allows easy usage of gd resouces as Storage\\Memory\\Resource()",
     "intervention/image": "Adds image-manipulation capabilities",
     "league/flysystem": "Support for more filesystems"
-  },
-  "scripts": {
-    "test": "./vendor/bin/phpunit"
   },
   "autoload": {
     "psr-4": {

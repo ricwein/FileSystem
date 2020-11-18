@@ -100,16 +100,16 @@ class Directory extends FileSystem
      * @throws Exceptions\UnsupportedException
      * @throws UnexpectedValueException
      */
-    public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $recursive = true): string
+    public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false, bool $recursive = true): string
     {
         $fileHashes = [];
 
         /** @var File $entry */
         foreach ($this->list($recursive)->files($this->storage->getConstraints()) as $entry) {
-            $fileHashes[] = $entry->getHash($mode, $algo);
+            $fileHashes[] = $entry->getHash($mode, $algo, false);
         }
 
-        return hash($algo, implode(':', $fileHashes), false);
+        return hash($algo, implode(':', $fileHashes), $raw);
     }
 
     /**

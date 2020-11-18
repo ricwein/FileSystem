@@ -117,9 +117,10 @@ abstract class FileSystem
      * calculate hash above content or filename
      * @param int $mode Hash::CONTENT | Hash::FILENAME | Hash::FILEPATH
      * @param string $algo hashing-algorithm
+     * @param bool $raw
      * @return string
      */
-    abstract public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): string;
+    abstract public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): string;
 
     /**
      * @return bool

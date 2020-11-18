@@ -12,15 +12,11 @@ use ricwein\FileSystem\Exceptions\RuntimeException;
  */
 class Stream
 {
-    /**
-     * @var resource
-     */
-    protected $handle;
 
-    /**
-     * @var bool
-     */
+    /** @var resource $handle */
+    protected $handle;
     protected bool $closeOnFree = false;
+    protected ?int $lock = null;
 
     /**
      * @param resource $handle
@@ -36,19 +32,57 @@ class Stream
     }
 
     /**
+     * @param string $filename
+     * @param string $mode
+     * @return static
+     * @throws RuntimeException
+     */
+    public static function fromResourceName(string $filename, string $mode = 'rb+'): self
+    {
+        if (false === $handle = @fopen($filename, $mode)) {
+            throw new RuntimeException("stream creation failed, resource not found: {$filename}", 500);
+        }
+
+        $stream = new static($handle);
+        $stream->closeOnFree(true);
+
+        return $stream;
+    }
+
+    /**
      */
     public function __destruct()
     {
+        if ($this->lock !== null) {
+            flock($this->handle, LOCK_UN);
+        }
+
         if ($this->closeOnFree && is_resource($this->handle)) {
             fclose($this->handle);
         }
     }
 
     /**
+     * @param int $mode
+     * @return $this
+     * @throws RuntimeException
+     */
+    public function lock(int $mode): self
+    {
+        if ($mode !== 0 && !flock($this->handle, $mode | LOCK_NB)) {
+            throw new RuntimeException('unable to get file-lock', 500);
+        }
+
+        $this->lock = $mode;
+        return $this;
+    }
+
+    /**
+     * @param int $offset
      * @return self
      * @throws RuntimeException
      */
-    public function rewind(): self
+    public function rewind(int $offset = 0): self
     {
         if (fseek($this->handle, 0) !== 0) {
             throw new RuntimeException('error while rewinding file', 500);
@@ -69,64 +103,104 @@ class Stream
     }
 
     /**
-     * [hash description]
-     * @param string $algo [description]
-     * @return string       [description]
+     * @param string $algo
+     * @param bool $raw
+     * @return string
      * @throws RuntimeException
      */
-    public function hash(string $algo = 'sha256'): string
+    public function getHash(string $algo = 'sha256', bool $raw = false): string
     {
         $this->rewind();
 
         $hc = hash_init($algo);
         hash_update_stream($hc, $this->handle);
-        return hash_final($hc);
+        return hash_final($hc, $raw);
     }
 
     /**
-     * @param int|null $offset
+     * @param int $offset
      * @param int|null $length
      * @return string
      * @throws RuntimeException
      */
-    public function read(?int $offset = null, ?int $length = null): string
+    public function read(int $offset = 0, ?int $length = null): string
     {
-        if (($offset === null || $length === null)) {
-            $this->rewind();
+        $this->rewind($offset);
 
-            if (0 < $filesize = fstat($this->handle)['size'] ?? 0) {
-                if (false !== $buffer = fread($this->handle, $filesize)) {
-                    return $buffer;
-                }
-                throw new RuntimeException('error while reading file', 500);
-            }
+        if ($length === null) {
+            $filesize = fstat($this->handle)['size'] ?? 0;
+            $length = $filesize - $offset;
+        }
 
+        if ($length < 0) {
             return '';
         }
 
-        if (fseek($this->handle, $offset) !== 0) {
-            throw new RuntimeException('error while seeking file', 500);
-        }
-
         // read part of file
-        if (false !== $result = fread($this->handle, $length)) {
-            return $result;
+        if (false === $result = fread($this->handle, $length)) {
+            throw new RuntimeException('error while reading file', 500);
         }
 
-        throw new RuntimeException('error while reading file', 500);
+        return $result;
     }
 
     /**
-     * @param int|null $offset
+     * @param resource $handle
+     * @param int $offset
+     * @param int|null $length
+     * @throws RuntimeException
+     */
+    public function copyTo($handle, int $offset = 0, ?int $length = null): void
+    {
+        if (false === stream_copy_to_stream($this->handle, $handle, $length, $offset)) {
+            throw new RuntimeException('error while copying to stream', 500);
+        }
+    }
+
+    /**
+     * @param resource $handle
+     * @param int $offset
+     * @param int|null $length
+     * @throws RuntimeException
+     */
+    public function copyFrom($handle, int $offset = 0, ?int $length = null): void
+    {
+        if (false === stream_copy_to_stream($handle, $this->handle, $length, $offset)) {
+            throw new RuntimeException('error while copying from stream', 500);
+        }
+    }
+
+    /**
+     * @param Stream $stream
+     * @param int $offset
+     * @param int|null $length
+     * @throws RuntimeException
+     */
+    public function copyToStream(self $stream, int $offset = 0, ?int $length = null): void
+    {
+        $this->copyTo($stream->getHandle(), $offset, $length);
+    }
+
+    /**
+     * @return resource
+     */
+    public function getHandle()
+    {
+        return $this->handle;
+    }
+
+    /**
+     * @param int $offset
      * @param int|null $length
      * @param int $bufferSize
      * @return void
      * @throws RuntimeException
      */
-    public function send(?int $offset = null, ?int $length = null, int $bufferSize = 1024): void
+    public function passthru(int $offset = 0, ?int $length = null, int $bufferSize = 1024): void
     {
-        if ($offset === null || $length === null) {
-            $this->rewind();
+        $this->rewind($offset);
+
+        if ($length === null) {
 
             if (fpassthru($this->handle) !== false) {
                 flush();
@@ -134,10 +208,6 @@ class Stream
             }
 
             throw new RuntimeException('error while reading file', 500);
-        }
-
-        if (fseek($this->handle, $offset) !== 0) {
-            throw new RuntimeException('error while seeking file', 500);
         }
 
         $remaining = $length;

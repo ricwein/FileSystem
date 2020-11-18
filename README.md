@@ -310,7 +310,7 @@ $extractDir = $zip->extractTo(new Storage\Disk\Temp);
  - `Memory\Resource`: Reads resource content into memory on construct. The resource can be closed afterwards.
 
  ```php
- $resource = fopen('test.json', 'r');
+ $resource = fopen('test.json', 'rb');
  $file = new File(new Storage\Memory\Resource($resource));
  fclose($resource);
  $content = $file->read();

@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\File;
@@ -16,8 +15,7 @@ use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\Constraint;
 
 /**
- * test FileSyst\File bases
- *
+ * test FileSystem\File bases
  * @author Richard Weinhold
  */
 class ReadTest extends TestCase
@@ -32,17 +30,17 @@ class ReadTest extends TestCase
      * @throws UnexpectedValueException
      * @throws \Exception
      */
-    public function testFileRead()
+    public function testFileRead(): void
     {
         $file = new File(new Storage\Disk(__DIR__ . '/../_examples', 'test.txt'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
-        $this->assertSame(
+        self::assertSame(
             $file->read(),
             file_get_contents(__DIR__ . '/../_examples/test.txt')
         );
 
         $message = bin2hex(random_bytes(2 ** 10));
         $file = new File(new Storage\Memory($message));
-        $this->assertSame(
+        self::assertSame(
             $file->read(),
             $message
         );
@@ -55,10 +53,10 @@ class ReadTest extends TestCase
      * @throws UnexpectedValueException
      * @throws \Exception
      */
-    public function testLineRead()
+    public function testLineRead(): void
     {
         $file = new File(new Storage\Disk(__DIR__ . '/../_examples', 'test.txt'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
-        $this->assertSame(
+        self::assertSame(
             $file->readAsLines(),
             file(__DIR__ . '/../_examples/test.txt')
         );
@@ -67,7 +65,7 @@ class ReadTest extends TestCase
         $message = chunk_split($message, 8, PHP_EOL);
 
         $file = new File(new Storage\Memory($message));
-        $this->assertSame(
+        self::assertSame(
             $file->readAsLines(),
             explode(PHP_EOL, $message)
         );
@@ -88,8 +86,8 @@ class ReadTest extends TestCase
         $file = new File(new Storage\Disk(__DIR__ . '/../_examples', 'test.txt'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
 
         $length = (int)floor($file->getSize() / 2);
-        $this->assertTrue(!empty($length));
-        $this->assertSame(
+        self::assertNotEmpty($length);
+        self::assertSame(
             $file->read(0, $length),
             mb_substr(file_get_contents(__DIR__ . '/../_examples/test.txt'), 0, $length)
         );
@@ -98,10 +96,23 @@ class ReadTest extends TestCase
         $file = new File(new Storage\Memory($message));
 
         $length = (int)floor($file->getSize() / 2);
-        $this->assertTrue(!empty($length));
-        $this->assertSame(
+        self::assertNotEmpty($length);
+        self::assertSame(
             $file->read(0, $length),
             mb_substr($message, 0, $length)
+        );
+
+        $offset = $length;
+        self::assertSame(
+            $file->read($offset),
+            mb_substr($message, $offset)
+        );
+
+        $length = (int)floor($file->getSize() / 3);
+        $offset = $length;
+        self::assertSame(
+            $file->read($offset, $length),
+            mb_substr($message, $offset, $length)
         );
     }
 
@@ -111,15 +122,14 @@ class ReadTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
-     * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function testFileMimeTypeGuessing()
+    public function testFileMimeTypeGuessing(): void
     {
         $file = new File(new Storage\Disk(__DIR__, '../_examples', 'test.txt'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
-        $this->assertSame($file->getType(), 'text/plain');
+        self::assertSame($file->getType(), 'text/plain');
 
         $file = new File(new Storage\Disk(__DIR__, '../_examples', 'test.json'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
-        $this->assertSame($file->getType(), 'application/json');
+        self::assertSame($file->getType(), 'application/json');
     }
 }

@@ -184,7 +184,7 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @param int|null $offset
+     * @param int $offset
      * @param int|null $length
      * @param int $mode
      * @return string
@@ -192,7 +192,7 @@ class Flysystem extends Storage
      * @throws FlySystemFileNotFoundException
      * @throws RuntimeException
      */
-    public function readFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string
+    public function readFile(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): string
     {
         if (!$this->isFile()) {
             throw new FileNotFoundException('file not found', 404);
@@ -223,14 +223,14 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @param int|null $offset
+     * @param int $offset
      * @param int|null $length
      * @param int $mode
      * @throws FileNotFoundException
      * @throws FlySystemFileNotFoundException
      * @throws RuntimeException
      */
-    public function streamFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): void
+    public function streamFile(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): void
     {
         if (!$this->isFile()) {
             throw new FileNotFoundException('file not found', 404);
@@ -242,7 +242,7 @@ class Flysystem extends Storage
                 throw new RuntimeException('error while reading file', 500);
             }
 
-            (new Stream($handle))->send($offset, $length);
+            (new Stream($handle))->passthru($offset, $length);
         } finally {
             fclose($handle);
         }
@@ -338,31 +338,36 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @param int $mode
-     * @param string $algo
-     * @return string|null
      * @throws FileNotFoundException
      * @throws FlySystemFileNotFoundException
      * @throws RuntimeException
      * @throws UnsupportedException
      */
-    public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): ?string
+    public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): ?string
     {
-        if (!$this->isFile()) {
-            throw new FileNotFoundException('file not found', 404);
-        }
-
         switch ($mode) {
             case Hash::CONTENT:
-                $stream = $this->getStream();
-                return (new Stream($stream))->closeOnFree()->hash($algo);
+                if (!$this->isFile()) {
+                    throw new FileNotFoundException('file not found', 404);
+                }
+
+                return (new Stream($this->getStream()))
+                    ->closeOnFree()
+                    ->getHash($algo, $raw);
+
             case Hash::FILENAME:
-                return hash($algo, $this->path, false);
+                return hash($algo, basename($this->path), $raw);
+
+            case Hash::FILEPATH:
+                return hash($algo, $this->path, $raw);
+
             case Hash::LAST_MODIFIED:
-                return hash($algo, $this->getTime(Time::LAST_MODIFIED), false);
-            default:
-                throw new UnsupportedException('filepath-hashes are not supported by flysystem adapters', 500);
+                if (!$this->isFile()) {
+                    throw new FileNotFoundException('file not found', 404);
+                }
+                return hash($algo, $this->getTime(Time::LAST_MODIFIED), $raw);
         }
+        throw new UnsupportedException("unsupported hash-mode '{$mode}' for flysystem storage", 500);
     }
 
     /**
@@ -449,7 +454,7 @@ class Flysystem extends Storage
      * @throws FlySystemFileNotFoundException
      * @throws RuntimeException
      */
-    public function getStream(string $mode = 'r+')
+    public function getStream(string $mode = 'rb+')
     {
         $stream = $this->flysystem->readStream($this->path);
 

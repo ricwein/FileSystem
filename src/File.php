@@ -72,14 +72,14 @@ class File extends FileSystem
     }
 
     /**
-     * @param int|null $offset
+     * @param int $offset
      * @param int|null $length
      * @param int $mode
      * @return string
      * @throws FileNotFoundException|AccessDeniedException
      * @throws ConstraintsException
      */
-    public function read(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string
+    public function read(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): string
     {
         $this->checkFileReadPermissions();
 
@@ -100,14 +100,14 @@ class File extends FileSystem
     }
 
     /**
-     * @param int|null $offset
+     * @param int $offset
      * @param int|null $length
      * @param int $mode
      * @return void
      * @throws FileNotFoundException|AccessDeniedException
      * @throws ConstraintsException
      */
-    public function stream(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): void
+    public function stream(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): void
     {
         $this->checkFileReadPermissions();
 
@@ -309,11 +309,11 @@ class File extends FileSystem
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): string
+    public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): string
     {
         $this->checkFileReadPermissions();
 
-        if (null !== $hash = $this->storage->getFileHash($mode, $algo)) {
+        if (null !== $hash = $this->storage->getFileHash($mode, $algo, $raw)) {
             return $hash;
         }
 
@@ -437,7 +437,7 @@ class File extends FileSystem
      * @throws ConstraintsException
      * @throws FileNotFoundException
      */
-    public function getStream(string $mode = 'r+')
+    public function getStream(string $mode = 'rb+')
     {
         $this->checkFileReadPermissions();
 

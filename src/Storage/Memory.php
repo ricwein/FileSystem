@@ -11,7 +11,6 @@ use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
-use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Helper\Stream;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Enum\Hash;
@@ -102,14 +101,15 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
-    public function readFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): string
+    public function readFile(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): string
     {
         $this->lastAccessed = time();
-        if ($offset !== null && $length !== null) {
-            return mb_substr($this->content ?? '', $offset, $length, '8bit');
+
+        if ($offset === 0 && $length === null) {
+            return $this->content ?? '';
         }
 
-        return $this->content ?? '';
+        return mb_substr($this->content ?? '', $offset, $length, '8bit');
     }
 
     /**
@@ -124,7 +124,7 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
-    public function streamFile(?int $offset = null, ?int $length = null, int $mode = LOCK_SH): void
+    public function streamFile(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): void
     {
         $this->lastAccessed = time();
         echo $this->readFile($offset, $length, $mode);
@@ -179,13 +179,13 @@ class Memory extends Storage
     /**
      * @inheritDoc
      */
-    public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256'): string
+    public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): string
     {
         switch ($mode) {
             case Hash::CONTENT:
-                return hash($algo, $this->content ?? '', false);
+                return hash($algo, $this->content ?? '', $raw);
             case Hash::LAST_MODIFIED:
-                return hash($algo, $this->lastModified, false);
+                return hash($algo, $this->lastModified, $raw);
             case Hash::FILENAME:
             case Hash::FILEPATH:
                 throw new RuntimeException('unable to calculate filepath/name hash for in-memory-files', 500);
@@ -216,7 +216,12 @@ class Memory extends Storage
      */
     public function touch(bool $ifNewOnly = false, ?int $time = null, ?int $atime = null): bool
     {
-        $this->lastModified = time();
+        $this->lastModified = $time ?? time();
+
+        if ($atime !== null) {
+            $this->lastAccessed = $atime;
+        }
+
         return true;
     }
 
@@ -239,28 +244,61 @@ class Memory extends Storage
     }
 
     /**
-     * this stream is <b>READONLY!</b>
+     * WARNING: the resulting stream is writeable, but will not be applied back to the actual internal memory content
      * @inheritDoc
      * @throws RuntimeException
      */
     public function getStream(string $mode = 'rb+')
     {
-        if (!in_array($mode, ['r+', 'w', 'w+', 'a+', 'x', 'x+', 'c+'], true)) {
-            throw new RuntimeException(sprintf('unable to open stream for memory-storage in non-write mode "%s"', $mode), 500);
+        $modeType = $mode;
+
+        // binary mode
+        $binaryMode = strpos($modeType, 'b') !== false;
+        $modeType = str_replace('b', '', $modeType);
+
+        // + suffix (adds write to read mode)
+        $readAndWriteMode = strpos($modeType, '+') !== false;
+        $modeType = str_replace('+', '', $modeType);
+
+        // actual main mode (read or write)
+        $readMode = $readAndWriteMode || $modeType === 'r';
+        $writeMode = $readAndWriteMode || in_array($modeType, ['w', 'a', 'x', 'c'], true);
+        $readAndWriteMode = $readMode && $writeMode;
+
+        // pointer position
+        $pointerAtStart = in_array($modeType, ['r', 'x', 'c'], true); // else at the end
+
+        // start with empty content?
+        $resetContent = $modeType === 'w';
+
+        $openMode = null;
+        if ($readAndWriteMode || ($readMode && !$resetContent)) {
+            $openMode = $binaryMode ? 'rb+' : 'r+';
+        } elseif ($writeMode) {
+            $openMode = $binaryMode ? 'wb' : 'w';
+        } elseif ($readMode) {
+            $openMode = $binaryMode ? 'rb' : 'r';
         }
 
-        $stream = fopen('php://memory', $mode);
+        if ($openMode === null) {
+            throw new RuntimeException("invalid open-mode for stream: {$mode} => {$modeType}", 500);
+        }
 
-        if ($stream === false) {
+        // open new empty memory stream
+        $handle = fopen('php://memory', $openMode);
+        if ($handle === false) {
             throw new RuntimeException('failed to open stream', 500);
         }
 
         // pre-fill stream
-        if ($this->content !== null) {
-            fwrite($stream, $this->content);
-            rewind($stream);
+        if ($readMode && !$resetContent && $this->content !== null) {
+            fwrite($handle, $this->content);
+            if ($pointerAtStart) {
+                rewind($handle);
+            }
         }
-        return $stream;
+
+        return $handle;
     }
 
     /**
@@ -278,9 +316,8 @@ class Memory extends Storage
      * @inheritDoc
      * @param Storage $destination
      * @return bool
-     * @throws FileNotFoundException
-     * @throws UnsupportedException
      * @throws Exception
+     * @throws FileNotFoundException
      */
     public function copyFileTo(Storage $destination): bool
     {
@@ -306,7 +343,6 @@ class Memory extends Storage
      * @return bool
      * @throws Exception
      * @throws FileNotFoundException
-     * @throws UnsupportedException
      */
     public function moveFileTo(Storage $destination): bool
     {
