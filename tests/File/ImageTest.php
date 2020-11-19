@@ -4,7 +4,16 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\File;
 
+use \League\Flysystem\FileExistsException as FlyFileExistsException;
+use \League\Flysystem\FileNotFoundException as FlyFileNotFoundException;
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\ConstraintsException;
+use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 use Intervention\Image\Image as IImage;
@@ -12,44 +21,55 @@ use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Helper\MimeType;
 use ricwein\FileSystem\Helper\Constraint;
 
-/**
- * test FileSyst\File bases
- *
- * @author Richard Weinhold
- */
 class ImageTest extends TestCase
 {
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws FlyFileExistsException
+     * @throws FlyFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
-    public function testImageDetection()
+    public function testImageDetection(): void
     {
         $image = new File\Image(new Storage\Disk(__DIR__, '../_examples', 'test.png'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
-        $this->assertTrue(MimeType::isImage($image->getType()));
+        self::assertTrue(MimeType::isImage($image->getType()));
 
         $image = $image->copyTo(new Storage\Disk\Temp)->encode('jpg');
-        $this->assertTrue(MimeType::isImage($image->getType()));
-        $this->assertSame(MimeType::getMimeFor('jpg'), $image->getType());
+        self::assertTrue(MimeType::isImage($image->getType()));
+        self::assertSame(MimeType::getMimeFor('jpg'), $image->getType());
 
         $image = new File\Image(new Storage\Disk(__DIR__, '../_examples', 'test.txt'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
-        $this->assertFalse(MimeType::isImage($image->getType()));
+        self::assertFalse(MimeType::isImage($image->getType()));
 
         $image = new File\Image(new Storage\Memory(file_get_contents(__DIR__ . '/../_examples/test.png')));
-        $this->assertTrue(MimeType::isImage($image->getType()));
+        self::assertTrue(MimeType::isImage($image->getType()));
 
         $image = $image->copyTo(new Storage\Memory)->encode('jpg');
-        $this->assertTrue(MimeType::isImage($image->getType()));
-        $this->assertSame(MimeType::getMimeFor('jpg'), $image->getType());
+        self::assertTrue(MimeType::isImage($image->getType()));
+        self::assertSame(MimeType::getMimeFor('jpg'), $image->getType());
 
         $image = new File\Image(new Storage\Memory(file_get_contents(__DIR__ . '/../_examples/test.txt')));
-        $this->assertFalse(MimeType::isImage($image->getType()));
+        self::assertFalse(MimeType::isImage($image->getType()));
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws FlyFileExistsException
+     * @throws FlyFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
-    public function testReencoding()
+    public function testReencoding(): void
     {
         $source = new File\Image(new Storage\Disk(__DIR__, '../_examples', 'test.png'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
         $source = $source->copyTo(new Storage\Disk\Temp)->encode('jpg');
@@ -58,54 +78,60 @@ class ImageTest extends TestCase
         $diskImage = $source->copyTo(new Storage\Disk\Temp);
         $memoryImage = $source->copyTo(new Storage\Memory);
 
-        $this->assertSame($sourceHash, $diskImage->getHash(Hash::CONTENT));
-        $this->assertSame($sourceHash, $memoryImage->getHash(Hash::CONTENT));
+        self::assertSame($sourceHash, $diskImage->getHash(Hash::CONTENT));
+        self::assertSame($sourceHash, $memoryImage->getHash(Hash::CONTENT));
 
         $diskHash = null;
         $memoryHash = null;
 
-        $diskImage->edit(function (IImage $image) use ($diskHash): IImage {
-            $diskHash = hash('sha256', (string) $image);
+        $diskImage->edit(function (IImage $image) use (&$diskHash): IImage {
+            $diskHash = hash('sha256', (string)$image);
             return $image;
         });
-        $memoryImage->edit(function (IImage $image) use ($memoryHash): IImage {
-            $memoryHash = hash('sha256', (string) $image);
+        $memoryImage->edit(function (IImage $image) use (&$memoryHash): IImage {
+            $memoryHash = hash('sha256', (string)$image);
             return $image;
         });
 
-        $this->assertSame($diskHash, $memoryHash);
-        $this->assertSame($diskImage->getHash(Hash::CONTENT), $memoryImage->getHash(Hash::CONTENT));
+        self::assertSame($diskHash, $memoryHash);
+        self::assertSame($diskImage->getHash(Hash::CONTENT), $memoryImage->getHash(Hash::CONTENT));
 
         $diskImage->encode('jpg');
         $memoryImage->encode('jpg');
 
-        $this->assertNotSame($sourceHash, $diskImage->getHash(Hash::CONTENT));
-        $this->assertNotSame($sourceHash, $memoryImage->getHash(Hash::CONTENT));
-        $this->assertSame($diskImage->getHash(Hash::CONTENT), $memoryImage->getHash(Hash::CONTENT));
+        self::assertNotSame($sourceHash, $diskImage->getHash(Hash::CONTENT));
+        self::assertNotSame($sourceHash, $memoryImage->getHash(Hash::CONTENT));
+        self::assertSame($diskImage->getHash(Hash::CONTENT), $memoryImage->getHash(Hash::CONTENT));
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws FlyFileExistsException
+     * @throws FlyFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
-    public function testCompression()
+    public function testCompression(): void
     {
         $source = new File\Image(new Storage\Disk(__DIR__, '../_examples', 'test.png'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
         $source = $source->copyTo(new Storage\Disk\Temp)->encode('jpg');
 
-        $shouldSize = (int) floor($source->getSize() / 1.1);
-        $this->assertGreaterThanOrEqual($shouldSize, $source->getSize());
+        $shouldSize = (int)floor($source->getSize() / 1.1);
+        self::assertGreaterThanOrEqual($shouldSize, $source->getSize());
 
-        /** @var File\Image $image */
         $image = $source->copyTo(new Storage\Disk\Temp);
         $image->compress($shouldSize);
 
-        $this->assertGreaterThanOrEqual($image->getSize(), $shouldSize);
+        self::assertGreaterThanOrEqual($image->getSize(), $shouldSize);
 
-        /** @var File\Image $image */
         $image = $source->copyTo(new Storage\Memory);
         $image->compress($shouldSize);
 
-        $this->assertGreaterThanOrEqual($image->getSize(), $shouldSize);
-        $this->assertSame($image->getType(), MimeType::getMimeFor('jpg'));
+        self::assertGreaterThanOrEqual($image->getSize(), $shouldSize);
+        self::assertSame($image->getType(), MimeType::getMimeFor('jpg'));
     }
 }

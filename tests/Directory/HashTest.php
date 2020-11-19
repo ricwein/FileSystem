@@ -5,40 +5,51 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Tests\Directory;
 
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\ConstraintsException;
+use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Helper\Constraint;
 
-/**
- * test FileSyst\File bases
- *
- * @author Richard Weinhold
- */
 class HashTest extends TestCase
 {
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
-    public function testHashCalculation()
+    public function testHashCalculation(): void
     {
         $dirA = new Directory(new Storage\Disk(__DIR__, '../_examples'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
         $dirB = new Directory(new Storage\Disk(__DIR__, '../_examples'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
 
-        $this->assertSame(
-            $dirA->getHash(),
-            $dirB->getHash()
-        );
+        self::assertSame($dirA->getHash(), $dirB->getHash());
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
-    public function testHashComparison()
+    public function testHashComparison(): void
     {
         $dirA = new Directory(new Storage\Disk(__DIR__));
         $dirB = new Directory(new Storage\Disk(__DIR__, '../_examples'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
 
-        $this->assertNotSame($dirA->getHash(), $dirB->getHash());
+        self::assertNotSame($dirA->getHash(), $dirB->getHash());
     }
 }

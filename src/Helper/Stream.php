@@ -3,6 +3,8 @@
  * @author Richard Weinhold
  */
 
+declare(strict_types=1);
+
 namespace ricwein\FileSystem\Helper;
 
 use ricwein\FileSystem\Exceptions\RuntimeException;
@@ -152,7 +154,15 @@ class Stream
      */
     public function copyTo($handle, int $offset = 0, ?int $length = null): void
     {
-        if (false === stream_copy_to_stream($this->handle, $handle, $length, $offset)) {
+        if ($length !== null) {
+            $result = stream_copy_to_stream($this->handle, $handle, $offset, $length);
+        } elseif ($offset > 0) {
+            $result = stream_copy_to_stream($this->handle, $handle, $offset);
+        } else {
+            $result = stream_copy_to_stream($this->handle, $handle);
+        }
+
+        if (false === $result) {
             throw new RuntimeException('error while copying to stream', 500);
         }
     }
@@ -165,7 +175,15 @@ class Stream
      */
     public function copyFrom($handle, int $offset = 0, ?int $length = null): void
     {
-        if (false === stream_copy_to_stream($handle, $this->handle, $length, $offset)) {
+        if ($length !== null) {
+            $result = stream_copy_to_stream($handle, $this->handle, $offset, $length);
+        } elseif ($offset > 0) {
+            $result = stream_copy_to_stream($handle, $this->handle, $offset);
+        } else {
+            $result = stream_copy_to_stream($handle, $this->handle);
+        }
+
+        if (false === $result) {
             throw new RuntimeException('error while copying from stream', 500);
         }
     }

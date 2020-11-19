@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Tests\Storage;
 
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\ConstraintsException;
+use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Directory;
@@ -20,35 +25,44 @@ class DiskCurrentTest extends TestCase
 {
     /**
      * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    public function testFileOpen()
+    public function testFileOpen(): void
     {
         $cwdFile = new File(new Storage\Disk\Current('tests/Storage', basename(__FILE__)));
         $file = new File(new Storage\Disk('tests/Storage', basename(__FILE__)));
 
-        $this->assertTrue($cwdFile->isFile());
-        $this->assertTrue($file->isFile());
+        self::assertTrue($cwdFile->isFile());
+        self::assertTrue($file->isFile());
 
-        $this->assertNotSame($file->path()->raw, $cwdFile->path()->raw);
+        self::assertNotSame($file->path()->raw, $cwdFile->path()->raw);
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    public function testRootDir()
+    public function testRootDir(): void
     {
         $dir = new Directory(new Storage\Disk\Current('/'));
 
-        $this->assertSame($dir->path()->real, '/');
+        self::assertSame($dir->path()->real, '/');
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws Exception
+     * @throws RuntimeException
      */
-    public function testEmptyInit()
+    public function testEmptyInit(): void
     {
         $current = new File(new Disk\Current());
 
-        $this->assertSame($current->path()->real, getcwd());
+        self::assertSame($current->path()->real, getcwd());
     }
 }

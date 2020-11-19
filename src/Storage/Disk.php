@@ -4,6 +4,8 @@
  * @author Richard Weinhold
  */
 
+declare(strict_types=1);
+
 namespace ricwein\FileSystem\Storage;
 
 use CallbackFilterIterator;
@@ -494,7 +496,16 @@ class Disk extends Storage
         }
 
         // actual touch file
-        if (!touch($this->path->raw, $time, $atime)) {
+        $result = false;
+        if ($atime !== null && $time !== null) {
+            $result = touch($this->path->raw, $time, $atime);
+        } elseif ($time !== null) {
+            $result = touch($this->path->raw, $time);
+        } else {
+            $result = touch($this->path->raw);
+        }
+
+        if (!$result) {
             return false;
         }
 

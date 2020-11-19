@@ -4,6 +4,8 @@
  * @author Richard Weinhold
  */
 
+declare(strict_types=1);
+
 namespace ricwein\FileSystem\Helper;
 
 use ricwein\FileSystem\Exceptions\RuntimeException;
@@ -14,13 +16,13 @@ use SplFileInfo;
 
 /**
  * path-resolver for filesystem
- * @property-read string|null filepath relative path to file, e.g.: [...] /test/test.db
- * @property-read string|null real full resolved filesystem path, e.g.: /res/test/test.db
- * @property-read string raw full but raw path (can contain unresolved /../ parts!), e.g.: /res/var/../test/test.db
- * @property-read string safepath part of the path which can be assumed to be save (can contain unresolved /../ parts! this path should not be left (protected against /../ -directory traversion), e.g.: /res/
+ * @property-read string filepath relative path to file, e.g.: [...] /test/test.db
+ * @property-read string|null real full resolved filesystem path, e.g.: /var/res/test/test.db
+ * @property-read string raw full but raw path (can contain unresolved /../ parts!), e.g.: /var/res/logs/../test/test.db
+ * @property-read string safepath part of the path which can be assumed to be save (can contain unresolved /../ parts! this path should not be left (protected against /../ -directory traversing), e.g.: /var/res/
  * @property-read string|null filename name of a file, e.g.: test.db
  * @property-read string basename name of a directory or file without file-extension, e.g.: test
- * @property-read string directory path of directory (can contain unresolved /../ parts!), e.g.: res/test/
+ * @property-read string directory path of directory (can contain unresolved /../ parts!), e.g.: var/res/test/
  * @property-read string pathname
  * @property-read string|null extension file-extension of a file, e.g.: db
  */
@@ -37,24 +39,24 @@ class Path
      * relative path to file
      * e.g.: [...] /test/test.db
      */
-    protected ?string $filepath = null;
+    protected string $filepath;
 
     /**
      * full resolved filesystem path
-     * e.g.: /res/test/test.db
+     * e.g.: /var/res/test/test.db
      */
     protected ?string $real = null;
 
     /**
      * full but raw path (can contain unresolved /../ parts!)
-     * e.g.: /res/var/../test/test.db
+     * e.g.: /var/res/logs/../test/test.db
      */
     protected string $raw;
 
     /**
      * part of the path which can be assumed to be save (can contain unresolved /../ parts!)
-     * this path should not be left (protected against /../ -directory traversion)
-     * e.g.: /res/
+     * this path should not be left (protected against /../ -directory traversing)
+     * e.g.: /var/res/
      */
     protected string $safepath;
 
@@ -72,7 +74,7 @@ class Path
 
     /**
      * path of directory (can contain unresolved /../ parts!)
-     * e.g.: res/test/
+     * e.g.: var/res/test/
      */
     protected string $directory;
 
@@ -122,10 +124,8 @@ class Path
             // normalize path
             $path = str_replace(['/', '\\', DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR], DIRECTORY_SEPARATOR, $path);
 
-            if ($position === $positionStart && $path === DIRECTORY_SEPARATOR) {
-                $components[] = DIRECTORY_SEPARATOR;
-            } elseif ($position === $positionStart) {
-                $components[] = rtrim($path, DIRECTORY_SEPARATOR);
+            if ($position === $positionStart) {
+                $components[] = ($path === DIRECTORY_SEPARATOR) ? DIRECTORY_SEPARATOR : rtrim($path, DIRECTORY_SEPARATOR);
             } else {
                 $components[] = trim($path, DIRECTORY_SEPARATOR);
             }
@@ -153,15 +153,15 @@ class Path
             case $component instanceof self:
                 if ($isLastElement) {
                     return $component->raw; // last part
-                } elseif ($isFirstElement) {
+                }
+                if ($isFirstElement) {
                     return ($component->fileInfo()->isDir() ? $component->raw : $component->directory); // first part
                 }
                 return $component->directory; // middle parts
 
             case (is_object($component) && method_exists($component, '__toString')):
             case is_string($component):
-            case is_int($component):
-            case is_float($component):
+            case is_numeric($component):
                 return (string)$component;
         }
 
@@ -196,28 +196,41 @@ class Path
 
         $components = $this->normalizePathComponents();
 
-        // save and cleanup the inital path component,
-        // which we can asume is safe for all coming path-components
+        // save and cleanup the initial path component,
+        // which we can assume is safe for all coming path-components
         $safepath = reset($components);
-        if (is_dir($safepath)) {
-            $safepath = realpath($safepath);
-        } elseif (is_file($safepath)) {
-            $safepath = dirname(realpath($safepath));
+        if (false === $realSafePath = realpath($safepath)) {
+            $this->safepath = '/';
         }
-        $this->safepath = $safepath;
+
+        if (is_dir($realSafePath)) {
+            $this->safepath = $realSafePath;
+        } elseif (is_file($realSafePath)) {
+            $this->safepath = dirname($realSafePath);
+        } else {
+            $this->safepath = $realSafePath;
+        }
+
 
         // cleanup path variable, remove duplicated DS
         $path = implode(DIRECTORY_SEPARATOR, $components);
         $path = str_replace(DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR, $path);
 
-        $this->filepath = str_replace($this->safepath, '', $path);
+        if (strpos($path, $this->safepath) === 0) {
+            $this->filepath = substr($path, strlen($this->safepath));
+        } else {
+            $this->filepath = $path;
+        }
 
         $this->raw = $path;
         $this->fileInfo = new SplFileInfo($path);
 
         // parse into path-details
         $this->directory = $this->fileInfo->getPath();
-        $this->real = $this->fileInfo->getRealPath();
+
+        $realPath = $this->fileInfo->getRealPath();
+        $this->real = $realPath !== false ? $realPath : null;
+
         $this->pathname = $this->fileInfo->getPathname();
 
         if ($this->fileInfo->isFile()) {

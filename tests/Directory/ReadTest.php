@@ -18,11 +18,6 @@ use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\File;
 use SplFileInfo;
 
-/**
- * test FileSyst\File bases
- *
- * @author Richard Weinhold
- */
 class ReadTest extends TestCase
 {
     /**
@@ -45,7 +40,7 @@ class ReadTest extends TestCase
     {
         $path = __DIR__ . '/../_examples';
 
-        return array_filter(scandir($path), function (string $filename) use ($path): bool {
+        return array_filter(scandir($path), static function (string $filename) use ($path): bool {
             return (strpos($filename, '.') !== 0) && is_file($path . '/' . $filename);
         });
     }
@@ -70,12 +65,12 @@ class ReadTest extends TestCase
                 continue;
             }
 
-            $this->assertTrue($file->isFile());
+            self::assertTrue($file->isFile());
 
-            $this->assertInstanceOf(File::class, $file);
-            $this->assertInstanceOf(Storage\Disk::class, $file->storage());
+            self::assertInstanceOf(File::class, $file);
+            self::assertInstanceOf(Storage\Disk::class, $file->storage());
 
-            $this->assertContains($file->path()->filename, $this->listTestfiles());
+            self::assertContains($file->path()->filename, $this->listTestfiles());
         }
     }
 
@@ -93,12 +88,12 @@ class ReadTest extends TestCase
 
         /** @var File $file */
         foreach ($dir->list(true)->files() as $file) {
-            $this->assertTrue($file->isFile());
+            self::assertTrue($file->isFile());
 
-            $this->assertInstanceOf(File::class, $file);
-            $this->assertInstanceOf(Storage\Disk::class, $file->storage());
+            self::assertInstanceOf(File::class, $file);
+            self::assertInstanceOf(Storage\Disk::class, $file->storage());
 
-            $this->assertContains($file->path()->filename, $this->listTestfiles());
+            self::assertContains($file->path()->filename, $this->listTestfiles());
         }
     }
 
@@ -115,19 +110,19 @@ class ReadTest extends TestCase
         $path = $dir->path()->raw;
 
         // dynamically fetch list of all directories which should be returned
-        $shouldDirs = array_filter(scandir($path), function (string $filename) use ($path): bool {
+        $shouldDirs = array_filter(scandir($path), static function (string $filename) use ($path): bool {
             return (strpos($filename, '.') !== 0) && is_dir($path . '/' . $filename);
         });
 
 
         /** @var Directory $dir */
         foreach ($dir->list(false)->dirs() as $dir) {
-            $this->assertTrue($dir->isDir());
+            self::assertTrue($dir->isDir());
 
-            $this->assertInstanceOf(Directory::class, $dir);
-            $this->assertInstanceOf(Storage\Disk::class, $dir->storage());
+            self::assertInstanceOf(Directory::class, $dir);
+            self::assertInstanceOf(Storage\Disk::class, $dir->storage());
 
-            $this->assertContains($dir->path()->basename, $shouldDirs);
+            self::assertContains($dir->path()->basename, $shouldDirs);
         }
     }
 
@@ -149,7 +144,7 @@ class ReadTest extends TestCase
 
         /** @var File $file */
         foreach ($iterator->all() as $file) {
-            $this->assertContains($file->path()->filename, ['test.png', 'archive.zip']);
+            self::assertContains($file->path()->filename, ['test.png', 'archive.zip']);
         }
     }
 
@@ -171,7 +166,7 @@ class ReadTest extends TestCase
 
         /** @var File $file */
         foreach ($iterator->all() as $file) {
-            $this->assertContains($file->path()->filename, ['test.png', 'archive.zip']);
+            self::assertContains($file->path()->filename, ['test.png', 'archive.zip']);
         }
     }
 
@@ -193,7 +188,7 @@ class ReadTest extends TestCase
 
         /** @var File $file */
         foreach ($iterator->all() as $file) {
-            $this->assertSame($file->path()->filename, 'test.png');
+            self::assertSame($file->path()->filename, 'test.png');
         }
     }
 }

@@ -18,7 +18,8 @@
     "intervention/image": "^2.5",
     "league/flysystem": "^1.0",
     "overtrue/phplint": "^1.2",
-    "phpunit/phpunit": "^8.0"
+    "phpunit/phpunit": "^8.0",
+    "ext-gd": "*"
   },
   "config": {
     "platform": {

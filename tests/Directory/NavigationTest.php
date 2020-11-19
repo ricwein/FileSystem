@@ -5,50 +5,76 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Tests\Directory;
 
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
+use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Helper\Constraint;
 
-/**
- * test FileSyst\File bases
- *
- * @author Richard Weinhold
- */
 class NavigationTest extends TestCase
 {
-    public function testDirChange()
+    /**
+     * @throws AccessDeniedException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     */
+    public function testDirChange(): void
     {
         $dir = new Directory(new Storage\Disk(__DIR__ . '/../'));
-        $this->assertSame($dir->path()->real, realpath(__DIR__ . '/../'));
+        self::assertSame($dir->path()->real, realpath(__DIR__ . '/../'));
 
         $dir->cd('_examples');
-        $this->assertSame($dir->path()->real, realpath(__DIR__ . '/../_examples/'));
+        self::assertSame($dir->path()->real, realpath(__DIR__ . '/../_examples/'));
     }
 
-    public function testDirUp()
+    /**
+     * @throws AccessDeniedException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     */
+    public function testDirUp(): void
     {
         $dir = new Directory(new Storage\Disk(__DIR__));
-        $this->assertSame($dir->path()->real, realpath(__DIR__));
+        self::assertSame($dir->path()->real, realpath(__DIR__));
 
         $dir->up(2);
-        $this->assertSame($dir->path()->real, realpath(__DIR__ . '/../../'));
+        self::assertSame($dir->path()->real, realpath(__DIR__ . '/../../'));
     }
 
-    public function testFileRead()
+    /**
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws Exception
+     * @throws FileNotFoundException
+     */
+    public function testFileRead(): void
     {
         $dir = new Directory(new Storage\Disk(__DIR__), Constraint::LOOSE);
 
-        $this->assertSame(
+        self::assertSame(
             $dir->up(2)->file('LICENSE')->read(),
             file_get_contents(__DIR__ . '/../../LICENSE')
         );
     }
 
-    public function testDirUpError()
+    /**
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     */
+    public function testDirUpError(): void
     {
         $dir = new Directory(new Storage\Disk(__DIR__));
-        $this->assertSame($dir->path()->real, realpath(__DIR__));
+        self::assertSame($dir->path()->real, realpath(__DIR__));
 
         $this->expectException(ConstraintsException::class);
         $this->expectExceptionMessageMatches('/.*constraint failed: the given path.*is not within the safepath.*/');

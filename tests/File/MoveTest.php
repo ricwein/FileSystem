@@ -4,107 +4,152 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\File;
 
+use \League\Flysystem\FileExistsException as FlyFileExistsException;
+use \League\Flysystem\FileNotFoundException as FlyFileNotFoundException;
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\ConstraintsException;
+use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Helper\Constraint;
 
-/**
- * test FileSyst\File bases
- *
- * @author Richard Weinhold
- */
 class MoveTest extends TestCase
 {
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws FlyFileExistsException
+     * @throws FlyFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    public function testMoveFromDiskToDisk()
+    public function testMoveFromDiskToDisk(): void
     {
         $source = (new File(new Storage\Disk(__DIR__, '../_examples', 'test.txt'), Constraint::LOOSE))->copyTo(new Storage\Disk\Temp());
         $destination = $source->moveTo(new Storage\Disk\Temp);
 
-        $this->assertInstanceOf(Storage\Disk\Temp::class, $destination->storage());
-        $this->assertFalse($source->isFile());
-        $this->assertTrue($destination->isFile());
-        $this->assertSame(file_get_contents(__DIR__ . '/../_examples/test.txt'), $destination->read());
+        self::assertInstanceOf(Storage\Disk\Temp::class, $destination->storage());
+        self::assertFalse($source->isFile());
+        self::assertTrue($destination->isFile());
+        self::assertStringEqualsFile(__DIR__ . '/../_examples/test.txt', $destination->read());
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws FlyFileExistsException
+     * @throws FlyFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    public function testMoveFromDiskToMemory()
+    public function testMoveFromDiskToMemory(): void
     {
         $source = (new File(new Storage\Disk(__DIR__, '../_examples', 'test.txt'), Constraint::LOOSE))->copyTo(new Storage\Disk\Temp());
         $destination = $source->moveTo(new Storage\Memory);
 
-        $this->assertInstanceOf(Storage\Memory::class, $destination->storage());
-        $this->assertFalse($source->isFile());
-        $this->assertTrue($destination->isFile());
-        $this->assertSame(file_get_contents(__DIR__ . '/../_examples/test.txt'), $destination->read());
+        self::assertInstanceOf(Storage\Memory::class, $destination->storage());
+        self::assertFalse($source->isFile());
+        self::assertTrue($destination->isFile());
+        self::assertStringEqualsFile(__DIR__ . '/../_examples/test.txt', $destination->read());
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws FlyFileExistsException
+     * @throws FlyFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    public function testMoveFromMemoryToDisk()
+    public function testMoveFromMemoryToDisk(): void
     {
         $source = new File(new Storage\Memory(file_get_contents(__DIR__ . '/../_examples/test.txt')));
         $destination = $source->moveTo(new Storage\Disk\Temp);
 
-        $this->assertInstanceOf(Storage\Disk\Temp::class, $destination->storage());
-        $this->assertFalse($source->isFile());
-        $this->assertSame(file_get_contents(__DIR__ . '/../_examples/test.txt'), $destination->read());
+        self::assertInstanceOf(Storage\Disk\Temp::class, $destination->storage());
+        self::assertFalse($source->isFile());
+        self::assertStringEqualsFile(__DIR__ . '/../_examples/test.txt', $destination->read());
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws FlyFileExistsException
+     * @throws FlyFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    public function testMoveFromMemoryToMemory()
+    public function testMoveFromMemoryToMemory(): void
     {
         $source = new File(new Storage\Memory(file_get_contents(__DIR__ . '/../_examples/test.txt')));
         $destination = $source->moveTo(new Storage\Memory);
 
-        $this->assertInstanceOf(Storage\Memory::class, $destination->storage());
-        $this->assertFalse($source->isFile());
-        $this->assertSame(file_get_contents(__DIR__ . '/../_examples/test.txt'), $destination->read());
+        self::assertInstanceOf(Storage\Memory::class, $destination->storage());
+        self::assertFalse($source->isFile());
+        self::assertStringEqualsFile(__DIR__ . '/../_examples/test.txt', $destination->read());
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws FlyFileExistsException
+     * @throws FlyFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    public function testMoveToDir()
+    public function testMoveToDir(): void
     {
         $source = (new File(new Storage\Disk(__DIR__, '../_examples', 'test.txt'), Constraint::LOOSE))->copyTo(new Storage\Disk\Temp());
         $destination = new Directory(new Storage\Disk\Temp());
 
-        $this->assertTrue($destination->isDir());
-        $this->assertTrue($destination->storage()->isDir());
+        self::assertTrue($destination->isDir());
+        self::assertTrue($destination->storage()->isDir());
 
         $retFile = $source->moveTo($destination->storage());
 
-        $this->assertFalse($source->isFile());
-        $this->assertSame($destination->path()->raw, $retFile->path()->directory);
-        $this->assertSame(file_get_contents(__DIR__ . '/../_examples/test.txt'), $retFile->read());
+        self::assertFalse($source->isFile());
+        self::assertSame($destination->path()->raw, $retFile->path()->directory);
+        self::assertStringEqualsFile(__DIR__ . '/../_examples/test.txt', $retFile->read());
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws FlyFileExistsException
+     * @throws FlyFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    public function testMoveMemoryToDir()
+    public function testMoveMemoryToDir(): void
     {
         $source = new File(new Storage\Memory(file_get_contents(__DIR__ . '/../_examples/test.txt')));
         $destination = new Directory(new Storage\Disk\Temp());
 
-        $this->assertTrue($destination->isDir());
-        $this->assertTrue($destination->storage()->isDir());
+        self::assertTrue($destination->isDir());
+        self::assertTrue($destination->storage()->isDir());
 
         $retFile = $source->moveTo($destination->storage());
 
-        $this->assertFalse($source->isFile());
-        $this->assertTrue(strpos($retFile->path()->filename, '.file') !== false);
-        $this->assertSame($destination->path()->raw, $retFile->path()->directory);
-        $this->assertSame(file_get_contents(__DIR__ . '/../_examples/test.txt'), $retFile->read());
+        self::assertFalse($source->isFile());
+        self::assertNotFalse(strpos($retFile->path()->filename, '.file'));
+        self::assertSame($destination->path()->raw, $retFile->path()->directory);
+        self::assertStringEqualsFile(__DIR__ . '/../_examples/test.txt', $retFile->read());
     }
 }

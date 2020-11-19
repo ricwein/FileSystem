@@ -5,12 +5,19 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Tests\Storage;
 
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\ConstraintsException;
+use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Helper\Constraint;
-
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Directory;
 use League\Flysystem\Adapter\Local;
+use League\Flysystem\Filesystem;
 
 /**
  * test FlySystem-Storage Adapter
@@ -22,43 +29,52 @@ class FlysystemTest extends TestCase
 {
     public function setUp(): void
     {
-        if (!class_exists('League\Flysystem\Filesystem')) {
-            $this->markTestSkipped('The required package "League\Flysystem" is not installed');
+        if (!class_exists(Filesystem::class)) {
+            self::markTestSkipped('The required package "League\Flysystem" is not installed');
         }
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    public function testFileRead()
+    public function testFileRead(): void
     {
         $cmpFile = new File(new Storage\Disk(__DIR__, '/../_examples', 'test.txt'), Constraint::LOOSE);
         $file = new File(new Storage\Flysystem(new Local(__DIR__ . '/../_examples'), 'test.txt'));
 
-        $this->assertTrue($file->isFile());
-        $this->assertSame(
+        self::assertTrue($file->isFile());
+        self::assertSame(
             $file->read(),
             file_get_contents(__DIR__ . '/../_examples/test.txt')
         );
 
-        $this->assertSame([
+        self::assertSame([
             'type' => 'file',
             'path' => 'test.txt',
             'timestamp' => $cmpFile->getTime(),
             'size' => $cmpFile->getSize(),
         ], $file->storage()->getMetadata());
 
-        $this->assertSame($cmpFile->getTime(), $file->getTime());
-        $this->assertSame($cmpFile->getHash(), $file->getHash());
+        self::assertSame($cmpFile->getTime(), $file->getTime());
+        self::assertSame($cmpFile->getHash(), $file->getHash());
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws Exception
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
-    public function testDirectoryRead()
+    public function testDirectoryRead(): void
     {
         $dir = new Directory(new Storage\Flysystem(new Local(__DIR__ . '/..'), '_examples'));
-        $this->assertTrue($dir->isDir());
+        self::assertTrue($dir->isDir());
 
         $files = [];
 
@@ -72,12 +88,12 @@ class FlysystemTest extends TestCase
 
             $files[] = $file;
 
-            $this->assertInstanceOf(File::class, $file);
-            $this->assertInstanceOf(Storage\Flysystem::class, $file->storage());
+            self::assertInstanceOf(File::class, $file);
+            self::assertInstanceOf(Storage\Flysystem::class, $file->storage());
         }
 
         foreach ($files as $file) {
-            $this->assertTrue($file->isFile());
+            self::assertTrue($file->isFile());
         }
     }
 }

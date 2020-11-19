@@ -5,81 +5,98 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Tests\File;
 
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\ConstraintsException;
+use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
+use function bin2hex;
+use function random_bytes;
 
-/**
- * test FileSyst\File bases
- *
- * @author Richard Weinhold
- */
 class WriteTest extends TestCase
 {
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws \Exception
      */
-    public function testFileOverwriteTempDisk()
+    public function testFileOverwriteTempDisk(): void
     {
         $file = new File(new Storage\Disk\Temp());
 
-        $message = \bin2hex(\random_bytes(2 ** 10));
+        $message = bin2hex(random_bytes(2 ** 10));
         $file->write($message);
 
         // overwrite file-content
-        $message = \bin2hex(\random_bytes(2 ** 9));
+        $message = bin2hex(random_bytes(2 ** 9));
         $file->write($message);
 
-        $this->assertSame($message, $file->read());
+        self::assertSame($message, $file->read());
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws \Exception
      */
-    public function testFileWriteAppendTempDisk()
+    public function testFileWriteAppendTempDisk(): void
     {
         $file = new File(new Storage\Disk\Temp());
 
-        $messageA = \bin2hex(\random_bytes(2 ** 10));
+        $messageA = bin2hex(random_bytes(2 ** 10));
         $file->write($messageA);
 
         // overwrite file-content
-        $messageB = \bin2hex(\random_bytes(2 ** 9));
+        $messageB = bin2hex(random_bytes(2 ** 9));
         $file->write($messageB, true);
 
-        $this->assertSame($messageA . $messageB, $file->read());
+        self::assertSame($messageA . $messageB, $file->read());
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws \Exception
      */
-    public function testFileOverwriteMemory()
+    public function testFileOverwriteMemory(): void
     {
         $file = new File(new Storage\Memory());
 
-        $message = \bin2hex(\random_bytes(2 ** 10));
+        $message = bin2hex(random_bytes(2 ** 10));
         $file->write($message);
 
         // overwrite file-content
-        $message = \bin2hex(\random_bytes(2 ** 9));
+        $message = bin2hex(random_bytes(2 ** 9));
         $file->write($message);
 
-        $this->assertSame($message, $file->read());
+        self::assertSame($message, $file->read());
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws \Exception
      */
-    public function testFileWriteAppendMemory()
+    public function testFileWriteAppendMemory(): void
     {
         $file = new File(new Storage\Memory());
 
-        $messageA = \bin2hex(\random_bytes(2 ** 10));
+        $messageA = bin2hex(random_bytes(2 ** 10));
         $file->write($messageA);
 
         // overwrite file-content
-        $messageB = \bin2hex(\random_bytes(2 ** 9));
+        $messageB = bin2hex(random_bytes(2 ** 9));
         $file->write($messageB, true);
 
-        $this->assertSame($messageA . $messageB, $file->read());
+        self::assertSame($messageA . $messageB, $file->read());
     }
 }

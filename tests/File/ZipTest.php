@@ -1,25 +1,38 @@
 <?php
+/** @noinspection PhpParamsInspection */
 
 declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\File;
 
-use ZipArchive;
-
+use \League\Flysystem\FileNotFoundException as FlyFileNotFoundException;
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Directory;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\ConstraintsException;
+use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Directory;
+use ZipArchive;
 
-/**
- * test FileSyst\File bases
- *
- * @author Richard Weinhold
- */
 class ZipTest extends TestCase
 {
-    public function testSingleFileArchive()
+    /**
+     * @throws FlyFileNotFoundException
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
+     */
+    public function testSingleFileArchive(): void
     {
         // zip this file
         $file = new File(new Storage\Disk(__FILE__));
@@ -27,25 +40,33 @@ class ZipTest extends TestCase
 
         $zip->addFile($file)->commit();
 
-        $this->assertSame('No error', $zip->getStatus());
-        $this->assertSame(1, $zip->getFileCount());
+        self::assertSame('No error', $zip->getStatus());
+        self::assertSame(1, $zip->getFileCount());
 
         // extract this file again
         $extractDir = new Directory(new Storage\Disk\Temp);
         $zip->extractTo($extractDir->storage());
-        $this->assertSame(1, iterator_count($extractDir->list()->files()));
+        self::assertSame(1, iterator_count($extractDir->list()->files()));
 
         // check for file-consistency
         foreach ($extractDir->list()->files() as $extractedFile) {
-            $this->assertSame($file->path()->filename, $extractedFile->path()->filename);
-            $this->assertSame($file->getHash(), $extractedFile->getHash());
+            self::assertSame($file->path()->filename, $extractedFile->path()->filename);
+            self::assertSame($file->getHash(), $extractedFile->getHash());
         }
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws FlyFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
+     * @throws \Exception
      */
-    public function testEncryptedArchive()
+    public function testEncryptedArchive(): void
     {
         // zip and encrypt this file with random password
         $file = new File(new Storage\Disk(__FILE__));
@@ -53,60 +74,74 @@ class ZipTest extends TestCase
         $password = bin2hex(random_bytes(16));
         $zip->withPassword($password)->addFile($file)->commit();
 
-        $this->assertSame('No error', $zip->getStatus());
-        $this->assertSame(1, $zip->getFileCount());
+        self::assertSame('No error', $zip->getStatus());
+        self::assertSame(1, $zip->getFileCount());
 
         // extract and decrypt this file again
         $extractDir = new Directory(new Storage\Disk\Temp);
         $zip->withPassword($password)->extractTo($extractDir->storage());
-        $this->assertSame(1, iterator_count($extractDir->list()->files()));
+        self::assertSame(1, iterator_count($extractDir->list()->files()));
 
         // check for file-consistency
         foreach ($extractDir->list()->files() as $extractedFile) {
-            $this->assertSame($file->path()->filename, $extractedFile->path()->filename);
-            $this->assertSame($file->getHash(), $extractedFile->getHash());
+            self::assertSame($file->path()->filename, $extractedFile->path()->filename);
+            self::assertSame($file->getHash(), $extractedFile->getHash());
         }
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws FlyFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
-    public function testMemoryArchive()
+    public function testMemoryArchive(): void
     {
         $file = new File(new Storage\Memory(file_get_contents(__FILE__)));
         $zip = new File\Zip(new Storage\Disk\Temp);
         $zip->addFile($file)->commit();
 
-        $this->assertSame('No error', $zip->getStatus());
-        $this->assertSame(1, $zip->getFileCount());
+        self::assertSame('No error', $zip->getStatus());
+        self::assertSame(1, $zip->getFileCount());
 
         // extract this file again
         $extractDir = new Directory(new Storage\Disk\Temp);
         $zip->extractTo($extractDir->storage());
-        $this->assertSame(1, iterator_count($extractDir->list()->files()));
+        self::assertSame(1, iterator_count($extractDir->list()->files()));
 
         // check for file-consistency
         foreach ($extractDir->list()->files() as $extractedFile) {
-            $this->assertSame((new File(new Storage\Disk(__FILE__)))->getHash(), $extractedFile->getHash());
+            self::assertSame((new File(new Storage\Disk(__FILE__)))->getHash(), $extractedFile->getHash());
         }
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws FlyFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
-    public function testDirArchive()
+    public function testDirArchive(): void
     {
         $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
         $zip = new File\Zip(new Storage\Disk\Temp);
         $zip->addDirectory($dir)->commit();
 
-        $this->assertSame('No error', $zip->getStatus());
-        $this->assertSame(iterator_count($dir->list(false)->files()), $zip->getFileCount());
+        self::assertSame('No error', $zip->getStatus());
+        self::assertSame(iterator_count($dir->list(false)->files()), $zip->getFileCount());
 
         $extractDir = new Directory(new Storage\Disk\Temp);
         $zip->extractTo($extractDir->storage());
 
-        $this->assertSame(iterator_count($dir->list(false)->files()), iterator_count($extractDir->list(true)->files()));
+        self::assertSame(iterator_count($dir->list(false)->files()), iterator_count($extractDir->list(true)->files()));
 
         $sourceFiles = [];
         foreach ($dir->list(false)->files() as $file) {
@@ -114,25 +149,32 @@ class ZipTest extends TestCase
         }
 
         foreach ($extractDir->list(false)->files() as $file) {
-            $this->assertSame($sourceFiles[$file->path()->filename], $file->getHash());
+            self::assertSame($sourceFiles[$file->path()->filename], $file->getHash());
         }
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws FlyFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
-    public function testRecursiveDirArchive()
+    public function testRecursiveDirArchive(): void
     {
         $dir = new Directory(new Storage\Disk(__DIR__, '..'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
         $zip = new File\Zip(new Storage\Disk\Temp);
         $zip->addDirectory($dir)->commit();
 
-        $this->assertSame('No error', $zip->getStatus());
-        $this->assertSame(iterator_count($dir->list(true)->files()), $zip->getFileCount());
+        self::assertSame('No error', $zip->getStatus());
+        self::assertSame(iterator_count($dir->list(true)->files()), $zip->getFileCount());
 
         $extractDir = new Directory(new Storage\Disk\Temp);
         $zip->extractTo($extractDir->storage());
-        $this->assertSame(iterator_count($dir->list(true)->files()), iterator_count($extractDir->list(true)->files()));
+        self::assertSame(iterator_count($dir->list(true)->files()), iterator_count($extractDir->list(true)->files()));
 
         $sourceFiles = [];
         foreach ($dir->list(true)->files() as $file) {
@@ -140,14 +182,21 @@ class ZipTest extends TestCase
         }
 
         foreach ($extractDir->list(true)->files() as $file) {
-            $this->assertSame($sourceFiles[$file->path()->filepath], $file->getHash());
+            self::assertSame($sourceFiles[$file->path()->filepath], $file->getHash());
         }
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws FlyFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
-    public function testMixedArchive()
+    public function testMixedArchive(): void
     {
         $zip = new File\Zip(new Storage\Disk\Temp);
 
@@ -159,7 +208,7 @@ class ZipTest extends TestCase
         $zip->addDirectory($dir);
         $zip->commit();
 
-        $this->assertSame(iterator_count($dir->list(true)->files()) + 2, $zip->getFileCount());
+        self::assertSame(iterator_count($dir->list(true)->files()) + 2, $zip->getFileCount());
 
         $extractDir = new Directory(new Storage\Disk\Temp);
         $zip->extractTo($extractDir->storage());
@@ -174,14 +223,20 @@ class ZipTest extends TestCase
         }
 
         foreach ($extractDir->list(true)->files() as $file) {
-            $this->assertSame($sourceFiles[$file->path()->filepath], $file->getHash());
+            self::assertSame($sourceFiles[$file->path()->filepath], $file->getHash());
         }
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws FlyFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    public function testComments()
+    public function testComments(): void
     {
         $zip = new File\Zip(new Storage\Disk\Temp);
         $file = new File(new Storage\Disk(__FILE__));
@@ -191,20 +246,25 @@ class ZipTest extends TestCase
         $zip->addFile($file, 'testfile2.php');
         $zip->commit();
 
-        $this->assertSame(2, $zip->getFileCount());
+        self::assertSame(2, $zip->getFileCount());
 
-        $this->assertSame('root comment', $zip->getComment());
-        $this->assertSame('file comment', $zip->getComment('testfile1.php'));
+        self::assertSame('root comment', $zip->getComment());
+        self::assertSame('file comment', $zip->getComment('testfile1.php'));
 
-        $this->assertSame(null, $zip->getComment('testfile2.php'));
-        $this->assertSame(null, $zip->getComment('testfile3.php'));
+        self::assertNull($zip->getComment('testfile2.php'));
+        self::assertNull($zip->getComment('testfile3.php'));
     }
 
-
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws FlyFileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    public function testCompression()
+    public function testCompression(): void
     {
         $zip = new File\Zip(new Storage\Disk\Temp);
         $file = new File(new Storage\Disk(__FILE__));
@@ -216,8 +276,8 @@ class ZipTest extends TestCase
         $zip->addFile($file, 'testfile3.php');
         $zip->commit();
 
-        $this->assertSame(8, $zip->getStat('testfile1.php')['comp_method']);
-        $this->assertSame(0, $zip->getStat('testfile2.php')['comp_method']);
-        $this->assertSame(8, $zip->getStat('testfile3.php')['comp_method']);
+        self::assertSame(8, $zip->getStat('testfile1.php')['comp_method']);
+        self::assertSame(0, $zip->getStat('testfile2.php')['comp_method']);
+        self::assertSame(8, $zip->getStat('testfile3.php')['comp_method']);
     }
 }

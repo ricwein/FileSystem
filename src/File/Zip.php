@@ -4,6 +4,8 @@
  * @author Richard Weinhold
  */
 
+declare(strict_types=1);
+
 namespace ricwein\FileSystem\File;
 
 use Exception;
@@ -33,7 +35,7 @@ class Zip extends File
     /**
      * @var string[]
      */
-    const ERROR_MESSAGES = [
+    private const ERROR_MESSAGES = [
         ZipArchive::ER_EXISTS => 'file already exists',
         ZipArchive::ER_INCONS => 'archive is inconsistent',
         ZipArchive::ER_INVAL => 'invalid argument',
@@ -60,7 +62,7 @@ class Zip extends File
     ];
 
     /**
-     * automatically close and reopend zip-archive after x files added,
+     * automatically close and reopened zip-archive after x files added,
      * to prevent running into file descriptors limit
      * @var int
      */
@@ -85,7 +87,7 @@ class Zip extends File
     protected int $encryption = self::DEFAULT_ENCRYPTION;
     protected int $compression = ZipArchive::CM_DEFAULT;
 
-    protected int $filecounter = 0;
+    protected int $fileCounter = 0;
 
     /**
      * @inheritDoc
@@ -464,13 +466,13 @@ class Zip extends File
         }
 
         // run auto-commit after x files
-        if (++$this->filecounter > static::AUTO_COMMIT_AFTER) {
+        if (++$this->fileCounter > static::AUTO_COMMIT_AFTER) {
 
             // soft commit:
             // close (and reopen) archive but preserve internal state like: password, etc.
             $this->archive->close();
             $this->isOpen = false;
-            $this->filecounter = 0;
+            $this->fileCounter = 0;
         }
 
         return $this;

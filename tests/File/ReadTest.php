@@ -14,10 +14,6 @@ use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\Constraint;
 
-/**
- * test FileSystem\File bases
- * @author Richard Weinhold
- */
 class ReadTest extends TestCase
 {
     /**

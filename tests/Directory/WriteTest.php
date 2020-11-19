@@ -6,24 +6,32 @@ namespace ricwein\FileSystem\Tests\Directory;
 
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Directory;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Storage;
 
-/**
- * test FileSyst\File bases
- *
- * @author Richard Weinhold
- */
 class WriteTest extends TestCase
 {
-    public function testCreateDir()
+    /**
+     * @throws AccessDeniedException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     */
+    public function testCreateDir(): void
     {
         $dir = new Directory(new Storage\Disk\Temp());
-        $this->assertTrue(file_exists($dir->path()->raw));
-        $this->assertTrue(file_exists($dir->path()->real));
-        $this->assertTrue(is_dir($dir->path()->real));
+        self::assertFileExists($dir->path()->raw);
+        self::assertFileExists($dir->path()->real);
+        self::assertDirectoryExists($dir->path()->real);
     }
 
-    public function testCreateRecursiveDir()
+    /**
+     * @throws AccessDeniedException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     */
+    public function testCreateRecursiveDir(): void
     {
         $dir1 = new Directory(new Storage\Disk\Temp());
         $dir2 = new Directory(new Storage\Disk($dir1, 'dir2'));
@@ -33,26 +41,31 @@ class WriteTest extends TestCase
         $dir3->mkdir();
 
         foreach ([$dir1, $dir2, $dir3] as $dir) {
-            $this->assertTrue(file_exists($dir->path()->raw));
-            $this->assertTrue(file_exists($dir->path()->real));
-            $this->assertTrue(is_dir($dir->path()->real));
+            self::assertFileExists($dir->path()->raw);
+            self::assertFileExists($dir->path()->real);
+            self::assertDirectoryExists($dir->path()->real);
         }
 
-        $this->assertSame('/dir2', str_replace($dir1->path()->real, '', $dir2->path()->real));
-        $this->assertSame('/dir3/dir4/dir5', str_replace($dir1->path()->real, '', $dir3->path()->real));
+        self::assertSame('/dir2', str_replace($dir1->path()->real, '', $dir2->path()->real));
+        self::assertSame('/dir3/dir4/dir5', str_replace($dir1->path()->real, '', $dir3->path()->real));
     }
 
-    public function testTempDirRemoval()
+    /**
+     * @throws AccessDeniedException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     */
+    public function testTempDirRemoval(): void
     {
         $tmpDir = new Directory(new Storage\Disk\Temp());
 
-        $this->assertTrue(file_exists($tmpDir->path()->raw));
-        $this->assertTrue(file_exists($tmpDir->path()->real));
-        $this->assertTrue(is_dir($tmpDir->path()->real));
+        self::assertFileExists($tmpDir->path()->raw);
+        self::assertFileExists($tmpDir->path()->real);
+        self::assertDirectoryExists($tmpDir->path()->real);
 
         $path = $tmpDir->path()->raw;
         $tmpDir = null;
 
-        $this->assertFalse(file_exists($path));
+        self::assertFileNotExists($path);
     }
 }

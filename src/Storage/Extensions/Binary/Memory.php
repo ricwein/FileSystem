@@ -4,6 +4,8 @@
  * @author Richard Weinhold
  */
 
+declare(strict_types=1);
+
 namespace ricwein\FileSystem\Storage\Extensions\Binary;
 
 use ricwein\FileSystem\Exceptions\AccessDeniedException;

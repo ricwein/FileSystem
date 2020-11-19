@@ -4,6 +4,8 @@
  * @author Richard Weinhold
  */
 
+declare(strict_types=1);
+
 namespace ricwein\FileSystem\Storage\Extensions\Binary;
 
 use ricwein\FileSystem\Storage\Disk as DiskStorage;
@@ -55,7 +57,7 @@ class Disk extends Binary
 
         flock($this->handle, LOCK_UN);
         fclose($this->handle);
-        clearstatcache($this->filePath);
+        clearstatcache(false, $this->filePath);
     }
 
 

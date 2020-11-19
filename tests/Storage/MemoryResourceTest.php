@@ -4,7 +4,16 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\Storage;
 
+use League\Flysystem\FileExistsException;
+use \League\Flysystem\FileNotFoundException as FlyFileNotFoundException;
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\ConstraintsException;
+use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\MimeType;
@@ -18,31 +27,44 @@ use ricwein\FileSystem\Helper\Constraint;
 class MemoryResourceTest extends TestCase
 {
     /**
-     * @return void
+     * @throws FileExistsException
+     * @throws FlyFileNotFoundException
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
-    public function testResourceRead()
+    public function testResourceRead(): void
     {
         $file = new File(new Storage\Disk(__DIR__, '../_examples', 'test.txt'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
 
-        $resource = fopen($file->path()->real, 'r');
+        $resource = fopen($file->path()->real, 'rb');
         $memory = new File(new Storage\Memory\Resource($resource));
         fclose($resource);
-        $this->assertSame($file->read(), $memory->read());
+        self::assertSame($file->read(), $memory->read());
 
         $dest = $memory->copyTo(new Storage\Disk\Temp());
-        $this->assertSame($dest->read(), $memory->read());
+        self::assertSame($dest->read(), $memory->read());
     }
 
     /**
-     * @return void
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws Exception
+     * @throws FileNotFoundException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
-    public function testResourceGD()
+    public function testResourceGD(): void
     {
+        /** @noinspection PhpComposerExtensionStubsInspection */
         $resource = imagecreatetruecolor(1024, 1024);
         $memory = new File(new Storage\Memory\Resource($resource));
 
-        $this->assertNotEmpty($memory->read());
-
-        $this->assertSame($memory->getType(), MimeType::getMimeFor('png'));
+        self::assertNotEmpty($memory->read());
+        self::assertSame($memory->getType(), MimeType::getMimeFor('png'));
     }
 }
