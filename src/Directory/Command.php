@@ -92,7 +92,7 @@ class Command extends Directory
      */
     protected function bindVariables(string $cmd, $variables): string
     {
-        return preg_replace_callback('/\$\(\s*([^)]+)\s*\)/', function ($match) use ($variables): string {
+        return preg_replace_callback('/\$\(\s*([^)]+)\s*\)/', static function ($match) use ($variables): string {
             $variable = explode('.', trim($match[1]));
 
             // traverse template variable
@@ -114,9 +114,13 @@ class Command extends Directory
             // check for return type
             if ($current === null) {
                 return '[null]';
-            } elseif (is_scalar($current)) {
-                return $current;
-            } elseif (is_object($current) && method_exists($current, '__toString')) {
+            }
+
+            if (is_scalar($current)) {
+                return (string)$current;
+            }
+
+            if (is_object($current) && method_exists($current, '__toString')) {
                 return (string)$current;
             }
 
