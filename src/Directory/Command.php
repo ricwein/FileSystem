@@ -192,7 +192,7 @@ class Command extends Directory
         // run command (safe)
         if (function_exists('shell_exec')) {
             $result = shell_exec($cmd . ' 2>&1');
-            $result = explode(PHP_EOL, trim($result));
+            $result = explode(PHP_EOL, trim((string)$result));
         } elseif (function_exists('exec')) {
             exec($cmd . ' 2>&1', $result, $this->lastExitCode);
         } else {
@@ -201,7 +201,9 @@ class Command extends Directory
 
         if ($result === null || $result === false) {
             return false;
-        } elseif ($this->lastExitCode !== 0) {
+        }
+
+        if ($this->lastExitCode !== 0) {
             throw new RuntimeException('shell execution failed: ' . (count($result) < 3 ? implode(' ', $result) : reset($result)), 500);
         }
 
