@@ -279,7 +279,7 @@ class Disk extends Storage
             }
 
             // write content
-            if (fwrite($handle, $content) <= 0) {
+            if (fwrite($handle, $content) === false) {
                 return false;
             }
 
