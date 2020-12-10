@@ -8,6 +8,9 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem;
 
+use DateTime;
+use DateTimeZone;
+use Exception;
 use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Helper\Path;
@@ -80,6 +83,18 @@ abstract class FileSystem
     public function getTime(int $type = Time::LAST_MODIFIED): ?int
     {
         return $this->storage->getTime($type);
+    }
+
+    /**
+     * get last-modified as DateTime
+     * @param int $type
+     * @return DateTime|null
+     * @throws Exception
+     */
+    public function getDate(int $type = Time::LAST_MODIFIED): ?DateTime
+    {
+        $timestamp = $this->getTime($type);
+        return DateTime::createFromFormat('U', $timestamp);
     }
 
     /**

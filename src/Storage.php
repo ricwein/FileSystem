@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem;
 
+use DateTime;
 use Generator;
 use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Helper\Constraint;

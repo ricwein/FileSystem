@@ -72,18 +72,21 @@ All Storage-Types must extend the abstract base class `Filesystem\Storage`.
 
 > WARNING: since storage-objects are mutable and php automatically handles class-objects as references when passed into a function (constructor), it's highly recommended to use the `clone` keyword when storages are recycled between to FileSystem-Objects.
 > DO NOT:
-```php
-$dirA = new Directory(new Storage\Disk(__DIR__));
-$dirB = new Directory($dirA->storage());
 
-$dirA->cd('test'); // will also changes $dirB path!
+```php
+$originalDir = new Directory(new Storage\Disk(__DIR__));
+$copyDir = new Directory($originalDir->storage());
+
+$copyDir->cd('test'); // will also changes $originalDir path!
 ```
-> DO:
-```php
-$dirA = new Directory(new Storage\Disk(__DIR__));
-$dirB = new Directory(clone $dirA->storage());
 
-$dirA->cd('test'); // $dirB will stay in __DIR__
+> DO:
+
+```php
+$originalDir = new Directory(new Storage\Disk(__DIR__));
+$copyDir = new Directory(clone $originalDir->storage());
+
+$copyDir->cd('test'); // $originalDir will stay in __DIR__
 ```
 
 ### Exceptions
@@ -101,14 +104,15 @@ All *FileSystem*-base-classes must be initialized using a Storage.
 | `read(?$offset, ?$length, $mode)` | read and return file-content, allows partial read with `$offset` and `$length` parameters, file is locked while reading with `$mode`|
 | `stream(?$offset, ?$length, $mode)` | stream file into output-buffer, file is locked while reading with `$mode`|
 | `write($content, $append, $mode)` | write `$content` to file, creates new file if it doesn't already exists, allows appended writing if `$append` isset, locks file with `$mode` |
-| `copyTo($destination, $constraints)` | copy file to new `$destination` Storage-adapter |
-| `moveTo($destination, $constraints)` | like `copyTo()`, but moves files instead |
-| `touch($ifNewOnly)` | create file if it doesn't exists, updates last-modified timestamp |
+| `copyTo($destination [,Constraint $constraints])` | copy file to new `$destination` Storage-adapter |
+| `moveTo($destination [,Constraint $constraints])` | like `copyTo()`, but moves files instead |
+| `touch([bool $ifNewOnly])` | create file if it doesn't exists, updates last-modified timestamp |
 | `remove()` | try to remove file |
-| `getType($withEncoding)` | guess files mime-type |
-| `getTime()` | get last-modified unix-timestamp |
+| `getType([bool $withEncoding])` | guess files mime-type |
+| `getTime([Time $type])` | get last-modified unix-timestamp |
+| `getDate([Time $type])` | same as  `getTime()`, but returns a DateTime object instead |
 | `getSize()` | calculate size |
-| `getHash($mode, $algo)` | calculates a hash over `$mode` with `$algo` algorithm |
+| `getHash([Hash $mode [,string $algo [,bool $raw]]])` | calculates a hash over `$mode` with `$algo` algorithm |
 | `isReadable()` | is file readable? |
 | `isWriteable()` | is file writeable? |
 | `isSymlink()` | is file a symlink? |
@@ -116,9 +120,9 @@ All *FileSystem*-base-classes must be initialized using a Storage.
 | `isDir()` | is selected path a directory? => always `false` for File instance |
 | `isDotfile()` | is file a hidden dot-file? |
 | `isValid()` | run constraints validation |
-| `getHandle($mode)` | gets new file-Handle for binary file-access |
+| `getHandle([string $mode])` | gets new file-Handle for binary file-access |
 | `storage()` | access internal storage adapter |
-| `path()` | tries to access filesytem-path |
+| `path()` | tries to access filesystem-path |
 
 ### Open and read a file from the local filesystem
 
@@ -162,9 +166,10 @@ Like Files, Directories must be initialized using a Storage.
 | `list($recursive)` | returns DirectoryIterator-Object to list directory-content as new `File`/`Directory` objects |
 | `mkdir()` | try to create directory |
 | `remove()` | try to remove directory |
-| `getTime()` | get last-modified unix-timestamp |
-| `getSize()` | calculate size |
-| `getHash($mode, $algo)` | calculates a hash over `$mode` with `$algo` algorithm |
+| `getTime([Time $type])` | get last-modified unix-timestamp |
+| `getDate([Time $type])` | same as  `getTime()`, but returns a DateTime object instead |
+| `getSize([bool $recursive])` | calculate size |
+| `getHash([Hash $mode [,string $algo [,bool $raw]]])` | calculates a hash over `$mode` with `$algo` algorithm |
 | `isReadable()` | is directory readable? |
 | `isWriteable()` | is directory writeable? |
 | `isSymlink()` | is directory a symlink? |
@@ -173,7 +178,7 @@ Like Files, Directories must be initialized using a Storage.
 | `isDotfile()` | is directory a hidden dot-file? |
 | `isValid()` | run constraints validation |
 | `storage()` | access internal storage adapter |
-| `path()` | tries to access filesytem-path |
+| `path()` | tries to access filesystem-path |
 
 ### check if directory is readable
 
@@ -207,22 +212,22 @@ Using this filesytem-layer also provides some kind of security for usage with us
 
 The following constraints are set as default, but can be overwritten with the second argument of the `File($storage, $constraints)` or `Directory($storage, $constraints)` constructor:
 
- - `Constraint::IN_OPENBASEDIR` => the path must be within the `open_basedir` php-ini paths, this allows throwing exceptions befor running into php's own errors
- - `Constraint::DISALLOW_LINK` => the path must not be a link
- - `Constraint::IN_SAFEPATH` => if a file/directory path is build out of multiple parts, all later parts must be located within the first one
+- `Constraint::IN_OPENBASEDIR` => the path must be within the `open_basedir` php-ini paths, this allows throwing exceptions befor running into php's own errors
+- `Constraint::DISALLOW_LINK` => the path must not be a link
+- `Constraint::IN_SAFEPATH` => if a file/directory path is build out of multiple parts, all later parts must be located within the first one
 
  ```php
  use ricwein\FileSystem\File;
  use ricwein\FileSystem\Storage;
  use ricwein\FileSystem\Helper\Constraint;
 
- // let's asume $_GET['file'] == '/../file.txt'
+ // let's assume $_GET['file'] == '/../file.txt'
 
  // path concatenated as a single string
  // this runs fine but is HIGHLY UNRECOMMENDED
  $file = new File(new Storage\Disk(__DIR__ . $_GET['file']));
 
- // path is given as single parts (commas instead of dots!)
+ // path is passed as single parameters (comma instead of dot!)
  // this throws an error since the resulting path is not within __DIR__
  $file = new File(new Storage\Disk(__DIR__, $_GET['file']));
 
@@ -263,17 +268,19 @@ $image->edit(function (Intervention\Image $image): Intervention\Image {
 ```php
 $zip = new File\Zip(new Storage\Disk('archive.zip'));
 
+// create zip file
 $zip->add(new File(new Storage\Disk('file.json'))); // or $zip->addFile(...)
 $zip->add(new File(new Storage\Memory('some file-content')), 'anotherfile.txt'); // or $zip->addFile(...)
 $zip->add(new Directory(new Storage\Disk(__DIR__, 'data-dir'))); // or $zip->addDirectory(...)
 $zip->commit();
 
+// extract zip file
 $extractDir = $zip->extractTo(new Storage\Disk\Temp);
 ```
 
 ### Storage Extensions
 
- - `Disk\Current`: Uses current-working-directory (`getcwd()`) as safepath. Usefull for cli-scripts in combination with `Directory\Command`.
+- `Disk\Current`: Uses current-working-directory (`getcwd()`) as safepath. Usefull for cli-scripts in combination with `Directory\Command`.
 
  ```php
  $current = new File(new Storage\Disk(getcwd(), 'file.json'), Constraints::STRICT & ~Constraint::IN_SAFEPATH);
@@ -291,7 +298,7 @@ $extractDir = $zip->extractTo(new Storage\Disk\Temp);
  exit($git->lastExitCode());
  ```
 
- - `Disk\Temp`: Uses the system-temp directory to create a temporary file/directory. The file is automatically removed after freeing the object instance!
+- `Disk\Temp`: Uses the system-temp directory to create a temporary file/directory. The file is automatically removed after freeing the object instance!
 
  ```php
  $temp = new File(new Storage\Disk\Temp);
@@ -300,14 +307,14 @@ $extractDir = $zip->extractTo(new Storage\Disk\Temp);
  $temp = null; // will delete the temp-file again!
  ```
 
- - `Disk\Uploaded`: Provides safe and easy *uploaded-files* access through php's native `is_uploaded_file()` and `move_uploaded_file()` functions.
+- `Disk\Uploaded`: Provides safe and easy *uploaded-files* access through php's native `is_uploaded_file()` and `move_uploaded_file()` functions.
 
  ```php
  $uploaded = new File(new Storage\Disk\Uploaded($_FILES['file']));
  $file = $uploaded->moveTo(new Storage\Disk(__DIR__, 'uploads'));
  ```
 
- - `Memory\Resource`: Reads resource content into memory on construct. The resource can be closed afterwards.
+- `Memory\Resource`: Reads resource content into **MEMORY** on construct. The resource can be closed afterwards.
 
  ```php
  $resource = fopen('test.json', 'rb');
