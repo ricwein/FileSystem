@@ -94,7 +94,7 @@ abstract class FileSystem
     public function getDate(int $type = Time::LAST_MODIFIED): ?DateTime
     {
         $timestamp = $this->getTime($type);
-        return DateTime::createFromFormat('U', $timestamp);
+        return DateTime::createFromFormat('U', (string)$timestamp);
     }
 
     /**
