@@ -46,7 +46,7 @@ class DiskTempTest extends TestCase
         self::assertTrue($file->isFile());
 
         $file = null;
-        self::assertFileNotExists($path);
+        self::assertFileDoesNotExist($path);
     }
 
     /**
@@ -99,7 +99,7 @@ class DiskTempTest extends TestCase
         self::assertSame($file->path()->real, $path);
 
         $file = null;
-        self::assertFileNotExists($path);
+        self::assertFileDoesNotExist($path);
         self::assertFalse(is_file($path));
     }
 }

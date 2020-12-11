@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\Storage;
 
-use League\Flysystem\FileExistsException;
-use \League\Flysystem\FileNotFoundException as FlyFileNotFoundException;
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
@@ -27,8 +25,6 @@ use ricwein\FileSystem\Helper\Constraint;
 class MemoryResourceTest extends TestCase
 {
     /**
-     * @throws FileExistsException
-     * @throws FlyFileNotFoundException
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws Exception

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\File;
 
-use League\Flysystem\FileExistsException as FlyFileExistsException;
-use \League\Flysystem\FileNotFoundException as FlyFileNotFoundException;
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
@@ -21,8 +19,6 @@ use ricwein\FileSystem\Helper\Constraint;
 class CopyTest extends TestCase
 {
     /**
-     * @throws FlyFileExistsException
-     * @throws FlyFileNotFoundException
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws Exception
@@ -51,8 +47,6 @@ class CopyTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
-     * @throws FlyFileExistsException
-     * @throws FlyFileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -75,8 +69,6 @@ class CopyTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
-     * @throws FlyFileExistsException
-     * @throws FlyFileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -96,8 +88,6 @@ class CopyTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
-     * @throws FlyFileExistsException
-     * @throws FlyFileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -117,8 +107,6 @@ class CopyTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
-     * @throws FlyFileExistsException
-     * @throws FlyFileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -142,8 +130,6 @@ class CopyTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
-     * @throws FlyFileExistsException
-     * @throws FlyFileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */

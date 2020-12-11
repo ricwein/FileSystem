@@ -40,24 +40,21 @@ class DirectoryIterator
      */
     protected $pathFilter = null;
 
-    /**
-     * @var Storage
-     */
     protected Storage $storage;
 
-    /**
-     * @var bool
-     */
+    protected ?int $constraints;
     protected bool $recursive;
 
     /**
      * @param Storage $storage
      * @param bool $recursive
+     * @param int|null $constraints
      */
-    public function __construct(Storage $storage, bool $recursive = false)
+    public function __construct(Storage $storage, bool $recursive = false, ?int $constraints = null)
     {
         $this->storage = $storage;
         $this->recursive = $recursive;
+        $this->constraints = $constraints;
     }
 
     /**
@@ -110,9 +107,9 @@ class DirectoryIterator
     {
         /** @var Generator $iterator */
         if ($this->pathFilter === null) {
-            $iterator = $this->storage->list($this->recursive);
+            $iterator = $this->storage->list($this->recursive, $this->constraints);
         } elseif ($this->storage instanceof Storage\Disk) {
-            $iterator = $this->storage->list($this->recursive, $this->pathFilter);
+            $iterator = $this->storage->list($this->recursive, $this->constraints, $this->pathFilter);
         } else {
             throw new RuntimeException(sprintf('Found Unsupported Storage Engine (%s) for pathFilter.', get_class($this->storage)), 400);
         }
@@ -147,7 +144,7 @@ class DirectoryIterator
         foreach ($this->storages() as $storage) {
             $file = $storage->isDir() ? new Directory($storage, $constraints) : new File($storage, $constraints);
 
-            // apply late highlevel filters
+            // apply late high level filters
             foreach ($this->filesystemFilters as $filter) {
                 if (!$filter($file)) {
                     continue 2; // continue outer storage-loop
@@ -192,5 +189,10 @@ class DirectoryIterator
                 yield $directory;
             }
         }
+    }
+
+    public function getStorage(): Storage
+    {
+        return $this->storage;
     }
 }

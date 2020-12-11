@@ -9,10 +9,10 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Storage;
 
 use Generator;
-use League\Flysystem\FileExistsException;
+use League\Flysystem\FileAttributes;
 use League\Flysystem\Filesystem as FlyFilesystem;
-use League\Flysystem\Adapter\AbstractAdapter;
-use League\Flysystem\FileNotFoundException as FlySystemFileNotFoundException;
+use League\Flysystem\FilesystemAdapter;
+use League\Flysystem\FilesystemException as FlySystemException;
 use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Storage;
@@ -30,19 +30,19 @@ use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 class Flysystem extends Storage
 {
     protected FlyFilesystem $flysystem;
-
     protected string $path;
 
-    protected ?array $metadata = null;
+    protected string $type;
 
     /**
-     * @param AbstractAdapter|FlyFilesystem $filesystem
+     * @param FilesystemAdapter|FlyFilesystem $filesystem
      * @param string $path filename or directory
+     * @throws FlySystemException
      * @throws UnexpectedValueException
      */
     public function __construct($filesystem, string $path)
     {
-        if ($filesystem instanceof AbstractAdapter) {
+        if ($filesystem instanceof FilesystemAdapter) {
             $this->flysystem = new FlyFilesystem($filesystem);
         } elseif ($filesystem instanceof FlyFilesystem) {
             $this->flysystem = $filesystem;
@@ -51,31 +51,13 @@ class Flysystem extends Storage
         }
 
         $this->path = $path;
-    }
-
-    /**
-     * @return array
-     * @throws FlySystemFileNotFoundException
-     */
-    public function getMetadata(): array
-    {
-        if ($this->metadata === null) {
-            if (false !== $metadata = $this->flysystem->getMetadata($this->path)) {
-                $this->metadata = $metadata;
-            } else {
-
-                // something went terrible wrong...
-                return ['type' => null];
-            }
-        }
-
-        return (array)$this->metadata;
+        $this->type = $this->flysystem->mimeType($path);
     }
 
     /**
      * @return void
-     * @throws FlySystemFileNotFoundException
      * @throws AccessDeniedException
+     * @throws FlySystemException
      */
     public function __destruct()
     {
@@ -83,27 +65,30 @@ class Flysystem extends Storage
             return;
         }
 
-        if (!$this->flysystem->has($this->path)) {
+        if (!$this->flysystem->fileExists($this->path)) {
             return;
         }
 
-        if ($this->getMetadata()['type'] === 'file') {
-            $this->removeFile();
-        } elseif ($this->getMetadata()['type'] === 'dir') {
+        if ($this->isDir()) {
             $this->removeDir();
+        } else {
+            $this->removeFile();
         }
     }
 
     /**
-     * @inheritDoc
-     * @throws FlySystemFileNotFoundException
+     * @return array
+     * @throws FlySystemException
+     * @throws RuntimeException
+     * @throws UnsupportedException
      */
     public function getDetails(): array
     {
         return array_merge(parent::getDetails(), [
-            'type' => get_class($this->flysystem->getAdapter()),
             'path' => $this->path,
-            'metadata' => $this->getMetadata(),
+            'type' => $this->type,
+            'timestamp' => $this->getTime(),
+            'size' => $this->getSize(),
         ]);
     }
 
@@ -126,20 +111,23 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      */
     public function isFile(): bool
     {
-        return $this->flysystem->has($this->path) && $this->getMetadata()['type'] === 'file';
+        if (!$this->flysystem->fileExists($this->path)) {
+            return false;
+        }
+        return !in_array(strtolower($this->type), ['dir', 'directory'], true);
     }
 
     /**
      * @inheritDoc
-     * @throws FlySystemFileNotFoundException
+     * @return bool
      */
     public function isDir(): bool
     {
-        return $this->flysystem->has($this->path) && $this->getMetadata()['type'] === 'dir';
+        return in_array(strtolower($this->type), ['dir', 'directory'], true);
     }
 
     /**
@@ -152,19 +140,20 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @throws FlySystemFileNotFoundException
+     * @return bool
      */
     public function isSymlink(): bool
     {
-        return $this->flysystem->has($this->path) && $this->getMetadata()['type'] === 'link';
+        return false;
     }
 
     /**
      * @inheritDoc
+     * @throws FlySystemException
      */
     public function isReadable(): bool
     {
-        return $this->flysystem->has($this->path);
+        return $this->flysystem->fileExists($this->path);
     }
 
     /**
@@ -182,7 +171,7 @@ class Flysystem extends Storage
      * @param int $mode
      * @return string
      * @throws FileNotFoundException
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      */
     public function readFile(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): string
@@ -205,8 +194,9 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @return array
      * @throws FileNotFoundException
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      */
     public function readFileAsLines(): array
@@ -220,7 +210,7 @@ class Flysystem extends Storage
      * @param int|null $length
      * @param int $mode
      * @throws FileNotFoundException
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      */
     public function streamFile(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): void
@@ -244,6 +234,7 @@ class Flysystem extends Storage
     /**
      * @inheritDoc
      * @throws UnsupportedException
+     * @throws FlySystemException
      */
     public function writeFile(string $content, bool $append = false, int $mode = LOCK_EX): bool
     {
@@ -251,8 +242,7 @@ class Flysystem extends Storage
             throw new UnsupportedException('FlySystem Adapters don\'t support appended writing mode', 500);
         }
 
-        if ($this->flysystem->put($this->path, $content)) {
-            $this->metadata = null;
+        if ($this->flysystem->write($this->path, $content)) {
             return true;
         }
 
@@ -261,17 +251,19 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @throws FlySystemFileNotFoundException
+     * @return bool
+     * @throws FlySystemException
      */
     public function removeFile(): bool
     {
-        return $this->flysystem->delete($this->path);
+        $this->flysystem->delete($this->path);
+        return true;
     }
 
     /**
      * @return bool
      * @throws AccessDeniedException
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      */
     public function removeDir(): bool
     {
@@ -279,11 +271,7 @@ class Flysystem extends Storage
             throw new AccessDeniedException(sprintf('unable to remove path, not a directory: "%s"', $this->path), 500);
         }
 
-        if (!$this->flysystem->deleteDir($this->path)) {
-            return false;
-        }
-
-        $this->metadata = null;
+        $this->flysystem->deleteDirectory($this->path);
         return true;
     }
 
@@ -291,47 +279,50 @@ class Flysystem extends Storage
      * @inheritDoc
      * @param bool $recursive
      * @return Generator
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function list(bool $recursive = false): Generator
+    public function list(bool $recursive = false, ?int $constraints = null): Generator
     {
         if (!$this->isDir()) {
             throw new RuntimeException(sprintf('unable to open directory "%s"', $this->path), 500);
         }
 
+        /** @var FileAttributes $file */
         foreach ($this->flysystem->listContents($this->path, $recursive) as $file) {
-            yield new self($this->flysystem, rtrim($this->path, '/') . '/' . $file['basename']);
+            yield new self($this->flysystem, sprintf("%s/%s", rtrim($this->path, '/'), basename($file->path())));
         }
     }
 
     /**
      * @inheritDoc
-     * @throws FlySystemFileNotFoundException
+     * @return int
+     * @throws FlySystemException
      */
     public function getSize(): int
     {
-        return $this->flysystem->getSize($this->path);
+        return $this->flysystem->fileSize($this->path);
     }
 
     /**
      * @inheritDoc
-     * @throws FlySystemFileNotFoundException
+     * @param bool $withEncoding
+     * @return string|null
      */
     public function getFileType(bool $withEncoding = false): ?string
     {
-        if (false !== $type = $this->flysystem->getMimetype($this->path)) {
-            return $type;
-        }
-
-        return null;
+        return $this->type;
     }
 
     /**
      * @inheritDoc
+     * @param int $mode
+     * @param string $algo
+     * @param bool $raw
+     * @return string|null
      * @throws FileNotFoundException
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnsupportedException
      */
@@ -364,8 +355,9 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @param int $type
      * @return int
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnsupportedException
      */
@@ -374,8 +366,8 @@ class Flysystem extends Storage
         if ($type !== Time::LAST_MODIFIED) {
             throw new UnsupportedException('Unable to fetch timestamp from Flysystem adapter. Only LAST_MODIFIED is currently supported.', 500);
         }
-        if (false !== $timestamp = $this->flysystem->getTimestamp($this->path)) {
-            return (int)$timestamp;
+        if (false !== $timestamp = $this->flysystem->lastModified($this->path)) {
+            return $timestamp;
         }
 
         throw new RuntimeException('unable to fetch timestamp', 500);
@@ -387,8 +379,7 @@ class Flysystem extends Storage
      * @param int|null $time
      * @param int|null $atime
      * @return bool
-     * @throws FlySystemFileNotFoundException
-     * @throws FileExistsException
+     * @throws FlySystemException
      */
     public function touch(bool $ifNewOnly = false, ?int $time = null, ?int $atime = null): bool
     {
@@ -398,28 +389,23 @@ class Flysystem extends Storage
             return true;
         }
 
-        try {
-            if (!$isFile) {
-                return $this->flysystem->write($this->path, '');
-            }
-
-            return $this->flysystem->rename($this->path, $this->path);
-        } finally {
-            $this->metadata = null;
+        if (!$isFile) {
+            $this->flysystem->write($this->path, '');
+            return true;
         }
+
+        $this->flysystem->move($this->path, $this->path);
+        return true;
     }
 
     /**
      * @return bool
+     * @throws FlySystemException
      */
     public function mkdir(): bool
     {
-        if ($this->flysystem->createDir($this->path)) {
-            $this->metadata = null;
-            return true;
-        }
-
-        return false;
+        $this->flysystem->createDirectory($this->path);
+        return true;
     }
 
     /**
@@ -435,7 +421,7 @@ class Flysystem extends Storage
      */
     public function __toString(): string
     {
-        return sprintf('%s/[Adapter: %s] at: "%s"', parent::__toString(), get_class($this->flysystem->getAdapter()), $this->path);
+        return sprintf('%s/[Adapter: %s] at: "%s"', parent::__toString(), get_class($this->flysystem), $this->path);
     }
 
 
@@ -443,7 +429,7 @@ class Flysystem extends Storage
      * @inheritDoc
      * @param string $mode
      * @return resource
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      */
     public function getStream(string $mode = 'rb+')
@@ -461,23 +447,22 @@ class Flysystem extends Storage
      * @inheritDoc
      * @param $stream
      * @return bool
-     * @throws FileExistsException
-     * @throws FlySystemFileNotFoundException
      * @throws Exception
+     * @throws FlySystemException
      */
     public function writeFromStream($stream): bool
     {
         $this->touch(true);
-        return $this->flysystem->updateStream($this->path, $stream);
+        $this->flysystem->writeStream($this->path, $stream);
+        return true;
     }
 
     /**
      * @inheritDoc
      * @param Storage $destination
      * @return bool
-     * @throws FileExistsException
      * @throws FileNotFoundException
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      */
     public function copyFileTo(Storage $destination): bool
@@ -497,7 +482,8 @@ class Flysystem extends Storage
                 }
 
             case $destination instanceof self:
-                return $this->flysystem->copy($this->path, $destination->path());
+                $this->flysystem->copy($this->path, $destination->path());
+                return true;
 
             case $destination instanceof Memory:
             default:
@@ -509,9 +495,8 @@ class Flysystem extends Storage
      * @inheritDoc
      * @param Storage $destination
      * @return bool
-     * @throws FileExistsException
      * @throws FileNotFoundException
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      */
     public function moveFileTo(Storage $destination): bool
@@ -519,7 +504,8 @@ class Flysystem extends Storage
         switch (true) {
 
             case $destination instanceof self:
-                return $this->flysystem->rename($this->path, $destination->path());
+                $this->flysystem->move($this->path, $destination->path());
+                return true;
 
             case $destination instanceof Disk:
             case $destination instanceof Memory:

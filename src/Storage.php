@@ -227,15 +227,17 @@ abstract class Storage
 
     /**
      * @param bool $recursive
+     * @param int|null $constraints
      * @return Generator list of all files
      * @throws UnsupportedException
      */
-    public function list(bool $recursive = false): Generator
+    public function list(bool $recursive = false, ?int $constraints = null): Generator
     {
         throw new UnsupportedException(sprintf(
-            'Listing Directory-Content is not supported for the current "%s" Storage (recursive: %d)',
+            'Listing Directory-Content is not supported for the current "%s" Storage (recursive: %d, Constraint-bitmask: %b)',
             get_class($this),
-            $recursive ? 'true' : 'false'
+            $recursive ? 'true' : 'false',
+            $constraints ?? $this->constraints->getConstraints(),
         ), 500);
     }
 

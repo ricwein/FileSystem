@@ -69,6 +69,6 @@ class WriteTest extends TestCase
         $path = $tmpDir->path()->raw;
         $tmpDir = null;
 
-        self::assertFileNotExists($path);
+        self::assertFileDoesNotExist($path);
     }
 }

@@ -115,18 +115,19 @@ class Directory extends FileSystem
 
     /**
      * @param bool $recursive
+     * @param int|null $constraints
      * @return DirectoryIterator
      * @throws Exceptions\ConstraintsException
      * @throws Exceptions\RuntimeException
      * @throws UnexpectedValueException
      */
-    public function list(bool $recursive = false): DirectoryIterator
+    public function list(bool $recursive = false, ?int $constraints = null): DirectoryIterator
     {
         if (!$this->storage->doesSatisfyConstraints()) {
             throw $this->storage->getConstraintViolations();
         }
 
-        return new DirectoryIterator($this->storage, $recursive);
+        return new DirectoryIterator($this->storage, $recursive, $constraints);
     }
 
     /**

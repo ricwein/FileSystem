@@ -16,9 +16,9 @@
   },
   "require-dev": {
     "intervention/image": "^2.5",
-    "league/flysystem": "^1.0",
-    "overtrue/phplint": "^1.2",
-    "phpunit/phpunit": "^8.0",
+    "league/flysystem": "^2.0",
+    "overtrue/phplint": "^2.3",
+    "phpunit/phpunit": "^9.5",
     "ext-gd": "*"
   },
   "config": {

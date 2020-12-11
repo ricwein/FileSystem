@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\Storage;
 
+use League\Flysystem\FilesystemException as FlySystemException;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
@@ -16,7 +18,6 @@ use ricwein\FileSystem\File;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Directory;
-use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
 
 /**
@@ -41,11 +42,12 @@ class FlysystemTest extends TestCase
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws FlySystemException
      */
     public function testFileRead(): void
     {
         $cmpFile = new File(new Storage\Disk(__DIR__, '/../_examples', 'test.txt'), Constraint::LOOSE);
-        $file = new File(new Storage\Flysystem(new Local(__DIR__ . '/../_examples'), 'test.txt'));
+        $file = new File(new Storage\Flysystem(new LocalFilesystemAdapter(__DIR__ . '/../_examples'), 'test.txt'));
 
         self::assertTrue($file->isFile());
         self::assertSame(
@@ -54,11 +56,14 @@ class FlysystemTest extends TestCase
         );
 
         self::assertSame([
-            'type' => 'file',
+            'storage' => Storage\Flysystem::class,
             'path' => 'test.txt',
+            'type' => 'text/plain',
             'timestamp' => $cmpFile->getTime(),
             'size' => $cmpFile->getSize(),
-        ], $file->storage()->getMetadata());
+        ],
+            $file->storage()->getDetails()
+        );
 
         self::assertSame($cmpFile->getTime(), $file->getTime());
         self::assertSame($cmpFile->getHash(), $file->getHash());
@@ -66,14 +71,16 @@ class FlysystemTest extends TestCase
 
     /**
      * @throws AccessDeniedException
+     * @throws ConstraintsException
      * @throws Exception
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
     public function testDirectoryRead(): void
     {
-        $dir = new Directory(new Storage\Flysystem(new Local(__DIR__ . '/..'), '_examples'));
+        $dir = new Directory(new Storage\Flysystem(new LocalFilesystemAdapter(__DIR__ . '/..'), '_examples'));
         self::assertTrue($dir->isDir());
 
         $files = [];

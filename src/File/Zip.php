@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\File;
 
 use Exception;
-use League\Flysystem\FileNotFoundException as FlySystemFileNotFoundException;
+use League\Flysystem\FilesystemException as FlySystemException;
 use ricwein\FileSystem\Exceptions\Hint;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ZipArchive;
@@ -270,7 +270,7 @@ class Zip extends File
      * @return self
      * @throws ConstraintsException
      * @throws FileNotFoundException
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
@@ -299,7 +299,7 @@ class Zip extends File
      * @return self
      * @throws ConstraintsException
      * @throws FileNotFoundException
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
@@ -321,7 +321,7 @@ class Zip extends File
      * @return self
      * @throws ConstraintsException
      * @throws FileNotFoundException
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
@@ -338,7 +338,7 @@ class Zip extends File
      * @return self
      * @throws ConstraintsException
      * @throws FileNotFoundException
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
@@ -356,7 +356,7 @@ class Zip extends File
      * @return self
      * @throws ConstraintsException
      * @throws FileNotFoundException
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
@@ -373,10 +373,10 @@ class Zip extends File
      * @return self
      * @throws ConstraintsException
      * @throws FileNotFoundException
-     * @throws FlySystemFileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
+     * @throws FlySystemException
      */
     public function addDirectoryStorageContent(Storage $storage, string $toNode = '/', ?callable $filter = null): self
     {
@@ -386,7 +386,22 @@ class Zip extends File
             $iterator->filterStorage($filter);
         }
 
-        // list all files in directory
+        return $this->addDirectoryIterator($iterator, $toNode);
+    }
+
+    /**
+     * @param DirectoryIterator $iterator
+     * @param string $toNode
+     * @return $this
+     * @throws ConstraintsException
+     * @throws FileNotFoundException
+     * @throws FlySystemException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
+     */
+    public function addDirectoryIterator(DirectoryIterator $iterator, string $toNode = '/'): self
+    {
         /** @var Storage $fileStorage */
         foreach ($iterator->storages() as $fileStorage) {
             if ($fileStorage->isDir()) {
@@ -394,7 +409,12 @@ class Zip extends File
             }
 
             // relative file-path for in-ziparchive-name:
-            $filepath = str_ireplace((rtrim($storage->path()->real, '/') . '/'), '', $fileStorage->path()->real);
+            if (strpos($fileStorage->path()->raw, $iterator->getStorage()->path()->raw) === 0) {
+                $filepath = str_replace((rtrim($iterator->getStorage()->path()->raw, '/') . '/'), '', $fileStorage->path()->raw);
+            } else {
+                $filepath = str_replace((rtrim($iterator->getStorage()->path()->real, '/') . '/'), '', $fileStorage->path()->real);
+            }
+
             // append given directory-name:
             $filepath = ltrim(trim($toNode, '/') . '/' . $filepath, '/');
 
@@ -402,6 +422,7 @@ class Zip extends File
         }
 
         return $this;
+
     }
 
     /**
@@ -410,9 +431,9 @@ class Zip extends File
      * @return self
      * @throws ConstraintsException
      * @throws FileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
-     * @throws FlySystemFileNotFoundException
      */
     public function addFile(File $file, ?string $name = null): self
     {
@@ -430,7 +451,7 @@ class Zip extends File
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      */
     public function addFileStorage(Storage $storage, ?string $name = null): self
     {
@@ -533,7 +554,7 @@ class Zip extends File
      * @return string filename in zip-archive
      * @throws FileNotFoundException
      * @throws RuntimeException
-     * @throws FlySystemFileNotFoundException
+     * @throws FlySystemException
      */
     private function addFileFromFlysystem(Storage\Flysystem $file, ?string $name = null): string
     {

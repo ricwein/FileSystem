@@ -10,6 +10,7 @@ namespace ricwein\FileSystem\Storage;
 
 use CallbackFilterIterator;
 use DirectoryIterator;
+use FilesystemIterator;
 use finfo;
 use Generator;
 use Iterator;
@@ -20,6 +21,7 @@ use RecursiveIteratorIterator;
 use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Enum\Hash;
@@ -314,11 +316,12 @@ class Disk extends Storage
 
     /**
      * @param bool $recursive
+     * @param int|null $constraints
      * @param callable|null $filter
      * @param int $mode
      * @return Iterator
      */
-    protected function getIterator(bool $recursive, ?callable $filter = null, int $mode = RecursiveIteratorIterator::SELF_FIRST): Iterator
+    protected function getIterator(bool $recursive, ?int $constraints = null, ?callable $filter = null, int $mode = RecursiveIteratorIterator::SELF_FIRST): Iterator
     {
         if (!$recursive) {
             $innerIterator = new DirectoryIterator($this->path->real);
@@ -330,7 +333,11 @@ class Disk extends Storage
             return new CallbackFilterIterator($innerIterator, $filter);
         }
 
-        $innerIterator = new RecursiveDirectoryIterator($this->path->real, RecursiveDirectoryIterator::SKIP_DOTS);
+        if (($constraints ?? $this->constraints->getConstraints()) & Constraint::DISALLOW_LINK) {
+            $innerIterator = new RecursiveDirectoryIterator($this->path->real, FilesystemIterator::SKIP_DOTS);
+        } else {
+            $innerIterator = new RecursiveDirectoryIterator($this->path->real, FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS);
+        }
 
         if ($filter === null) {
             return new RecursiveIteratorIterator($innerIterator, $mode);
@@ -355,7 +362,7 @@ class Disk extends Storage
         }
 
         try {
-            $iterator = $this->getIterator(true, null, RecursiveIteratorIterator::CHILD_FIRST);
+            $iterator = $this->getIterator(true, null, null, RecursiveIteratorIterator::CHILD_FIRST);
 
             /** @var SplFileInfo $file */
             foreach ($iterator as $splFile) {
@@ -386,19 +393,20 @@ class Disk extends Storage
     }
 
     /**
-     * @inheritDoc
      * @param bool $recursive
+     * @param int|null $constraints
+     * @param callable|null $iteratorFilter
      * @return Generator
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function list(bool $recursive = false, ?callable $iteratorFilter = null): Generator
+    public function list(bool $recursive = false, ?int $constraints = null, ?callable $iteratorFilter = null): Generator
     {
         if (!$this->isDir()) {
             throw new RuntimeException(sprintf('unable to open directory "%s"', $this->path->raw), 500);
         }
 
-        $iterator = $this->getIterator($recursive, $iteratorFilter);
+        $iterator = $this->getIterator($recursive, $constraints, $iteratorFilter);
 
         /** @var SplFileInfo $file */
         foreach ($iterator as $file) {

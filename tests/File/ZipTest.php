@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\File;
 
-use \League\Flysystem\FileNotFoundException as FlyFileNotFoundException;
+use League\Flysystem\FilesystemException as FlySystemException;
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
@@ -23,11 +23,11 @@ use ZipArchive;
 class ZipTest extends TestCase
 {
     /**
-     * @throws FlyFileNotFoundException
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
@@ -60,7 +60,7 @@ class ZipTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
-     * @throws FlyFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
@@ -94,7 +94,7 @@ class ZipTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
-     * @throws FlyFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
@@ -124,10 +124,10 @@ class ZipTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
-     * @throws FlyFileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
+     * @throws FlySystemException
      */
     public function testDirArchive(): void
     {
@@ -158,7 +158,7 @@ class ZipTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
-     * @throws FlyFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
@@ -191,7 +191,7 @@ class ZipTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
-     * @throws FlyFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
@@ -201,14 +201,17 @@ class ZipTest extends TestCase
         $zip = new File\Zip(new Storage\Disk\Temp);
 
         $file = new File(new Storage\Disk(__FILE__));
-        $dir = new Directory(new Storage\Disk(__DIR__, '..'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
+        $dir = new Directory(new Storage\Disk(__DIR__), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
+        $exampleDir = $dir->dir('../_examples');
 
         $zip->addFile($file, 'testfile1.php');
         $zip->addFile(new File(new Storage\Memory($file->read())), 'testfile2.php');
-        $zip->addDirectory($dir);
+
+        $zip->addDirectoryIterator($dir->list(true), '/');
+        $zip->addDirectory($exampleDir);
         $zip->commit();
 
-        self::assertSame(iterator_count($dir->list(true)->files()) + 2, $zip->getFileCount());
+        self::assertSame(iterator_count($dir->list(true)->files()) + iterator_count($exampleDir->list(true)->files()) + 2, $zip->getFileCount());
 
         $extractDir = new Directory(new Storage\Disk\Temp);
         $zip->extractTo($extractDir->storage());
@@ -221,6 +224,9 @@ class ZipTest extends TestCase
         foreach ($dir->list(true)->files() as $file) {
             $sourceFiles[$file->path()->filepath] = $file->getHash();
         }
+        foreach ($exampleDir->list(true)->files() as $file) {
+            $sourceFiles["/{$exampleDir->path()->basename}{$file->path()->filepath}"] = $file->getHash();
+        }
 
         foreach ($extractDir->list(true)->files() as $file) {
             self::assertSame($sourceFiles[$file->path()->filepath], $file->getHash());
@@ -232,7 +238,7 @@ class ZipTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
-     * @throws FlyFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -260,7 +266,7 @@ class ZipTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
-     * @throws FlyFileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
