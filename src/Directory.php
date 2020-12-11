@@ -156,7 +156,6 @@ class Directory extends FileSystem
         return $this;
     }
 
-
     /**
      * @param string $filename
      * @param int|null $constraints
@@ -183,8 +182,6 @@ class Directory extends FileSystem
         }
 
         /** @var Storage $storage */
-        $storage = null;
-
         if (is_dir($safepath) && strpos($dirpath, $safepath) === 0) {
             $storage = new Storage\Disk($safepath, str_replace($safepath, '', $dirpath), $filename);
         } else {
@@ -195,5 +192,24 @@ class Directory extends FileSystem
             $storage,
             $constraints ?? $this->storage->getConstraints()
         );
+    }
+
+    /**
+     * @param string $dirname
+     * @param int|null $constraints
+     * @return Directory
+     * @throws AccessDeniedException
+     * @throws Exceptions\ConstraintsException
+     * @throws Exceptions\RuntimeException
+     * @throws UnexpectedValueException
+     */
+    public function dir(string $dirname, ?int $constraints = null): Directory
+    {
+        if (!$this->storage->doesSatisfyConstraints()) {
+            throw $this->storage->getConstraintViolations();
+        }
+
+        $directory = new static(clone $this->storage(), $constraints ?? $this->storage->getConstraints());
+        return $directory->cd($dirname);
     }
 }

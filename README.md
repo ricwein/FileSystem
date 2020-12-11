@@ -179,6 +179,8 @@ Like Files, Directories must be initialized using a Storage.
 | `isValid()` | run constraints validation |
 | `storage()` | access internal storage adapter |
 | `path()` | tries to access filesystem-path |
+| `file(string $filename [,int $constraints])` | get `File` in current directory by name |
+| `dir(string $dirname [,int $constraints])` | get `Directory` in current directory by name (`clone`s storage!) |
 
 ### check if directory is readable
 
@@ -206,15 +208,28 @@ foreach($dir->list(true)->files() as $file) {
 
 ## Security
 
-Using this filesytem-layer also provides some kind of security for usage with user-defined file-paths. Accessing file-attributes or file-contents is only done after running some constraint-checks.
+Using this filesystem-layer also provides some kind of security for usage with user-defined file-paths. Accessing file attributes or content is only done after checking against so called ***Constraints***.
 
 ### Constraints
 
-The following constraints are set as default, but can be overwritten with the second argument of the `File($storage, $constraints)` or `Directory($storage, $constraints)` constructor:
+Constraints are defined on initialization of `File` or `Directory` objects and are stored inside the internal `Storage` object. This allows Constraints-inheritance, if new FileSystem-objects are accessed from existing ones. Example:
 
-- `Constraint::IN_OPENBASEDIR` => the path must be within the `open_basedir` php-ini paths, this allows throwing exceptions befor running into php's own errors
-- `Constraint::DISALLOW_LINK` => the path must not be a link
-- `Constraint::IN_SAFEPATH` => if a file/directory path is build out of multiple parts, all later parts must be located within the first one
+```php
+use ricwein\FileSystem\Directory;
+use ricwein\FileSystem\Storage;
+ use ricwein\FileSystem\Helper\Constraint;
+
+$dir = new Directory(new Storage\Disk(__DIR__), Constraint::STRICT);
+$file = $dir->file($_GET['filename']);
+```
+
+In this example, the `$file` object shares the ***Constraints*** (inherited) and ***safepath*** with `$dir` - allowing safely accessing a file in `$dir` from user defined parameters. Path traversal is therefore prevented.
+
+The following constraints are set as default (as part of `Constraint::STRICT`), but can be overwritten with the second argument of the `File($storage, $constraints)` or `Directory($storage, $constraints)` constructor:
+
+- `Constraint::IN_OPENBASEDIR` => the path must be within the `open_basedir` php-ini paths, this allows throwing exceptions before running into php core errors
+- `Constraint::DISALLOW_LINK` => the path must not be a (symbolic-) link
+- `Constraint::IN_SAFEPATH` => if a file/directory path is build out of multiple components (parameters), the resulting file/directory destination must be inside the first path-component (called ***safepath***)
 
  ```php
  use ricwein\FileSystem\File;
