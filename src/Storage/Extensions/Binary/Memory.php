@@ -14,9 +14,6 @@ use ricwein\FileSystem\Storage\Memory as MemoryStorage;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Storage\Extensions\Binary;
 
-/**
- * @inheritDoc
- */
 class Memory extends Binary
 {
 

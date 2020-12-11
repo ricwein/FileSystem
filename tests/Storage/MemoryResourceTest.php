@@ -60,7 +60,6 @@ class MemoryResourceTest extends TestCase
      */
     public function testResourceGD(): void
     {
-        /** @noinspection PhpComposerExtensionStubsInspection */
         $resource = imagecreatetruecolor(1024, 1024);
         $memory = new File(new Storage\Memory\Resource($resource));
 

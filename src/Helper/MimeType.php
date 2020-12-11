@@ -121,11 +121,7 @@ class MimeType
     public static function getMimeFor(string $extension): ?string
     {
         $extensions = static::getExtensions();
-        if (isset($extensions[$extension])) {
-            return $extensions[$extension];
-        }
-
-        return null;
+        return $extensions[$extension] ?? null;
     }
 
     /**
@@ -134,7 +130,7 @@ class MimeType
      */
     public static function isImage(string $mimetype): bool
     {
-        return array_search($mimetype, static::EXTENSIONS_IMAGES, false) !== false;
+        return in_array($mimetype, static::EXTENSIONS_IMAGES, true);
     }
 
     /**
@@ -143,6 +139,6 @@ class MimeType
      */
     public static function isVideo(string $mimetype): bool
     {
-        return array_search($mimetype, static::EXTENSIONS_VIDEOS, false) !== false;
+        return in_array($mimetype, static::EXTENSIONS_VIDEOS, true);
     }
 }

@@ -27,6 +27,7 @@ class Stream
     public function __construct($handle)
     {
         if (!is_resource($handle)) {
+            /** @noinspection CallableParameterUseCaseInTypeContextInspection */
             throw new RuntimeException(sprintf('file-handle must be of type \'resource\' but \'%s\' given', is_object($handle) ? get_class($handle) : gettype($handle)), 500);
         }
 
@@ -46,7 +47,7 @@ class Stream
         }
 
         $stream = new static($handle);
-        $stream->closeOnFree(true);
+        $stream->closeOnFree();
 
         return $stream;
     }
@@ -86,7 +87,7 @@ class Stream
      */
     public function rewind(int $offset = 0): self
     {
-        if (fseek($this->handle, 0) !== 0) {
+        if (fseek($this->handle, $offset) !== 0) {
             throw new RuntimeException('error while rewinding file', 500);
         }
 

@@ -246,7 +246,7 @@ class Zip extends File
             throw $destination->getConstraintViolations();
         }
 
-        $destinationDir = new Directory($destination, ($constraints !== null) ? $constraints : $this->storage->getConstraints());
+        $destinationDir = new Directory($destination, $constraints ?? $this->storage->getConstraints());
 
         // create destination dir
         if (!$destinationDir->isDir() && $destinationDir->storage()->isFile()) {
@@ -279,15 +279,17 @@ class Zip extends File
     {
         if ($file instanceof Directory) {
             return $this->addDirectory($file, $asNode ?? '/');
-        } elseif ($file instanceof File) {
-            return $this->addFile($file, $asNode);
-        } else {
-            throw new UnexpectedValueException(sprintf('%s::%s($file) only supports Directory and File as $file type, but is %s',
-                static::class,
-                __METHOD__,
-                get_class($file)
-            ));
         }
+
+        if ($file instanceof File) {
+            return $this->addFile($file, $asNode);
+        }
+
+        throw new UnexpectedValueException(sprintf('%s::%s($file) only supports Directory and File as $file type, but is %s',
+            static::class,
+            __METHOD__,
+            get_class($file)
+        ));
     }
 
     /**
@@ -306,9 +308,9 @@ class Zip extends File
     {
         if ($storage->isDir()) {
             return $this->addDirectoryStorage($storage, $asNode ?? '/');
-        } else {
-            return $this->addFileStorage($storage, $asNode);
         }
+
+        return $this->addFileStorage($storage, $asNode);
     }
 
     /**
@@ -512,7 +514,7 @@ class Zip extends File
             $mime = $file->getFileType();
 
             if (null !== $mime && null !== $extension = MimeType::getExtensionFor($mime)) {
-                $name = $name . '.' . $extension;
+                $name .= ".{$extension}";
             }
         }
 

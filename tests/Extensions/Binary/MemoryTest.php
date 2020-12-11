@@ -45,6 +45,7 @@ class MemoryTest extends TestCase
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnsupportedException
+     * @throws \Exception
      */
     public function testOOBRead(): void
     {

@@ -9,10 +9,10 @@ declare(strict_types=1);
 namespace ricwein\FileSystem;
 
 use DateTime;
-use DateTimeZone;
 use Exception;
 use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Enum\Time;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Exceptions\RuntimeException;
@@ -35,6 +35,18 @@ abstract class FileSystem
     {
         $this->storage = $storage;
         $this->storage->setConstraints($constraints);
+    }
+
+    /**
+     * validate constraints and check file permissions
+     * @return void
+     * @throws Exceptions\ConstraintsException
+     */
+    protected function checkFileReadPermissions(): void
+    {
+        if (!$this->storage->doesSatisfyConstraints()) {
+            throw $this->storage->getConstraintViolations();
+        }
     }
 
     /**
@@ -79,9 +91,11 @@ abstract class FileSystem
      * get last-modified timestamp
      * @param int $type
      * @return int|null
+     * @throws Exceptions\ConstraintsException
      */
     public function getTime(int $type = Time::LAST_MODIFIED): ?int
     {
+        $this->checkFileReadPermissions();
         return $this->storage->getTime($type);
     }
 
@@ -178,9 +192,13 @@ abstract class FileSystem
      * => leaving scope or removing object reference
      * @param bool $activate
      * @return self
+     * @throws AccessDeniedException
      */
     public function removeOnFree(bool $activate = true): self
     {
+        if (!$this->storage->doesSatisfyConstraints()) {
+            throw new AccessDeniedException(sprintf('unable to remove: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->path()->raw : get_class($this->storage)), 404, $this->storage->getConstraintViolations());
+        }
         $this->storage->removeOnFree($activate);
         return $this;
     }

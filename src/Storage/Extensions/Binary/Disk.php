@@ -13,14 +13,8 @@ use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Storage\Extensions\Binary;
 
-/**
- * @inheritDoc
- */
 class Disk extends Binary
 {
-    /**
-     * @var string
-     */
     protected ?string $filePath;
 
     /**
@@ -66,7 +60,7 @@ class Disk extends Binary
      * @return void
      * @throws RuntimeException
      */
-    protected function openHandle(int $mode)
+    protected function openHandle(int $mode): void
     {
         if ($this->handle !== null) {
             return;
@@ -208,7 +202,7 @@ class Disk extends Binary
      * @return void
      * @throws RuntimeException
      */
-    protected function toctouTest()
+    protected function toctouTest(): void
     {
         if ($this->handle === null) {
             throw new RuntimeException('no file-handle found', 500);

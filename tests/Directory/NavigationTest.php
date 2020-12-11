@@ -77,7 +77,7 @@ class NavigationTest extends TestCase
         self::assertSame($dir->path()->real, realpath(__DIR__));
 
         $this->expectException(ConstraintsException::class);
-        $this->expectExceptionMessageMatches('/.*constraint failed: the given path.*is not within the safepath.*/');
+        $this->expectExceptionMessageMatches('/.*constraint failed: the given real-path.*is not within the safepath.*/');
 
         $dir->up(2);
         $dir->file('LICENSE')->read();

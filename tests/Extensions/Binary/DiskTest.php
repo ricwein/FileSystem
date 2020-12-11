@@ -22,7 +22,6 @@ class DiskTest extends TestCase
     /**
      * @throws AccessDeniedException
      * @throws RuntimeException
-     * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
      * @throws UnsupportedException
@@ -40,7 +39,6 @@ class DiskTest extends TestCase
 
     /**
      * @throws AccessDeniedException
-     * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
      * @throws RuntimeException
@@ -63,7 +61,6 @@ class DiskTest extends TestCase
 
     /**
      * @throws AccessDeniedException
-     * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
      * @throws RuntimeException
@@ -89,7 +86,6 @@ class DiskTest extends TestCase
 
     /**
      * @throws AccessDeniedException
-     * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
      * @throws UnsupportedException

@@ -77,8 +77,6 @@ class StreamTest extends TestCase
         $file = new File(new Storage\Memory($message));
         self::assertSame($file->read(), $message);
 
-        $destStream = Stream::fromResourceName('php://output', 'wb');
-
         ob_start();
         Stream::fromResourceName('php://output', 'wb')->copyFrom($file->getStream('rb'));
         $content = ob_get_clean();

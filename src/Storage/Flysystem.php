@@ -29,19 +29,10 @@ use ricwein\FileSystem\Exceptions\UnexpectedValueException;
  */
 class Flysystem extends Storage
 {
-    /**
-     * @var FlyFilesystem
-     */
-    protected $flysystem;
+    protected FlyFilesystem $flysystem;
 
-    /**
-     * @var string
-     */
     protected string $path;
 
-    /**
-     * @var array|null
-     */
     protected ?array $metadata = null;
 
     /**
@@ -278,7 +269,6 @@ class Flysystem extends Storage
     }
 
     /**
-     * @inheritDoc
      * @return bool
      * @throws AccessDeniedException
      * @throws FlySystemFileNotFoundException
@@ -367,7 +357,7 @@ class Flysystem extends Storage
                 if (!$this->isFile()) {
                     throw new FileNotFoundException('file not found', 404);
                 }
-                return hash($algo, $this->getTime(Time::LAST_MODIFIED), $raw);
+                return hash($algo, $this->getTime(), $raw);
         }
         throw new UnsupportedException("unsupported hash-mode '{$mode}' for flysystem storage", 500);
     }
@@ -506,7 +496,7 @@ class Flysystem extends Storage
                     fclose($readStream);
                 }
 
-            case $destination instanceof Flysystem:
+            case $destination instanceof self:
                 return $this->flysystem->copy($this->path, $destination->path());
 
             case $destination instanceof Memory:
@@ -528,7 +518,7 @@ class Flysystem extends Storage
     {
         switch (true) {
 
-            case $destination instanceof Flysystem:
+            case $destination instanceof self:
                 return $this->flysystem->rename($this->path, $destination->path());
 
             case $destination instanceof Disk:

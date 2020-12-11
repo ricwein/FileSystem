@@ -55,7 +55,7 @@ class ReadTest extends TestCase
      */
     public function testListing(): void
     {
-        $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'));
+        $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
 
         /** @var Directory|File $file */
         foreach ($dir->list(true)->all() as $file) {
@@ -84,7 +84,7 @@ class ReadTest extends TestCase
      */
     public function testListingFiles(): void
     {
-        $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'));
+        $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
 
         /** @var File $file */
         foreach ($dir->list(true)->files() as $file) {
@@ -106,7 +106,7 @@ class ReadTest extends TestCase
      */
     public function testListingDirectories(): void
     {
-        $dir = new Directory(new Storage\Disk(__DIR__, '..'));
+        $dir = new Directory(new Storage\Disk(__DIR__, '..'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
         $path = $dir->path()->raw;
 
         // dynamically fetch list of all directories which should be returned

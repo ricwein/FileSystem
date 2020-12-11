@@ -61,6 +61,7 @@ class Disk extends Storage
      * @throws AccessDeniedException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws FileNotFoundException
      */
     public function __destruct()
     {
@@ -343,13 +344,14 @@ class Disk extends Storage
      * removes directory from disk
      * @return bool
      * @throws AccessDeniedException
+     * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
     public function removeDir(): bool
     {
         if (!$this->isDir()) {
-            throw new AccessDeniedException(sprintf('unable to remove directory for path: "%s"', $this->path->raw), 500);
+            throw new FileNotFoundException(sprintf('unable to remove directory for path: "%s"', $this->path->raw), 500);
         }
 
         try {
@@ -459,7 +461,7 @@ class Disk extends Storage
             case Hash::FILEPATH:
                 return hash($algo, $this->path->real, $raw);
             case Hash::LAST_MODIFIED:
-                return hash($algo, $this->getTime(Time::LAST_MODIFIED), $raw);
+                return hash($algo, $this->getTime(), $raw);
             default:
                 throw new RuntimeException('unknown hashing-mode', 500);
         }
@@ -496,7 +498,6 @@ class Disk extends Storage
         }
 
         // actual touch file
-        $result = false;
         if ($atime !== null && $time !== null) {
             $result = touch($this->path->raw, $time, $atime);
         } elseif ($time !== null) {
@@ -664,7 +665,7 @@ class Disk extends Storage
         switch (true) {
 
             // copy file from disk to disk
-            case $destination instanceof Disk:
+            case $destination instanceof self:
                 if (!rename($this->path->real, $destination->path()->raw)) {
                     return false;
                 }

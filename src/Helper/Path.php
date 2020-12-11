@@ -199,16 +199,16 @@ class Path
         // save and cleanup the initial path component,
         // which we can assume is safe for all coming path-components
         $safepath = reset($components);
-        if (false === $realSafePath = realpath($safepath)) {
-            $this->safepath = '/';
-        }
-
-        if (is_dir($realSafePath)) {
-            $this->safepath = $realSafePath;
-        } elseif (is_file($realSafePath)) {
-            $this->safepath = dirname($realSafePath);
+        if (false !== $realSafePath = realpath($safepath)) {
+            if (is_dir($realSafePath)) {
+                $this->safepath = $realSafePath;
+            } elseif (is_file($realSafePath)) {
+                $this->safepath = dirname($realSafePath);
+            } else {
+                $this->safepath = $realSafePath;
+            }
         } else {
-            $this->safepath = $realSafePath;
+            $this->safepath = '/';
         }
 
 
@@ -306,9 +306,7 @@ class Path
         static $openBaseDirs = null;
 
         if ($openBaseDirs === null) {
-            $openBaseDirs = array_filter(explode(':', trim(ini_get('open_basedir'))), function ($dir): bool {
-                return !empty($dir);
-            });
+            $openBaseDirs = array_filter(explode(':', trim(ini_get('open_basedir'))), static fn($dir): bool => !empty($dir));
         }
 
         // no basedir specified, therefor assume system is local only
@@ -362,6 +360,30 @@ class Path
             'path' => $path,
             'splInfo' => $splInfo,
         ];
+    }
+
+    public function __set(string $name, $value): void
+    {
+        throw new \RuntimeException("Unable to set Path::{$name} in runtime.", 500);
+    }
+
+    /**
+     * @param string $key
+     * @return bool
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     */
+    public function __isset(string $key): bool
+    {
+        if (!$this->loaded) {
+            $this->resolvePath();
+        }
+
+        if (!property_exists($this, $key)) {
+            throw new UnexpectedValueException(sprintf('unknown path-component named \'%s\'', $key), 500);
+        }
+
+        return $this->$key !== null;
     }
 
     /**

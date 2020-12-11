@@ -1,7 +1,7 @@
 <?php
-
 /**
  * @author Richard Weinhold
+ * @noinspection PhpComposerExtensionStubsInspection
  */
 
 declare(strict_types=1);

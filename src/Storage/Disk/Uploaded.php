@@ -105,7 +105,7 @@ class Uploaded extends Disk
      */
     public function getConstraintViolations(Throwable $previous = null): ?ConstraintsException
     {
-        return parent::getConstraintViolations(($previous !== null) ? $previous : $this->previousConstraintError);
+        return parent::getConstraintViolations($previous ?? $this->previousConstraintError);
     }
 
     /**

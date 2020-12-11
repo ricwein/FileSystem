@@ -73,11 +73,17 @@ class Command extends Directory
         foreach ($paths as $path) {
             if ($path instanceof Path && $path->fileInfo()->isFile() && $path->fileInfo()->isExecutable()) {
                 return $path->real;
-            } elseif ($path instanceof Storage\Disk && $path->isFile() && $path->isExecutable()) {
+            }
+
+            if ($path instanceof Storage\Disk && $path->isFile() && $path->isExecutable()) {
                 return $path->path()->real;
-            } elseif ($path instanceof File && $path->isFile() && $path->storage()->isExecutable()) {
+            }
+
+            if ($path instanceof File && $path->isFile() && $path->storage()->isExecutable()) {
                 return $path->path()->real;
-            } elseif (is_string($path) && file_exists($path) && is_file($path) && is_executable($path)) {
+            }
+
+            if (is_string($path) && file_exists($path) && is_file($path) && is_executable($path)) {
                 return $path;
             }
         }
@@ -100,12 +106,14 @@ class Command extends Directory
             foreach ($variable as $value) {
 
                 // match against current bindings tree
-                if (is_array($current) && array_key_exists($value, $current)) {
-                    $current = $current[$value];
-                } elseif (is_object($current) && method_exists($current, $value)) {
+                $isObject = is_object($current);
+
+                if ($isObject && method_exists($current, $value)) {
                     $current = $current->$value();
-                } elseif (is_object($current) && (property_exists($current, $value) || isset($current->$value))) {
+                } elseif ($isObject && (property_exists($current, $value) || isset($current->$value))) {
                     $current = $current->$value;
+                } elseif (is_array($current) && array_key_exists($value, $current)) {
+                    $current = $current[$value];
                 } else {
                     return $match[0];
                 }
@@ -167,8 +175,8 @@ class Command extends Directory
         $this->lastExitCode = 0;
 
         // cleanup cmd
-        $cmd = trim(str_ireplace($this->bin . ' ', '', $cmd));
-        $cmd = '"' . $this->bin . '" ' . $cmd;
+        $cmd = trim(str_ireplace("{$this->bin} ", '', $cmd));
+        $cmd = "\"{$this->bin}\" {$cmd}";
 
         $cmd = $this->bindVariables($cmd, $arguments);
         $cmd = $this->bindVariables($cmd, ['path' => $this->storage->path()]);
@@ -177,13 +185,11 @@ class Command extends Directory
         $cmd = rtrim($cmd);
         $this->lastCommand = $cmd;
 
-        switch (true) {
-            case $this->storage instanceof Storage\Disk:
-                $path = $this->storage->path()->real;
-                break;
-            default:
-                throw new RuntimeException(sprintf('unsupported storage system for Command-Execution: %s', get_class($this->storage)), 500);
+        if (!$this->storage instanceof Storage\Disk) {
+            throw new RuntimeException(sprintf('unsupported storage system for Command-Execution: %s', get_class($this->storage)), 500);
         }
+
+        $path = $this->storage->path()->real;
 
         if (!chdir($path)) {
             throw new AccessDeniedException('changing directory failed', 500);
