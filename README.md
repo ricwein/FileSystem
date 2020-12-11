@@ -5,12 +5,12 @@ This Library provides a Filesystem abstraction layer.
 ```php
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\Exception as FileSystemException;
 
 try {
 
     $file = new File(new Storage\Disk(__DIR__, '/test', '/dir2', 'test.json'));
-    $alt = new File(new Storage\Memory(json_encode(['some' => 'content'])));
+    $alt = new File(new Storage\Memory('{"some": "content"}'));
 
     // read file into output-buffer
     if ($file->isReadable()) {
@@ -21,20 +21,8 @@ try {
         echo $alt->read();
     }
 
+} catch (FileSystemException $e) {
 
-} catch (FileNotFoundException $e) {
-
-    // file was not found
-    http_response_code(404);
-    echo json_encode(['errors' => [
-        'status' => 404,
-        'title' => 'file not found',
-        'detail' => $e->getMessage(),
-    ]]);
-
-} catch (\Exception $e) {
-
-    // something else went wrong
     http_response_code(500);
     echo json_encode(['errors' => [
         'status' => $e->getCode(),
@@ -70,7 +58,7 @@ Accessing the Objects (File/Directory) Content is abstracted as `Storage`s. A Fi
 
 All Storage-Types must extend the abstract base class `Filesystem\Storage`.
 
-> WARNING: since storage-objects are mutable and php automatically handles class-objects as references when passed into a function (constructor), it's highly recommended to use the `clone` keyword when storages are recycled between to FileSystem-Objects.
+> WARNING: since storage-objects are mutable and php automatically handles class-objects as references when passed into a function (constructor), it's highly recommended using the `clone` keyword when storages are recycled between to FileSystem-Objects.
 > DO NOT:
 
 ```php
@@ -295,7 +283,7 @@ $extractDir = $zip->extractTo(new Storage\Disk\Temp);
 
 ### Storage Extensions
 
-- `Disk\Current`: Uses current-working-directory (`getcwd()`) as safepath. Usefull for cli-scripts in combination with `Directory\Command`.
+- `Disk\Current`: Uses current-working-directory (`getcwd()`) as safepath. Useful for cli-scripts in combination with `Directory\Command`.
 
  ```php
  $current = new File(new Storage\Disk(getcwd(), 'file.json'), Constraints::STRICT & ~Constraint::IN_SAFEPATH);
@@ -329,7 +317,7 @@ $extractDir = $zip->extractTo(new Storage\Disk\Temp);
  $file = $uploaded->moveTo(new Storage\Disk(__DIR__, 'uploads'));
  ```
 
-- `Memory\Resource`: Reads resource content into **MEMORY** on construct. The resource can be closed afterwards.
+- `Memory\Resource`: Reads resource content into **MEMORY** on construction. The resource can be closed afterwards.
 
  ```php
  $resource = fopen('test.json', 'rb');
