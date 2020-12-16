@@ -111,6 +111,8 @@ All *FileSystem*-base-classes must be initialized using a Storage.
 | `getHandle([string $mode])` | gets new file-Handle for binary file-access |
 | `storage()` | access internal storage adapter |
 | `path()` | tries to access filesystem-path |
+| `dir([,int $constraints [,string $as [,...$arguments]]])` | get parent `Directory` of file |
+
 
 ### Open and read a file from the local filesystem
 
@@ -167,8 +169,8 @@ Like Files, Directories must be initialized using a Storage.
 | `isValid()` | run constraints validation |
 | `storage()` | access internal storage adapter |
 | `path()` | tries to access filesystem-path |
-| `file(string $filename [,int $constraints])` | get `File` in current directory by name |
-| `dir(string $dirname [,int $constraints])` | get `Directory` in current directory by name (`clone`s storage!) |
+| `file(string $filename [,int $constraints [,string $as [,...$arguments]]])` | get `File` in current directory by name |
+| `dir(string $dirname [,int $constraints [,string $as [,...$arguments]]])` | get `Directory` in current directory by name (`clone`s storage!) |
 
 ### check if directory is readable
 

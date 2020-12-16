@@ -96,7 +96,7 @@ class PathFinderTest extends TestCase
 
         self::assertTrue($file->isFile());
         self::assertInstanceOf(Storage\Disk\Temp::class, $file->storage());
-        self::assertSame($file->directory()->path()->real, realpath(sys_get_temp_dir()));
+        self::assertSame($file->dir()->path()->real, realpath(sys_get_temp_dir()));
     }
 
     /**

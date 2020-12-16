@@ -17,15 +17,13 @@ class DirectoryTest extends TestCase
 {
     /**
      * @throws AccessDeniedException
-     * @throws ConstraintsException
      * @throws Exception
      * @throws RuntimeException
-     * @throws UnexpectedValueException
      */
     public function testSinglePath(): void
     {
         $file = new File(new Storage\Disk(__FILE__));
-        $dir = $file->directory();
+        $dir = $file->dir();
 
         self::assertTrue($file->isValid());
         self::assertTrue($dir->isValid());
@@ -49,7 +47,7 @@ class DirectoryTest extends TestCase
 
         $file = new File(new Storage\Disk(__DIR__ . '/../../', $sFile));
 
-        $dir = $file->directory();
+        $dir = $file->dir();
 
         self::assertTrue($file->isValid());
         self::assertTrue($dir->isValid());
@@ -74,7 +72,7 @@ class DirectoryTest extends TestCase
 
         $file = new File(new Storage\Disk($sDir1, $sDir2, $sFile));
 
-        $dir = $file->directory();
+        $dir = $file->dir();
 
         self::assertTrue($file->isValid());
         self::assertTrue($dir->isValid());

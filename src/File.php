@@ -380,12 +380,11 @@ class File extends FileSystem
      * @param string $as
      * @param mixed ...$arguments
      * @return Directory
-     * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function directory(?int $constraints = null, string $as = Directory::class, ...$arguments): Directory
+    public function dir(?int $constraints = null, string $as = Directory::class, ...$arguments): Directory
     {
         if (!$this->storage->doesSatisfyConstraints()) {
             throw $this->storage->getConstraintViolations();
