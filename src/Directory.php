@@ -203,13 +203,14 @@ class Directory extends FileSystem
     /**
      * @param string $filename
      * @param int|null $constraints
+     * @param string $as
+     * @param mixed ...$arguments
      * @return File
-     * @throws AccessDeniedException
      * @throws Exceptions\ConstraintsException
-     * @throws Exceptions\Exception
      * @throws Exceptions\RuntimeException
+     * @throws UnexpectedValueException
      */
-    public function file(string $filename, ?int $constraints = null): File
+    public function file(string $filename, ?int $constraints = null, string $as = File::class, ...$arguments): File
     {
         if (!$this->storage->doesSatisfyConstraints()) {
             throw $this->storage->getConstraintViolations();
@@ -232,28 +233,34 @@ class Directory extends FileSystem
             $storage = new Storage\Disk($dirpath, $filename);
         }
 
-        return new File(
+        return new $as(
             $storage,
-            $constraints ?? $this->storage->getConstraints()
+            $constraints ?? $this->storage->getConstraints(),
+            ...$arguments
         );
     }
 
     /**
      * @param string $dirname
      * @param int|null $constraints
-     * @return Directory
-     * @throws AccessDeniedException
+     * @param string $as
+     * @param mixed ...$arguments
+     * @return self
      * @throws Exceptions\ConstraintsException
      * @throws Exceptions\RuntimeException
      * @throws UnexpectedValueException
      */
-    public function dir(string $dirname, ?int $constraints = null): Directory
+    public function dir(string $dirname, ?int $constraints = null, string $as = self::class, ...$arguments): Directory
     {
         if (!$this->storage->doesSatisfyConstraints()) {
             throw $this->storage->getConstraintViolations();
         }
 
-        $directory = new static(clone $this->storage(), $constraints ?? $this->storage->getConstraints());
+        $directory = new $as(
+            clone $this->storage(),
+            $constraints ?? $this->storage->getConstraints(),
+            ...$arguments
+        );
         return $directory->cd($dirname);
     }
 }

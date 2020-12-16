@@ -377,13 +377,15 @@ class File extends FileSystem
 
     /**
      * @param int|null $constraints
+     * @param string $as
+     * @param mixed ...$arguments
      * @return Directory
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function directory(?int $constraints = null): Directory
+    public function directory(?int $constraints = null, string $as = Directory::class, ...$arguments): Directory
     {
         if (!$this->storage->doesSatisfyConstraints()) {
             throw $this->storage->getConstraintViolations();
@@ -408,9 +410,10 @@ class File extends FileSystem
             $storage = new Storage\Disk($dirpath);
         }
 
-        return new Directory(
+        return new $as(
             $storage,
-            $constraints ?? $this->storage->getConstraints()
+            $constraints ?? $this->storage->getConstraints(),
+            ...$arguments
         );
     }
 

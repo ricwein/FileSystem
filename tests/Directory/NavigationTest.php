@@ -11,9 +11,11 @@ use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Helper\Constraint;
+use ZipArchive;
 
 class NavigationTest extends TestCase
 {
@@ -61,6 +63,13 @@ class NavigationTest extends TestCase
             $dir->up(2)->file('LICENSE')->read(),
             file_get_contents(__DIR__ . '/../../LICENSE')
         );
+
+        $exampleDir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'), Constraint::LOOSE);
+        $zipFile = $exampleDir->file('archive.zip', Constraint::LOOSE, File\Zip::class, ZipArchive::CREATE);
+
+        self::assertTrue($zipFile->isFile());
+        self::assertSame(File\Zip::class, get_class($zipFile));
+        self::assertTrue(method_exists($zipFile, 'extractTo'));
     }
 
     /**
