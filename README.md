@@ -52,8 +52,9 @@ A File is represented as a `File` Object and a Directory as a `Directory` Object
 
 Accessing the Objects (File/Directory) Content is abstracted as `Storage`s. A File can be either:
 
-- a `Disk` file at your local filesystem (`Storage\Disk`)
+- a `Disk` file/directory at your local filesystem (`Storage\Disk`)
 - a `Memory` file, which only temporary exists in-memory (`Storage\Memory`)
+- a `Stream` a stream which points to a file or resource (`Storage\Stream`)
 - an abstract `Flysystem` file (`Storage\Flysystem`)
 
 All Storage-Types must extend the abstract base class `Filesystem\Storage`.
@@ -132,6 +133,16 @@ use ricwein\FileSystem\Storage;
 
 $file = new File(new Storage\Memory('some content'));
 $content = $file->read();
+```
+
+### or from stream
+
+```php
+use ricwein\FileSystem\File;
+use ricwein\FileSystem\Storage;
+
+$file = new File(new Storage\Stream(fopen('php://output')));
+$content = $file->write('content');
 ```
 
 ### or from a Flysystem object
@@ -320,6 +331,8 @@ $extractDir = $zip->extractTo(new Storage\Disk\Temp);
  ```
 
 - `Memory\Resource`: Reads resource content into **MEMORY** on construction. The resource can be closed afterwards.
+  
+> ATTENTION: Usually it's a better idea to just use `Stream` instead!
 
  ```php
  $resource = fopen('test.json', 'rb');
