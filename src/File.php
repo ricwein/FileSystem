@@ -8,8 +8,7 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem;
 
-use League\Flysystem\FileExistsException;
-use League\Flysystem\FileNotFoundException as FlySystemFileNotFoundException;
+use League\Flysystem\FilesystemException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
@@ -134,10 +133,10 @@ class File extends FileSystem
      * @param int|null $constraints
      * @return self new File-object
      * @throws AccessDeniedException
+     * @throws ConstraintsException
      * @throws Exceptions\Exception
-     * @throws FileExistsException
      * @throws FileNotFoundException
-     * @throws FlySystemFileNotFoundException
+     * @throws FilesystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -155,12 +154,12 @@ class File extends FileSystem
      * @param int|null $constraints
      * @return bool success
      * @throws AccessDeniedException
+     * @throws ConstraintsException
      * @throws Exceptions\Exception
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
-     * @throws FileExistsException
-     * @throws FlySystemFileNotFoundException
+     * @throws FilesystemException
      */
     protected function copyFileTo(Storage &$destination, ?int $constraints = null): bool
     {
@@ -170,15 +169,15 @@ class File extends FileSystem
 
         // validate constraints
         if ($destination instanceof Storage\Disk\Temp && !$destination->touch(true)) {
-            throw new AccessDeniedException('unable to create temp file', 403);
+            throw new AccessDeniedException('Unable to create temp file.', 403);
         }
 
         if (!$destination->doesSatisfyConstraints()) {
-            throw new AccessDeniedException('unable to open destination file', 403, $destination->getConstraintViolations());
+            throw new AccessDeniedException('Unable to open destination file.', 403, $destination->getConstraintViolations());
         }
 
         if ($destination->isFile() && !$destination->isWriteable()) {
-            throw new AccessDeniedException('unable to write to destination file', 403);
+            throw new AccessDeniedException('Unable to write to destination file.', 403);
         }
 
         // ensure the destination-path points to a filename
@@ -197,10 +196,10 @@ class File extends FileSystem
      * @param int|null $constraints
      * @return self new File-object
      * @throws AccessDeniedException
+     * @throws ConstraintsException
      * @throws Exceptions\Exception
-     * @throws FileExistsException
      * @throws FileNotFoundException
-     * @throws FlySystemFileNotFoundException
+     * @throws FilesystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -219,10 +218,10 @@ class File extends FileSystem
      * @param int|null $constraints
      * @return bool success
      * @throws AccessDeniedException
+     * @throws ConstraintsException
      * @throws Exceptions\Exception
-     * @throws FileExistsException
      * @throws FileNotFoundException
-     * @throws FlySystemFileNotFoundException
+     * @throws FilesystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */

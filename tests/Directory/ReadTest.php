@@ -24,11 +24,12 @@ class ReadTest extends TestCase
      * @throws AccessDeniedException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function testMemoryInit(): void
     {
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionMessage('in-memory directories are not supported');
+        $this->expectException(UnsupportedException::class);
+        $this->expectExceptionMessage('In-memory directories are not supported.');
 
         new Directory(new Storage\Memory());
     }

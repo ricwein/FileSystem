@@ -65,7 +65,7 @@ class Memory extends Storage
      */
     public function isDir(): bool
     {
-        return true;
+        return false;
     }
 
     /**
@@ -73,7 +73,7 @@ class Memory extends Storage
      */
     public function isExecutable(): bool
     {
-        return true;
+        return false;
     }
 
     /**
@@ -81,7 +81,7 @@ class Memory extends Storage
      */
     public function isSymlink(): bool
     {
-        return true;
+        return false;
     }
 
     /**
@@ -98,6 +98,14 @@ class Memory extends Storage
     public function isWriteable(): bool
     {
         return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isDotfile(): bool
+    {
+        return false;
     }
 
     /**
@@ -225,14 +233,6 @@ class Memory extends Storage
         }
 
         return true;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function isDotfile(): bool
-    {
-        return false;
     }
 
     /**

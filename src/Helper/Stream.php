@@ -14,11 +14,14 @@ use ricwein\FileSystem\Exceptions\RuntimeException;
  */
 class Stream
 {
-
     /** @var resource $handle */
     protected $handle;
+
     protected bool $closeOnFree = false;
+
     protected ?int $lock = null;
+
+    protected ?array $metadata = null;
 
     /**
      * @param resource $handle
@@ -43,10 +46,11 @@ class Stream
     public static function fromResourceName(string $filename, string $mode = 'rb+'): self
     {
         if (false === $handle = @fopen($filename, $mode)) {
-            throw new RuntimeException("stream creation failed, resource not found: {$filename}", 500);
+            throw new RuntimeException("Stream creation failed, resource not found: {$filename}", 500);
         }
 
         $stream = new static($handle);
+        $stream->updateMetaData(['mode' => $mode]);
         $stream->closeOnFree();
 
         return $stream;
@@ -66,17 +70,44 @@ class Stream
     }
 
     /**
+     * @internal
+     */
+    public function forceClose(): void
+    {
+        if (is_resource($this->handle)) {
+            fclose($this->handle);
+            $this->closeOnFree = false;
+        }
+    }
+
+    /**
      * @param int $mode
      * @return $this
      * @throws RuntimeException
      */
     public function lock(int $mode): self
     {
-        if ($mode !== 0 && !flock($this->handle, $mode | LOCK_NB)) {
+        if ($this->lock !== null) {
+            return $this;
+        }
+
+        if ($mode === 0) {
+            return $this;
+        }
+
+        if (!flock($this->handle, $mode | LOCK_NB)) {
             throw new RuntimeException('unable to get file-lock', 500);
         }
 
         $this->lock = $mode;
+        return $this;
+    }
+
+    public function unlock(): self
+    {
+        if ($this->lock !== null) {
+            flock($this->handle, LOCK_UN);
+        }
         return $this;
     }
 
@@ -121,6 +152,17 @@ class Stream
     }
 
     /**
+     * @param string $content
+     * @throws RuntimeException
+     */
+    public function write(string $content): void
+    {
+        if (false === fwrite($this->handle, $content)) {
+            throw new RuntimeException('Error while writing to stream.', 500);
+        }
+    }
+
+    /**
      * @param int $offset
      * @param int|null $length
      * @return string
@@ -141,7 +183,7 @@ class Stream
 
         // read part of file
         if (false === $result = fread($this->handle, $length)) {
-            throw new RuntimeException('error while reading file', 500);
+            throw new RuntimeException('Error while reading stream.', 500);
         }
 
         return $result;
@@ -242,5 +284,76 @@ class Stream
                 throw new RuntimeException('error while reading file', 500);
             }
         }
+    }
+
+    public function getMetaData(): array
+    {
+        if ($this->metadata === null) {
+            $this->metadata = stream_get_meta_data($this->handle);
+        }
+        return $this->metadata;
+    }
+
+    /**
+     * @param array $metadata
+     * @internal
+     */
+    public function updateMetaData(array $metadata): void
+    {
+        $this->metadata = array_replace($this->getMetaData(), $metadata);
+    }
+
+    public function getAttribute(string $name, $default = null)
+    {
+        $metadata = $this->getMetaData();
+        if (!array_key_exists($name, $metadata)) {
+            return $default;
+        }
+
+        return $metadata[$name];
+    }
+
+    public function getSize(): int
+    {
+        $stats = fstat($this->handle);
+        return $stats['size'] ?? 0;
+    }
+
+    public function isWriteable(): bool
+    {
+        return static::isModeWriteable($this->getAttribute('mode', ''));
+    }
+
+    public function isReadable(): bool
+    {
+        return static::isModeReadable($this->getAttribute('mode', ''));
+    }
+
+    public static function isModeWriteable(string $mode): bool
+    {
+        // ignore binary mode
+        $modeType = str_replace('b', '', $mode);
+
+        // + suffix (adds write to read mode)
+        if (strpos($modeType, '+') !== false) {
+            return true;
+        }
+
+        $modeType = str_replace('+', '', $modeType);
+        return in_array($modeType, ['w', 'a', 'x', 'c'], true);
+    }
+
+    public static function isModeReadable(string $mode): bool
+    {
+        // ignore binary mode
+        $modeType = str_replace('b', '', $mode);
+
+        // + suffix (adds write to read mode)
+        if (strpos($modeType, '+') !== false) {
+            return true;
+        }
+
+        $modeType = str_replace('+', '', $modeType);
+        return $modeType === 'r';
     }
 }

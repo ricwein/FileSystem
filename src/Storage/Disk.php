@@ -14,7 +14,7 @@ use FilesystemIterator;
 use finfo;
 use Generator;
 use Iterator;
-use League\Flysystem\FileExistsException;
+use League\Flysystem\FilesystemException;
 use RecursiveCallbackFilterIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -33,7 +33,6 @@ use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\MimeType;
 use ricwein\FileSystem\Storage\Extensions\Binary;
 use SplFileInfo;
-use League\Flysystem\FileNotFoundException as FlySystemFileNotFoundException;
 
 /**
  * represents a file/directory at the local filesystem
@@ -627,8 +626,7 @@ class Disk extends Storage
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
-     * @throws FileExistsException
-     * @throws FlySystemFileNotFoundException
+     * @throws FilesystemException
      */
     public function copyFileTo(Storage $destination): bool
     {
@@ -662,11 +660,9 @@ class Disk extends Storage
      * @param Storage $destination
      * @return bool
      * @throws Exception
-     * @throws FileExistsException
      * @throws FileNotFoundException
-     * @throws FlySystemFileNotFoundException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
+     * @throws FilesystemException
      */
     public function moveFileTo(Storage $destination): bool
     {
