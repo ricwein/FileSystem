@@ -223,8 +223,8 @@ class Stream extends Storage
     public function getFileType(bool $withEncoding = false): ?string
     {
         $uri = $this->stream->getAttribute('uri');
-        if (is_string($uri)) {
-            $extension = substr(strrchr($uri, '.'), 1);
+        if (is_string($uri) && false !== $pos = strrchr($uri, '.')) {
+            $extension = substr($pos, 1);
             return MimeType::getMimeFor($extension);
         }
 
