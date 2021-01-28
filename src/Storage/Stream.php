@@ -185,7 +185,7 @@ class Stream extends Storage
     public function removeFile(): bool
     {
         $uri = $this->stream->getAttribute('uri');
-        if ($uri !== null && strpos($uri, '/') === 0 && is_file($uri)) {
+        if (is_string($uri) && strpos($uri, '/') === 0 && is_file($uri)) {
             $this->stream->forceClose();
             unlink($uri);
         } else {
@@ -222,7 +222,8 @@ class Stream extends Storage
      */
     public function getFileType(bool $withEncoding = false): ?string
     {
-        if (null !== $uri = $this->stream->getAttribute('uri')) {
+        $uri = $this->stream->getAttribute('uri');
+        if (is_string($uri)) {
             $extension = substr(strrchr($uri, '.'), 1);
             return MimeType::getMimeFor($extension);
         }
