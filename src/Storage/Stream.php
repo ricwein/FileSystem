@@ -24,7 +24,7 @@ class Stream extends Storage
 
     /**
      * Stream constructor.
-     * @param $stream
+     * @param StreamResource|resource|string $stream
      * @throws RuntimeException
      * @throws UnsupportedException
      */
@@ -34,8 +34,10 @@ class Stream extends Storage
             $this->stream = $stream;
         } elseif (is_resource($stream)) {
             $this->stream = new StreamResource($stream);
+        } elseif (is_string($stream)) {
+            $this->stream = StreamResource::fromResourceName($stream);
         } else {
-            throw new UnsupportedException(sprintf('The Stream storage only supports Helper\Stream or resource inputs, but %s was given instead.', is_object($stream) ? get_class($stream) : gettype($stream)), 500);
+            throw new UnsupportedException(sprintf('The Stream storage only supports Helper\Stream, resource or string inputs, but %s was given instead.', is_object($stream) ? get_class($stream) : gettype($stream)), 500);
         }
 
         $now = time();
