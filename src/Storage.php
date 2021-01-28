@@ -17,6 +17,7 @@ use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
+use ricwein\FileSystem\Helper\Stream;
 use ricwein\FileSystem\Storage\Extensions\Binary;
 use Throwable;
 
@@ -230,6 +231,7 @@ abstract class Storage
      * @param int|null $constraints
      * @return Generator list of all files
      * @throws UnsupportedException
+     * @noinspection PhpInconsistentReturnPointsInspection
      */
     public function list(bool $recursive = false, ?int $constraints = null): Generator
     {
@@ -243,16 +245,16 @@ abstract class Storage
 
     /**
      * @param string $mode
-     * @return resource
+     * @return Stream
      */
-    abstract public function getStream(string $mode = 'rb+');
+    abstract public function getStream(string $mode = 'rb+'): Stream;
 
     /**
      * update content from stream
-     * @param resource $stream file-handle
+     * @param Stream $stream file-handle
      * @return bool
      */
-    abstract public function writeFromStream($stream): bool;
+    abstract public function writeFromStream(Stream $stream): bool;
 
     /**
      * <b>copy</b> file to new destination

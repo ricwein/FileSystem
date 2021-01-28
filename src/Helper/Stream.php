@@ -25,9 +25,10 @@ class Stream
 
     /**
      * @param resource $handle
+     * @param bool $closeOnFree
      * @throws RuntimeException
      */
-    public function __construct($handle)
+    public function __construct($handle, bool $closeOnFree = true)
     {
         if (!is_resource($handle)) {
             /** @noinspection CallableParameterUseCaseInTypeContextInspection */
@@ -35,6 +36,7 @@ class Stream
         }
 
         $this->handle = $handle;
+        $this->closeOnFree = $closeOnFree;
     }
 
     /**
@@ -207,27 +209,6 @@ class Stream
 
         if (false === $result) {
             throw new RuntimeException('error while copying to stream', 500);
-        }
-    }
-
-    /**
-     * @param resource $handle
-     * @param int $offset
-     * @param int|null $length
-     * @throws RuntimeException
-     */
-    public function copyFrom($handle, int $offset = 0, ?int $length = null): void
-    {
-        if ($length !== null) {
-            $result = stream_copy_to_stream($handle, $this->handle, $offset, $length);
-        } elseif ($offset > 0) {
-            $result = stream_copy_to_stream($handle, $this->handle, $offset);
-        } else {
-            $result = stream_copy_to_stream($handle, $this->handle);
-        }
-
-        if (false === $result) {
-            throw new RuntimeException('error while copying from stream', 500);
         }
     }
 

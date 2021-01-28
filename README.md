@@ -112,8 +112,8 @@ All *FileSystem*-base-classes must be initialized using a Storage.
 | `getHandle([string $mode])` | gets new file-Handle for binary file-access |
 | `storage()` | access internal storage adapter |
 | `path()` | tries to access filesystem-path |
+| `getStream()` | returns `Stream` wrapper around internal resource pointing to actual file |
 | `dir([,int $constraints [,string $as [,...$arguments]]])` | get parent `Directory` of file |
-
 
 ### Open and read a file from the local filesystem
 
@@ -331,7 +331,7 @@ $extractDir = $zip->extractTo(new Storage\Disk\Temp);
  ```
 
 - `Memory\Resource`: Reads resource content into **MEMORY** on construction. The resource can be closed afterwards.
-  
+
 > ATTENTION: Usually it's a better idea to just use `Stream` instead!
 
  ```php

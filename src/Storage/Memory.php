@@ -250,7 +250,7 @@ class Memory extends Storage
      * @inheritDoc
      * @throws RuntimeException
      */
-    public function getStream(string $mode = 'rb+')
+    public function getStream(string $mode = 'rb+'): Stream
     {
         $modeType = $mode;
 
@@ -287,30 +287,26 @@ class Memory extends Storage
         }
 
         // open new empty memory stream
-        $handle = fopen('php://memory', $openMode);
-        if ($handle === false) {
-            throw new RuntimeException('failed to open stream', 500);
-        }
+        $stream = Stream::fromResourceName('php://memory', $openMode);
 
         // pre-fill stream
         if ($readMode && !$resetContent && $this->content !== null) {
-            fwrite($handle, $this->content);
+            $stream->write($this->content);
             if ($pointerAtStart) {
-                rewind($handle);
+                $stream->rewind();
             }
         }
 
-        return $handle;
+        return $stream;
     }
 
     /**
      * @inheritDoc
      * @throws RuntimeException
      */
-    public function writeFromStream($stream): bool
+    public function writeFromStream(Stream $stream): bool
     {
-        $streamer = new Stream($stream);
-        $this->content = $streamer->read();
+        $this->content = $stream->read();
         return true;
     }
 

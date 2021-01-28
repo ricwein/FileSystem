@@ -262,19 +262,19 @@ class Stream extends Storage
         return true;
     }
 
-    public function getStream(string $mode = 'rb+')
+    public function getStream(string $mode = 'rb+'): StreamResource
     {
-        return $this->stream->getHandle();
+        return $this->stream;
     }
 
     /**
-     * @param resource $stream
+     * @param StreamResource $stream
      * @return bool
      * @throws RuntimeException
      */
-    public function writeFromStream($stream): bool
+    public function writeFromStream(StreamResource $stream): bool
     {
-        (new StreamResource($stream))->copyToStream($this->stream);
+        $stream->copyToStream($this->stream);
         return true;
     }
 
@@ -295,7 +295,7 @@ class Stream extends Storage
                 return true;
 
             default:
-                $this->stream->copyTo($destination->getStream('wb'));
+                $this->stream->copyToStream($destination->getStream('wb'));
                 return true;
         }
     }
@@ -315,10 +315,5 @@ class Stream extends Storage
         }
 
         return $this->removeFile();
-    }
-
-    public function getStreamResource(): StreamResource
-    {
-        return $this->stream;
     }
 }

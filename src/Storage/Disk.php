@@ -189,23 +189,13 @@ class Disk extends Storage
         }
 
         // open file-handler in readonly mode
-        $handle = $this->getStream('r');
-
+        $stream = $this->getStream('rb');
         try {
 
-            // try to set lock if provided
-            if ($mode !== 0 && !flock($handle, $mode | LOCK_NB)) {
-                throw new RuntimeException('unable to get file-lock', 500);
-            }
-
-            return (new Stream($handle))->read($offset, $length);
+            $stream->lock($mode | LOCK_NB);
+            return $stream->read($offset, $length);
         } finally {
-
-            // ensure the file in unlocked after reading and the file-handler is closed again
-            if ($mode !== 0) {
-                flock($handle, LOCK_UN);
-            }
-            fclose($handle);
+            $stream->unlock();
         }
     }
 
@@ -241,23 +231,14 @@ class Disk extends Storage
         }
 
         // open file-handler in readonly mode
-        $handle = $this->getStream('r');
-
+        $stream = $this->getStream('rb');
         try {
 
             // try to set lock if provided
-            if ($mode !== 0 && !flock($handle, $mode | LOCK_NB)) {
-                throw new RuntimeException('unable to get file-lock', 500);
-            }
-
-            (new Stream($handle))->passthru($offset, $length);
+            $stream->lock($mode);
+            $stream->passthru($offset, $length);
         } finally {
-
-            // ensure the file in unlocked after reading and the file-handler is closed again
-            if ($mode !== 0) {
-                flock($handle, LOCK_UN);
-            }
-            fclose($handle);
+            $stream->unlock();
         }
     }
 
@@ -271,29 +252,18 @@ class Disk extends Storage
         $this->touch(true);
 
         // open file-handler in readonly mode
-        $handle = $this->getStream($append ? 'ab' : 'wb');
+        $stream = $this->getStream($append ? 'ab' : 'wb');
 
         try {
 
             // try to set lock if provided
-            if ($mode !== 0 && !flock($handle, $mode | LOCK_NB)) {
-                throw new RuntimeException('unable to get file-lock', 500);
-            }
-
-            // write content
-            if (fwrite($handle, $content) === false) {
-                return false;
-            }
+            $stream->lock($mode);
+            $stream->write($content);
 
             $this->path->reload();
             return true;
         } finally {
-
-            // ensure the file in unlocked after reading and the file-handler is closed again
-            if ($mode !== 0) {
-                flock($handle, LOCK_UN);
-            }
-            fclose($handle);
+            $stream->unlock();
         }
     }
 
@@ -588,33 +558,24 @@ class Disk extends Storage
      * @inheritDoc
      * @throws RuntimeException
      */
-    public function getStream(string $mode = 'rb+')
+    public function getStream(string $mode = 'rb+'): Stream
     {
-        $stream = fopen($this->path->real, $mode);
-
-        if ($stream === false) {
-            throw new RuntimeException('failed to open stream', 500);
-        }
-
-        return $stream;
+        return Stream::fromResourceName($this->path->real, $mode);
     }
 
     /**
      * @inheritDoc
      * @throws RuntimeException
      */
-    public function writeFromStream($stream): bool
+    public function writeFromStream(Stream $stream): bool
     {
-        $sourceStream = new Stream($stream);
-        $destHandle = $this->getStream('wb');
+        $destHandle = Stream::fromResourceName($this->path->real, 'wb');
 
         try {
-            $sourceStream->copyTo($destHandle);
+            $stream->copyToStream($destHandle);
             return true;
-        } catch (RuntimeException$e) {
+        } catch (RuntimeException $e) {
             return false;
-        } finally {
-            fclose($destHandle);
         }
     }
 
@@ -643,11 +604,7 @@ class Disk extends Storage
 
             case $destination instanceof Flysystem:
                 $readStream = $this->getStream('rb');
-                try {
-                    return $destination->writeFromStream($readStream) === true;
-                } finally {
-                    fclose($readStream);
-                }
+                return $destination->writeFromStream($readStream) === true;
 
             case $destination instanceof Memory:
             default:

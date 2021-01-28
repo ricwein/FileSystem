@@ -180,16 +180,12 @@ class Flysystem extends Storage
             throw new FileNotFoundException('file not found', 404);
         }
 
-        try {
-            $handle = $this->flysystem->readStream($this->path);
-            if ($handle === false) {
-                throw new RuntimeException('error while reading file', 500);
-            }
-
-            return (new Stream($handle))->read($offset, $length);
-        } finally {
-            fclose($handle);
+        $handle = $this->flysystem->readStream($this->path);
+        if ($handle === false) {
+            throw new RuntimeException('error while reading file', 500);
         }
+
+        return (new Stream($handle))->read($offset, $length);
     }
 
     /**
@@ -219,16 +215,8 @@ class Flysystem extends Storage
             throw new FileNotFoundException('file not found', 404);
         }
 
-        try {
-            $handle = $this->flysystem->readStream($this->path);
-            if ($handle === false) {
-                throw new RuntimeException('error while reading file', 500);
-            }
-
-            (new Stream($handle))->passthru($offset, $length);
-        } finally {
-            fclose($handle);
-        }
+        $stream = $this->getStream('rb');
+        $stream->passthru($offset, $length);
     }
 
     /**
@@ -334,9 +322,7 @@ class Flysystem extends Storage
                     throw new FileNotFoundException('file not found', 404);
                 }
 
-                return (new Stream($this->getStream()))
-                    ->closeOnFree()
-                    ->getHash($algo, $raw);
+                return $this->getStream('rb')->closeOnFree()->getHash($algo, $raw);
 
             case Hash::FILENAME:
                 return hash($algo, basename($this->path), $raw);
@@ -427,12 +413,10 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @param string $mode
-     * @return resource
      * @throws FlySystemException
      * @throws RuntimeException
      */
-    public function getStream(string $mode = 'rb+')
+    public function getStream(string $mode = 'rb+'): Stream
     {
         $stream = $this->flysystem->readStream($this->path);
 
@@ -440,20 +424,18 @@ class Flysystem extends Storage
             throw new RuntimeException('failed to open stream', 500);
         }
 
-        return $stream;
+        return new Stream($stream);
     }
 
     /**
      * @inheritDoc
-     * @param $stream
-     * @return bool
      * @throws Exception
      * @throws FlySystemException
      */
-    public function writeFromStream($stream): bool
+    public function writeFromStream(Stream $stream): bool
     {
         $this->touch(true);
-        $this->flysystem->writeStream($this->path, $stream);
+        $this->flysystem->writeStream($this->path, $stream->getHandle());
         return true;
     }
 
@@ -469,17 +451,16 @@ class Flysystem extends Storage
     {
         switch (true) {
 
+            case $destination instanceof Stream:
             case $destination instanceof Disk:
-                $readStream = $this->getStream('r');
-                try {
-                    if (!$destination->writeFromStream($readStream)) {
-                        return false;
-                    }
-                    $destination->path()->reload();
-                    return true;
-                } finally {
-                    fclose($readStream);
+                $readStream = $this->getStream('rb');
+
+                if (!$destination->writeFromStream($readStream)) {
+                    return false;
                 }
+
+                $destination->path()->reload();
+                return true;
 
             case $destination instanceof self:
                 $this->flysystem->copy($this->path, $destination->path());

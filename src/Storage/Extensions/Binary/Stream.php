@@ -22,7 +22,7 @@ class Stream extends Binary
     public function __construct(int $mode, StreamStorage $storage)
     {
         parent::__construct($mode);
-        $this->stream = $storage->getStreamResource();
+        $this->stream = $storage->getStream();
     }
 
     /**

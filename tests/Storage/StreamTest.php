@@ -29,12 +29,12 @@ class StreamTest extends TestCase
         self::assertFalse($storage->isSymlink());
 
         $storage = new Storage\Stream(Stream::fromResourceName('php://temp', 'rb'));
-        self::assertSame('rb', $storage->getStreamResource()->getAttribute('mode'));
+        self::assertSame('rb', $storage->getStream()->getAttribute('mode'));
         self::assertFalse($storage->isWriteable());
         self::assertTrue($storage->isReadable());
 
         $storage = new Storage\Stream(Stream::fromResourceName('php://temp', 'wb'));
-        self::assertSame('wb', $storage->getStreamResource()->getAttribute('mode'));
+        self::assertSame('wb', $storage->getStream()->getAttribute('mode'));
         self::assertTrue($storage->isWriteable());
         self::assertFalse($storage->isReadable());
     }
@@ -50,7 +50,7 @@ class StreamTest extends TestCase
         // The stream should be write-only but is also readable.
         // This test is in place to watch out for changes on the behavior.
         self::assertTrue($storage->isReadable());
-        self::assertNotSame('wb', $storage->getStreamResource()->getAttribute('mode'));
+        self::assertNotSame('wb', $storage->getStream()->getAttribute('mode'));
     }
 
     /**

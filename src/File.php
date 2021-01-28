@@ -16,6 +16,7 @@ use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Enum\Hash;
+use ricwein\FileSystem\Helper\Stream;
 use ricwein\FileSystem\Storage\Extensions\Binary;
 
 /**
@@ -419,11 +420,11 @@ class File extends FileSystem
     /**
      * open and return file-stream
      * @param string $mode
-     * @return resource
+     * @return Stream
      * @throws ConstraintsException
      * @throws FileNotFoundException
      */
-    public function getStream(string $mode = 'rb+')
+    public function getStream(string $mode = 'rb+'): Stream
     {
         $this->checkFileReadPermissions();
 
