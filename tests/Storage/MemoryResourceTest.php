@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\Storage;
 
+use League\Flysystem\FilesystemException as FlysystemFilesystemException;
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
@@ -32,6 +33,7 @@ class MemoryResourceTest extends TestCase
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
+     * @throws FlysystemFilesystemException
      */
     public function testResourceRead(): void
     {
