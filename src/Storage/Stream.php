@@ -28,7 +28,7 @@ class Stream extends Storage
      * @throws RuntimeException
      * @throws UnsupportedException
      */
-    public function __construct($stream)
+    public function __construct(mixed $stream)
     {
         if ($stream instanceof StreamResource) {
             $this->stream = $stream;
@@ -37,7 +37,7 @@ class Stream extends Storage
         } elseif (is_string($stream)) {
             $this->stream = StreamResource::fromResourceName($stream);
         } else {
-            throw new UnsupportedException(sprintf('The Stream storage only supports Helper\Stream, resource or string inputs, but %s was given instead.', is_object($stream) ? get_class($stream) : gettype($stream)), 500);
+            throw new UnsupportedException(sprintf('The Stream storage only supports Helper\Stream, resource or string inputs, but %s was given instead.', get_debug_type($stream)), 500);
         }
 
         $now = time();
@@ -185,7 +185,7 @@ class Stream extends Storage
     public function removeFile(): bool
     {
         $uri = $this->stream->getAttribute('uri');
-        if (is_string($uri) && strpos($uri, '/') === 0 && is_file($uri)) {
+        if (is_string($uri) && str_starts_with($uri, '/') && is_file($uri)) {
             $this->stream->forceClose();
             unlink($uri);
         } else {
@@ -245,7 +245,7 @@ class Stream extends Storage
             case Hash::CONTENT:
                 return $this->stream->getHash($algo, $raw);
             case Hash::LAST_MODIFIED:
-                return hash($algo, $this->lastModified, $raw);
+                return hash($algo, (string)$this->lastModified, $raw);
             case Hash::FILENAME:
             case Hash::FILEPATH:
                 throw new RuntimeException('Unable to calculate filepath/name hash for stream.', 500);

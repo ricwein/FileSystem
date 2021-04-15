@@ -31,8 +31,7 @@ class Stream
     public function __construct($handle, bool $closeOnFree = true)
     {
         if (!is_resource($handle)) {
-            /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-            throw new RuntimeException(sprintf('file-handle must be of type \'resource\' but \'%s\' given', is_object($handle) ? get_class($handle) : gettype($handle)), 500);
+            throw new RuntimeException(sprintf('file-handle must be of type \'resource\' but \'%s\' given', get_debug_type($handle)), 500);
         }
 
         $this->handle = $handle;
@@ -48,7 +47,7 @@ class Stream
     public static function fromResourceName(string $filename, string $mode = 'rb+'): self
     {
         if (false === $handle = @fopen($filename, $mode)) {
-            throw new RuntimeException("Stream creation failed, resource not found: {$filename}", 500);
+            throw new RuntimeException("Stream creation failed, resource not found: $filename", 500);
         }
 
         $stream = new static($handle);
@@ -244,6 +243,7 @@ class Stream
 
         if ($length === null) {
 
+            /** @noinspection PhpStrictComparisonWithOperandsOfDifferentTypesInspection */
             if (fpassthru($this->handle) !== false) {
                 flush();
                 return;
@@ -316,7 +316,7 @@ class Stream
         $modeType = str_replace('b', '', $mode);
 
         // + suffix (adds write to read mode)
-        if (strpos($modeType, '+') !== false) {
+        if (str_contains($modeType, '+')) {
             return true;
         }
 
@@ -330,7 +330,7 @@ class Stream
         $modeType = str_replace('b', '', $mode);
 
         // + suffix (adds write to read mode)
-        if (strpos($modeType, '+') !== false) {
+        if (str_contains($modeType, '+')) {
             return true;
         }
 

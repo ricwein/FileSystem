@@ -42,7 +42,7 @@ class Resource extends Memory
                 throw new UnsupportedException(sprintf('unsupported resource of type %s', $type ?? 'NULL'), 500);
 
             default:
-                throw new UnexpectedValueException(sprintf('Argument 1 of Memory\Resource() must be of type resource|GdImage, but %s given', is_object($resource) ? get_class($resource) : gettype($resource)), 500);
+                throw new UnexpectedValueException(sprintf('Argument 1 of Memory\Resource() must be of type resource|GdImage, but %s given', get_debug_type($resource)), 500);
 
         }
     }

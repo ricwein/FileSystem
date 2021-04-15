@@ -30,25 +30,25 @@ class PathFinder
      */
     public static function try(array $paths): Storage
     {
-        foreach ($paths as $diskpath) {
-            if (is_string($diskpath)) {
-                if (file_exists($diskpath)) {
-                    return new Storage\Disk($diskpath);
+        foreach ($paths as $diskPath) {
+            if (is_string($diskPath)) {
+                if (file_exists($diskPath)) {
+                    return new Storage\Disk($diskPath);
                 }
-            } elseif ($diskpath instanceof Path) {
-                if ($diskpath->fileInfo()->isFile() || $diskpath->fileInfo()->isDir()) {
-                    return new Storage\Disk($diskpath);
+            } elseif ($diskPath instanceof Path) {
+                if ($diskPath->fileInfo()->isFile() || $diskPath->fileInfo()->isDir()) {
+                    return new Storage\Disk($diskPath);
                 }
-            } elseif ($diskpath instanceof Storage) {
-                if ($diskpath->isFile() || $diskpath->isDir()) {
-                    return $diskpath;
+            } elseif ($diskPath instanceof Storage) {
+                if ($diskPath->isFile() || $diskPath->isDir()) {
+                    return $diskPath;
                 }
-            } elseif ($diskpath instanceof FileSystem) {
-                if ($diskpath->isFile() || $diskpath->isDir()) {
-                    return $diskpath->storage();
+            } elseif ($diskPath instanceof FileSystem) {
+                if ($diskPath->isFile() || $diskPath->isDir()) {
+                    return $diskPath->storage();
                 }
             } else {
-                throw new UnexpectedValueException(sprintf('invalid search-path of type \'%s\'', is_object($diskpath) ? get_class($diskpath) : gettype($diskpath)), 500);
+                throw new UnexpectedValueException(sprintf('invalid search-path of type \'%s\'', get_debug_type($diskPath)), 500);
             }
         }
 

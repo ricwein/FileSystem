@@ -8,10 +8,11 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Helper;
 
-use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\RuntimeException as FileSystemRuntimeException;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use RuntimeException;
 use SplFileInfo;
 
 /**
@@ -103,7 +104,7 @@ class Path
     /**
      * parse each path-component and extract path-info
      * @return string[]
-     * @throws RuntimeException
+     * @throws FileSystemRuntimeException
      * @throws UnexpectedValueException
      */
     protected function normalizePathComponents(): array
@@ -140,9 +141,9 @@ class Path
      * @param bool $isLastElement
      * @return string
      * @throws UnexpectedValueException
-     * @throws RuntimeException
+     * @throws FileSystemRuntimeException
      */
-    protected static function normalize($component, bool $isFirstElement, bool $isLastElement): string
+    protected static function normalize(FileSystem|Path|int|string|Storage\Disk $component, bool $isFirstElement, bool $isLastElement): string
     {
         switch (true) {
 
@@ -165,13 +166,13 @@ class Path
                 return (string)$component;
         }
 
-        throw new UnexpectedValueException(sprintf('invalid path-component of type \'%s\'', is_object($component) ? get_class($component) : gettype($component)), 500);
+        throw new UnexpectedValueException(sprintf('invalid path-component of type \'%s\'', get_debug_type($component)), 500);
     }
 
     /**
      * @return void
      * @throws UnexpectedValueException
-     * @throws RuntimeException
+     * @throws FileSystemRuntimeException
      */
     protected function resolvePath(): void
     {
@@ -216,7 +217,7 @@ class Path
         $path = implode(DIRECTORY_SEPARATOR, $components);
         $path = str_replace(DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR, $path);
 
-        if (strpos($path, $this->safepath) === 0) {
+        if (str_starts_with($path, $this->safepath)) {
             $this->filepath = substr($path, strlen($this->safepath));
         } else {
             $this->filepath = $path;
@@ -275,7 +276,7 @@ class Path
     /**
      * @return SplFileInfo
      * @throws UnexpectedValueException
-     * @throws RuntimeException
+     * @throws FileSystemRuntimeException
      */
     public function fileInfo(): SplFileInfo
     {
@@ -291,7 +292,7 @@ class Path
      * check if path is in open_basedir restrictions
      * @return bool
      * @throws UnexpectedValueException
-     * @throws RuntimeException
+     * @throws FileSystemRuntimeException
      */
     public function isInOpenBasedir(): bool
     {
@@ -309,13 +310,13 @@ class Path
             $openBaseDirs = array_filter(explode(':', trim(ini_get('open_basedir'))), static fn($dir): bool => !empty($dir));
         }
 
-        // no basedir specified, therefor assume system is local only
+        // no basedir specified, therefore assume system is local only
         if (empty($openBaseDirs)) {
             return true;
         }
 
         // check against open_basedir paths
-        foreach ((array)$openBaseDirs as $dir) {
+        foreach ($openBaseDirs as $dir) {
             $dir = realpath($dir);
             if (stripos($this->raw, $dir) === 0) {
                 return true;
@@ -330,7 +331,7 @@ class Path
      * returns all path-properties for testing/debugging purposes
      * @return string[]
      * @throws UnexpectedValueException
-     * @throws RuntimeException
+     * @throws FileSystemRuntimeException
      */
     public function getDetails(): array
     {
@@ -364,13 +365,13 @@ class Path
 
     public function __set(string $name, $value): void
     {
-        throw new \RuntimeException("Unable to set Path::{$name} in runtime.", 500);
+        throw new RuntimeException("Unable to set Path::$name in runtime.", 500);
     }
 
     /**
      * @param string $key
      * @return bool
-     * @throws RuntimeException
+     * @throws FileSystemRuntimeException
      * @throws UnexpectedValueException
      */
     public function __isset(string $key): bool
@@ -390,7 +391,7 @@ class Path
      * @param string $key
      * @return string|null
      * @throws UnexpectedValueException
-     * @throws RuntimeException
+     * @throws FileSystemRuntimeException
      */
     public function __get(string $key): ?string
     {
@@ -408,7 +409,7 @@ class Path
     /**
      * @return string
      * @throws UnexpectedValueException
-     * @throws RuntimeException
+     * @throws FileSystemRuntimeException
      */
     public function __toString(): string
     {

@@ -195,7 +195,7 @@ class Memory extends Storage
             case Hash::CONTENT:
                 return hash($algo, $this->content ?? '', $raw);
             case Hash::LAST_MODIFIED:
-                return hash($algo, $this->lastModified, $raw);
+                return hash($algo, (string)$this->lastModified, $raw);
             case Hash::FILENAME:
             case Hash::FILEPATH:
                 throw new RuntimeException('unable to calculate filepath/name hash for in-memory-files', 500);
@@ -255,11 +255,11 @@ class Memory extends Storage
         $modeType = $mode;
 
         // binary mode
-        $binaryMode = strpos($modeType, 'b') !== false;
+        $binaryMode = str_contains($modeType, 'b');
         $modeType = str_replace('b', '', $modeType);
 
         // + suffix (adds write to read mode)
-        $readAndWriteMode = strpos($modeType, '+') !== false;
+        $readAndWriteMode = str_contains($modeType, '+');
         $modeType = str_replace('+', '', $modeType);
 
         // actual main mode (read or write)
@@ -283,7 +283,7 @@ class Memory extends Storage
         }
 
         if ($openMode === null) {
-            throw new RuntimeException("invalid open-mode for stream: {$mode} => {$modeType}", 500);
+            throw new RuntimeException("invalid open-mode for stream: $mode => $modeType", 500);
         }
 
         // open new empty memory stream

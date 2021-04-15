@@ -40,14 +40,14 @@ class Flysystem extends Storage
      * @throws FlySystemException
      * @throws UnexpectedValueException
      */
-    public function __construct($filesystem, string $path)
+    public function __construct(FlyFilesystem|FilesystemAdapter $filesystem, string $path)
     {
         if ($filesystem instanceof FilesystemAdapter) {
             $this->flysystem = new FlyFilesystem($filesystem);
         } elseif ($filesystem instanceof FlyFilesystem) {
             $this->flysystem = $filesystem;
         } else {
-            throw new UnexpectedValueException(sprintf('unable to init Flysystem storage-engine from %s', is_object($filesystem) ? get_class($filesystem) : gettype($filesystem)), 500);
+            throw new UnexpectedValueException(sprintf('unable to init Flysystem storage-engine from %s', get_debug_type($filesystem)), 500);
         }
 
         $this->path = $path;
@@ -61,7 +61,7 @@ class Flysystem extends Storage
      */
     public function __destruct()
     {
-        if (!$this->selfdestruct) {
+        if (!$this->selfDestruct) {
             return;
         }
 
@@ -334,9 +334,9 @@ class Flysystem extends Storage
                 if (!$this->isFile()) {
                     throw new FileNotFoundException('file not found', 404);
                 }
-                return hash($algo, $this->getTime(), $raw);
+                return hash($algo, (string)$this->getTime(), $raw);
         }
-        throw new UnsupportedException("unsupported hash-mode '{$mode}' for flysystem storage", 500);
+        throw new UnsupportedException("unsupported hash-mode '$mode' for flysystem storage", 500);
     }
 
     /**
@@ -399,7 +399,7 @@ class Flysystem extends Storage
      */
     public function isDotfile(): bool
     {
-        return strpos($this->path, '.') === 0;
+        return str_starts_with($this->path, '.');
     }
 
     /**

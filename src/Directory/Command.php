@@ -93,10 +93,10 @@ class Command extends Directory
 
     /**
      * @param string $cmd
-     * @param array|object $variables
+     * @param object|array $variables
      * @return string
      */
-    protected function bindVariables(string $cmd, $variables): string
+    protected function bindVariables(string $cmd, object|array $variables): string
     {
         return preg_replace_callback('/\$\(\s*([^)]+)\s*\)/', static function ($match) use ($variables): string {
             $variable = explode('.', trim($match[1]));
@@ -146,7 +146,7 @@ class Command extends Directory
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function execSafe(string $cmd = '', array $arguments = [])
+    public function execSafe(string $cmd = '', array $arguments = []): bool|string
     {
         $cmd = trim(str_ireplace(['&', ';'], '', $cmd));
         $cmd = $this->bindVariables($cmd, $arguments);
@@ -163,7 +163,7 @@ class Command extends Directory
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function exec(string $cmd = '', array $arguments = [])
+    public function exec(string $cmd = '', array $arguments = []): bool|string
     {
 
         // validate constraints
@@ -175,8 +175,8 @@ class Command extends Directory
         $this->lastExitCode = 0;
 
         // cleanup cmd
-        $cmd = trim(str_ireplace("{$this->bin} ", '', $cmd));
-        $cmd = "\"{$this->bin}\" {$cmd}";
+        $cmd = trim(str_ireplace("$this->bin ", '', $cmd));
+        $cmd = sprintf("\"%s\" %s", $this->bin, $cmd);
 
         $cmd = $this->bindVariables($cmd, $arguments);
         $cmd = $this->bindVariables($cmd, ['path' => $this->storage->path()]);

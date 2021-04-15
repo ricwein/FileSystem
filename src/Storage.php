@@ -32,10 +32,10 @@ abstract class Storage
      * remove file from filesystem on object destruction
      * => leaving scope or removing object reference
      */
-    protected bool $selfdestruct = false;
+    protected bool $selfDestruct = false;
 
     /**
-     * returns all detail-informations for testing/debugging purposes
+     * returns all detail-information for testing/debugging purposes
      */
     public function getDetails(): array
     {
@@ -222,7 +222,7 @@ abstract class Storage
      */
     public function removeOnFree(bool $activate = true): self
     {
-        $this->selfdestruct = $activate;
+        $this->selfDestruct = $activate;
         return $this;
     }
 

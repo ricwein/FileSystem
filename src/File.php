@@ -390,9 +390,9 @@ class File extends FileSystem
             throw $this->storage->getConstraintViolations();
         }
 
-        $dirpath = $this->path()->directory;
-        if (is_dir($dirpath)) {
-            $dirpath = realpath($dirpath);
+        $dirPath = $this->path()->directory;
+        if (is_dir($dirPath)) {
+            $dirPath = realpath($dirPath);
         }
 
         $safepath = $this->path()->safepath;
@@ -400,13 +400,10 @@ class File extends FileSystem
             $safepath = realpath($safepath);
         }
 
-        /** @var Storage $storage */
-        $storage = null;
-
         if (is_dir($safepath)) {
-            $storage = new Storage\Disk($safepath, str_replace($safepath, '', $dirpath));
+            $storage = new Storage\Disk($safepath, str_replace($safepath, '', $dirPath));
         } else {
-            $storage = new Storage\Disk($dirpath);
+            $storage = new Storage\Disk($dirPath);
         }
 
         return new $as(

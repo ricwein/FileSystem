@@ -126,12 +126,12 @@ class Constraint
         // ensure realpath is in original search path (prevent /../ cd's)
         if (($this->constraints & self::IN_SAFEPATH) === self::IN_SAFEPATH) {
 
-            if ($path->real !== null && strpos($path->real, $path->safepath) !== 0) {
+            if ($path->real !== null && !str_starts_with($path->real, $path->safepath)) {
 
                 $this->failedFor |= self::IN_SAFEPATH;
                 $this->errors[self::IN_SAFEPATH] = sprintf('the given real-path (%s) is not within the safepath (%s)', $path->raw, $path->safepath);
 
-            } elseif ($path->real === null && file_exists($path->raw) && strpos($path->raw, $path->safepath) !== 0) {
+            } elseif ($path->real === null && file_exists($path->raw) && !str_starts_with($path->raw, $path->safepath)) {
 
                 $this->failedFor |= self::IN_SAFEPATH;
                 $this->errors[self::IN_SAFEPATH] = sprintf('the given raw-path (%s) is not within the safepath (%s)', $path->raw, $path->safepath);

@@ -22,7 +22,7 @@ use Throwable;
  */
 class Uploaded extends Disk
 {
-    protected bool $selfdestruct = true;
+    protected bool $selfDestruct = true;
 
     private const UPLOAD_ERRORS = [
         UPLOAD_ERR_INI_SIZE => 'The file "%s" exceeds your upload_max_filesize ini directive.',

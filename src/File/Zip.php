@@ -234,6 +234,7 @@ class Zip extends File
      * @throws ConstraintsException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function extractTo(Storage\Disk $destination, ?int $constraints = null, ?array $entries = null): Directory
     {
@@ -241,7 +242,7 @@ class Zip extends File
             $this->openArchive();
         }
 
-        // validate directory-contraints
+        // validate directory-constraints
         if (!$destination->doesSatisfyConstraints()) {
             throw $destination->getConstraintViolations();
         }
@@ -409,7 +410,7 @@ class Zip extends File
             }
 
             // relative file-path for in-ziparchive-name:
-            if (strpos($fileStorage->path()->raw, $iterator->getStorage()->path()->raw) === 0) {
+            if (str_starts_with($fileStorage->path()->raw, $iterator->getStorage()->path()->raw)) {
                 $filepath = str_replace((rtrim($iterator->getStorage()->path()->raw, '/') . '/'), '', $fileStorage->path()->raw);
             } else {
                 $filepath = str_replace((rtrim($iterator->getStorage()->path()->real, '/') . '/'), '', $fileStorage->path()->real);
@@ -464,19 +465,12 @@ class Zip extends File
         }
 
         // add file to archive
-        switch (true) {
-            case $storage instanceof Storage\Disk:
-                $name = $this->addFileFromDisk($storage, $name);
-                break;
-            case $storage instanceof Storage\Memory:
-                $name = $this->addFileFromMemory($storage, $name);
-                break;
-            case $storage instanceof Storage\Flysystem:
-                $name = $this->addFileFromFlysystem($storage, $name);
-                break;
-            default:
-                throw new UnexpectedValueException(sprintf('invalid type for 1 Argument in %s(), expected instance of Storage or File, but "%s" given', __METHOD__, is_object($storage) ? get_class($storage) : gettype($storage)), 500);
-        }
+        $name = match (true) {
+            $storage instanceof Storage\Disk => $this->addFileFromDisk($storage, $name),
+            $storage instanceof Storage\Memory => $this->addFileFromMemory($storage, $name),
+            $storage instanceof Storage\Flysystem => $this->addFileFromFlysystem($storage, $name),
+            default => throw new UnexpectedValueException(sprintf('invalid type for 1 Argument in %s(), expected instance of Storage or File, but "%s" given', __METHOD__, get_debug_type($storage)), 500),
+        };
 
         // set custom compression algorithm
         if ($this->compression !== ZipArchive::CM_DEFAULT && !$this->archive->setCompressionName($name, $this->compression)) {
@@ -535,7 +529,7 @@ class Zip extends File
             $mime = $file->getFileType();
 
             if (null !== $mime && null !== $extension = MimeType::getExtensionFor($mime)) {
-                $name .= ".{$extension}";
+                $name .= ".$extension";
             }
         }
 

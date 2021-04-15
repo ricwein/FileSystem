@@ -66,7 +66,7 @@ class Disk extends Storage
      */
     public function __destruct()
     {
-        if (!$this->selfdestruct || !file_exists($this->path->raw)) {
+        if (!$this->selfDestruct || !file_exists($this->path->raw)) {
             return;
         }
 
@@ -272,7 +272,7 @@ class Disk extends Storage
      */
     public function removeFile(): bool
     {
-        $this->selfdestruct = false;
+        $this->selfDestruct = false;
 
         if (!unlink($this->path->real ?? $this->path->raw)) {
             return false;
@@ -356,7 +356,7 @@ class Disk extends Storage
 
             return rmdir($this->path->raw);
         } finally {
-            $this->selfdestruct = false;
+            $this->selfDestruct = false;
             $this->path->reload();
         }
     }
@@ -430,18 +430,13 @@ class Disk extends Storage
             return null;
         }
 
-        switch ($mode) {
-            case Hash::CONTENT:
-                return hash_file($algo, $this->path->real, $raw);
-            case Hash::FILENAME:
-                return hash($algo, $this->path->filename, $raw);
-            case Hash::FILEPATH:
-                return hash($algo, $this->path->real, $raw);
-            case Hash::LAST_MODIFIED:
-                return hash($algo, $this->getTime(), $raw);
-            default:
-                throw new RuntimeException('unknown hashing-mode', 500);
-        }
+        return match ($mode) {
+            Hash::CONTENT => hash_file($algo, $this->path->real, $raw),
+            Hash::FILENAME => hash($algo, $this->path->filename, $raw),
+            Hash::FILEPATH => hash($algo, $this->path->real, $raw),
+            Hash::LAST_MODIFIED => hash($algo, (string)$this->getTime(), $raw),
+            default => throw new RuntimeException('unknown hashing-mode', 500),
+        };
     }
 
     /**
@@ -518,7 +513,7 @@ class Disk extends Storage
      */
     public function isDotfile(): bool
     {
-        return strpos($this->path->basename, '.') === 0;
+        return str_starts_with($this->path->basename, '.');
     }
 
     /**
@@ -574,7 +569,7 @@ class Disk extends Storage
         try {
             $stream->copyToStream($destHandle);
             return true;
-        } catch (RuntimeException $e) {
+        } catch (RuntimeException) {
             return false;
         }
     }

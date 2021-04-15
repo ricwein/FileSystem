@@ -72,7 +72,7 @@ class Image extends File
             throw new RuntimeException(sprintf(
                 'callback must return a object of type "%s", but "%s" given',
                 IImage::class,
-                is_object($image) ? get_class($image) : gettype($image)
+                get_debug_type($image)
             ), 400);
         }
 

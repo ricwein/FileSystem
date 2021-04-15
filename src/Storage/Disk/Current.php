@@ -27,10 +27,13 @@ class Current extends Disk
     {
         $fistComponent = reset($path);
 
-        // check if our first (left) pathcomponent references to root (/),
+        // check if our first (left) path component references to root (/),
         // only inject current working directory if this is not the case
         if (
-            empty($path) || (is_string($fistComponent) && strpos($fistComponent, DIRECTORY_SEPARATOR) !== 0) || ($fistComponent instanceof Path && strpos($fistComponent->raw, DIRECTORY_SEPARATOR) !== 0) || ($fistComponent instanceof FileSystem && strpos($fistComponent->path()->raw, DIRECTORY_SEPARATOR) !== 0)
+            empty($path)
+            || (is_string($fistComponent) && !str_starts_with($fistComponent, DIRECTORY_SEPARATOR))
+            || ($fistComponent instanceof Path && !str_starts_with($fistComponent->raw, DIRECTORY_SEPARATOR))
+            || ($fistComponent instanceof FileSystem && !str_starts_with($fistComponent->path()->raw, DIRECTORY_SEPARATOR))
         ) {
             array_unshift($path, getcwd());
         }

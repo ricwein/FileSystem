@@ -23,7 +23,7 @@ class Temp extends Disk
     /**
      * @inheritDoc
      */
-    protected bool $selfdestruct = true;
+    protected bool $selfDestruct = true;
 
     /**
      * @inheritDoc
@@ -56,7 +56,7 @@ class Temp extends Disk
      */
     public function removeFile(): bool
     {
-        $this->selfdestruct = false;
+        $this->selfDestruct = false;
         return parent::removeFile();
     }
 
@@ -65,7 +65,7 @@ class Temp extends Disk
      */
     public function removeDir(): bool
     {
-        $this->selfdestruct = false;
+        $this->selfDestruct = false;
         return parent::removeDir();
     }
 }
