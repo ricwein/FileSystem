@@ -42,5 +42,4 @@ class CopyTest extends TestCase
         self::assertFileExists($destination->path()->real . '/_examples/archive.zip');
         self::assertFileExists($destination->path()->real . '/Directory/CopyTest.php');
     }
-
 }

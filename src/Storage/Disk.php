@@ -656,7 +656,7 @@ class Disk extends Storage
      */
     public function copyDirectoryTo(self $destination): bool
     {
-        $result = $this->copyDirectory($this->path()->real, $destination->path()->real);
+        $result = $this->copyDirectory($this->path()->real, $destination->path()->raw);
         $this->path->reload();
         return $result;
     }
