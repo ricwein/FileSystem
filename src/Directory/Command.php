@@ -196,27 +196,27 @@ class Command extends Directory
         }
 
         // run command (safe)
+        if (function_exists('exec')) {
+            exec($cmd . ' 2>&1', $result, $this->lastExitCode);
+            if ($this->lastExitCode !== 0) {
+                throw new RuntimeException('shell execution failed: ' . (count($result) < 3 ? implode(' ', $result) : reset($result)), 500);
+            }
+            $result = implode(PHP_EOL, array_map('trim', $result));
+            return empty($result) ? true : trim($result);
+        }
+
         if (function_exists('shell_exec')) {
             $result = shell_exec($cmd . ' 2>&1');
-            $result = explode(PHP_EOL, trim((string)$result));
-        } elseif (function_exists('exec')) {
-            exec($cmd . ' 2>&1', $result, $this->lastExitCode);
-        } else {
-            throw new RuntimeException('shell-execution is disabled', 500);
+            if ($result === null || $result === false) {
+                return false;
+            }
+
+            $result = explode(PHP_EOL, trim($result));
+            $result = implode(PHP_EOL, array_map('trim', $result));
+            return empty($result) ? true : trim($result);
         }
 
-        if ($result === null || $result === false) {
-            return false;
-        }
-
-        if ($this->lastExitCode !== 0) {
-            throw new RuntimeException('shell execution failed: ' . (count($result) < 3 ? implode(' ', $result) : reset($result)), 500);
-        }
-
-        // cleanup result
-        $result = array_map('trim', $result);
-        $result = implode(PHP_EOL, $result);
-        return empty($result) ? true : trim($result);
+        throw new RuntimeException('shell-execution is disabled', 500);
     }
 
     /**
