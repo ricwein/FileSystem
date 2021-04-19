@@ -59,7 +59,6 @@ abstract class FileSystem
 
     /**
      * @return Storage
-     * @internal this should only be used for debugging purposes
      */
     public function storage(): Storage
     {
@@ -213,4 +212,11 @@ abstract class FileSystem
     {
         return new $class($this->storage);
     }
+
+    /**
+     * @param Storage $destination
+     * @param int|null $constraints
+     * @return $this
+     */
+    abstract public function copyTo(Storage $destination, ?int $constraints = null): static;
 }

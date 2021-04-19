@@ -269,4 +269,56 @@ class Directory extends FileSystem
         );
         return $directory->cd($dirname);
     }
+
+    /**
+     * @param Storage $destination
+     * @param int|null $constraints
+     * @return static
+     * @throws AccessDeniedException
+     * @throws Exceptions\ConstraintsException
+     * @throws Exceptions\RuntimeException
+     * @throws FileNotFoundException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
+     */
+    public function copyTo(Storage $destination, ?int $constraints = null): static
+    {
+        if (!$destination instanceof Storage\Disk) {
+            throw new UnsupportedException(sprintf('Copying a directory requires the destination storage to be of type Storage\Disk, but got %s instead.', get_debug_type($destination)), 500);
+        }
+
+        if (!$this->copyDirectoryTo($destination, $constraints)) {
+            throw new AccessDeniedException('unable to copy file', 403);
+        }
+
+        return new static($destination);
+    }
+
+    /**
+     * @param Storage\Disk $destination
+     * @param int|null $constraints
+     * @return bool
+     * @throws AccessDeniedException
+     * @throws Exceptions\ConstraintsException
+     * @throws Exceptions\RuntimeException
+     * @throws FileNotFoundException
+     * @throws UnexpectedValueException
+     */
+    protected function copyDirectoryTo(Storage\Disk $destination, ?int $constraints = null): bool
+    {
+        $destination->setConstraints($constraints ?? $this->storage->getConstraints());
+
+        $this->checkFileReadPermissions();
+
+        if (!$destination->doesSatisfyConstraints()) {
+            throw new AccessDeniedException('Unable to open destination directory.', 403, $destination->getConstraintViolations());
+        }
+
+        if ($destination->isDir() && !$destination->isWriteable()) {
+            throw new AccessDeniedException('Unable to write to destination file.', 403);
+        }
+
+        // actual copy directory to destination: use native functions if possible
+        return $this->storage->copyDirectoryTo($destination);
+    }
 }

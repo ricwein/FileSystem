@@ -132,7 +132,7 @@ class File extends FileSystem
      * copy file-content to new destination
      * @param Storage $destination
      * @param int|null $constraints
-     * @return self new File-object
+     * @return static new File-object
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws Exceptions\Exception
@@ -141,7 +141,7 @@ class File extends FileSystem
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function copyTo(Storage $destination, ?int $constraints = null): self
+    public function copyTo(Storage $destination, ?int $constraints = null): static
     {
         if (!$this->copyFileTo($destination, $constraints)) {
             throw new AccessDeniedException('unable to copy file', 403);

@@ -657,19 +657,6 @@ class Zip extends File
      * @inheritDoc
      * @return File
      */
-    public function copyTo(Storage $destination, ?int $constraints = null): File
-    {
-        if (!$this->copyFileTo($destination, $constraints)) {
-            throw new AccessDeniedException('unable to copy file', 403);
-        }
-
-        return new File($destination);
-    }
-
-    /**
-     * @inheritDoc
-     * @return File
-     */
     public function moveTo(Storage $destination, ?int $constraints = null): File
     {
         // actual move file to file: use native functions if possible

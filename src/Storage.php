@@ -36,6 +36,7 @@ abstract class Storage
 
     /**
      * returns all detail-information for testing/debugging purposes
+     * @internal
      */
     public function getDetails(): array
     {
@@ -47,6 +48,7 @@ abstract class Storage
     /**
      * @param int $constraints
      * @return self
+     * @internal
      */
     public function setConstraints(int $constraints): self
     {
@@ -56,6 +58,7 @@ abstract class Storage
 
     /**
      * @return int
+     * @internal
      */
     public function getConstraints(): int
     {
@@ -65,6 +68,7 @@ abstract class Storage
     /**
      * @param Throwable|null $previous
      * @return ConstraintsException|null
+     * @internal
      */
     public function getConstraintViolations(Throwable $previous = null): ?ConstraintsException
     {
@@ -82,47 +86,55 @@ abstract class Storage
     /**
      * check if current path satisfies the given constraints
      * @return bool
+     * @internal
      */
     abstract public function doesSatisfyConstraints(): bool;
 
     /**
      * check if file exists and is an actual file
      * @return bool
+     * @internal
      */
     abstract public function isFile(): bool;
 
     /**
      * check if path is directory
      * @return bool
+     * @internal
      */
     abstract public function isDir(): bool;
 
     /**
      * check if file exists and is executable
      * @return bool
+     * @internal
      */
     abstract public function isExecutable(): bool;
 
     /**
      * check if path is a symlink
      * @return bool
+     * @internal
      */
     abstract public function isSymlink(): bool;
 
     /**
      * check if path is readable
      * @return bool
+     * @internal
      */
     abstract public function isReadable(): bool;
 
     /**
      * check if path is writeable
      * @return bool
+     * @internal
      */
     abstract public function isWriteable(): bool;
 
     /**
      * @return bool
+     * @internal
      */
     abstract public function isDotfile(): bool;
 
@@ -132,11 +144,13 @@ abstract class Storage
      * @param int $mode
      * @return string
      * @throws FileNotFoundException
+     * @internal
      */
     abstract public function readFile(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): string;
 
     /**
      * @return string[]
+     * @internal
      */
     abstract public function readFileAsLines(): array;
 
@@ -146,6 +160,7 @@ abstract class Storage
      * @param int $mode
      * @return void
      * @throws FileNotFoundException
+     * @internal
      */
     abstract public function streamFile(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): void;
 
@@ -155,18 +170,21 @@ abstract class Storage
      * @param bool $append
      * @param int $mode LOCK_EX
      * @return bool
+     * @internal
      */
     abstract public function writeFile(string $content, bool $append = false, int $mode = 0): bool;
 
     /**
      * remove file from storage
      * @return bool
+     * @internal
      */
     abstract public function removeFile(): bool;
 
     /**
      * size of file from storage
      * @return int
+     * @internal
      */
     abstract public function getSize(): int;
 
@@ -174,6 +192,7 @@ abstract class Storage
      * get last-modified timestamp
      * @param int $type
      * @return int|null
+     * @internal
      */
     abstract public function getTime(int $type = Time::LAST_MODIFIED): ?int;
 
@@ -181,6 +200,7 @@ abstract class Storage
      * guess content-type (mime) of file
      * @param bool $withEncoding
      * @return string|null
+     * @internal
      */
     abstract public function getFileType(bool $withEncoding = false): ?string;
 
@@ -191,6 +211,7 @@ abstract class Storage
      * @param bool $raw
      * @return string|null
      * @throws RuntimeException
+     * @internal
      */
     abstract public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): ?string;
 
@@ -200,6 +221,7 @@ abstract class Storage
      * @param null|int $atime last-access time
      * @return bool
      * @throws Exception
+     * @internal
      */
     abstract public function touch(bool $ifNewOnly = false, ?int $time = null, ?int $atime = null): bool;
 
@@ -208,6 +230,7 @@ abstract class Storage
      * @param int $mode
      * @return Binary
      * @throws UnsupportedException
+     * @internal
      */
     public function getHandle(int $mode): Binary
     {
@@ -219,6 +242,7 @@ abstract class Storage
      * => leaving scope or removing object reference
      * @param bool $activate
      * @return self
+     * @internal
      */
     public function removeOnFree(bool $activate = true): self
     {
@@ -232,6 +256,7 @@ abstract class Storage
      * @return Generator list of all files
      * @throws UnsupportedException
      * @noinspection PhpInconsistentReturnPointsInspection
+     * @internal
      */
     public function list(bool $recursive = false, ?int $constraints = null): Generator
     {
@@ -246,6 +271,7 @@ abstract class Storage
     /**
      * @param string $mode
      * @return Stream
+     * @internal
      */
     abstract public function getStream(string $mode = 'rb+'): Stream;
 
@@ -253,6 +279,7 @@ abstract class Storage
      * update content from stream
      * @param Stream $stream file-handle
      * @return bool
+     * @internal
      */
     abstract public function writeFromStream(Stream $stream): bool;
 
@@ -260,6 +287,7 @@ abstract class Storage
      * <b>copy</b> file to new destination
      * @param Storage $destination
      * @return bool success
+     * @internal
      */
     abstract public function copyFileTo(Storage $destination): bool;
 
@@ -267,6 +295,7 @@ abstract class Storage
      * <b>move</b> file to new destination
      * @param Storage $destination
      * @return bool success
+     * @internal
      */
     abstract public function moveFileTo(Storage $destination): bool;
 }

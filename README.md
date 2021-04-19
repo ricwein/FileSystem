@@ -167,6 +167,7 @@ Like Files, Directories must be initialized using a Storage.
 | `list($recursive)` | returns DirectoryIterator-Object to list directory-content as new `File`/`Directory` objects |
 | `mkdir()` | try to create directory |
 | `remove()` | try to remove directory |
+| `copyTo($destination [,Constraint $constraints])` | copy directory recursively to new `$destination` Storage-adapter |
 | `getTime([Time $type])` | get last-modified unix-timestamp |
 | `getDate([Time $type])` | same as  `getTime()`, but returns a DateTime object instead |
 | `getSize([bool $recursive])` | calculate size |

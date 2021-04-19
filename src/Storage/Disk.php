@@ -323,6 +323,7 @@ class Disk extends Storage
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @internal
      */
     public function removeDir(): bool
     {
@@ -368,6 +369,7 @@ class Disk extends Storage
      * @return Generator
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @internal
      */
     public function list(bool $recursive = false, ?int $constraints = null, ?callable $iteratorFilter = null): Generator
     {
@@ -461,7 +463,6 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @noinspection PotentialMalwareInspection dafuq?
      */
     public function touch(bool $ifNewOnly = false, ?int $time = null, ?int $atime = null): bool
     {
@@ -471,11 +472,18 @@ class Disk extends Storage
 
         // actual touch file
         if ($atime !== null && $time !== null) {
+
+            /** @noinspection PotentialMalwareInspection dafuq? */
             $result = touch($this->path->raw, $time, $atime);
+
         } elseif ($time !== null) {
+
             $result = touch($this->path->raw, $time);
+
         } else {
+
             $result = touch($this->path->raw);
+
         }
 
         if (!$result) {
@@ -541,6 +549,7 @@ class Disk extends Storage
      * @param string[]|FileSystem[]|Path[] $path
      * @return void
      * @throws UnexpectedValueException
+     * @internal
      */
     public function cd(array $path): void
     {
@@ -637,6 +646,66 @@ class Disk extends Storage
 
                 $this->removeFile();
                 return true;
+        }
+    }
+
+    /**
+     * @param Disk $destination
+     * @return bool
+     * @internal
+     */
+    public function copyDirectoryTo(self $destination): bool
+    {
+        $result = $this->copyDirectory($this->path()->real, $destination->path()->real);
+        $this->path->reload();
+        return $result;
+    }
+
+    /**
+     * @param string $sourcePath
+     * @param string $destinationPath
+     * @return bool
+     */
+    protected function copyDirectory(string $sourcePath, string $destinationPath): bool
+    {
+        // open the source directory
+        $sourceDirectoryHandle = opendir($sourcePath);
+
+        try {
+            if (!is_dir($destinationPath) && !mkdir($destinationPath) && !is_dir($destinationPath)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $destinationPath));
+            }
+
+            // Loop through the files in source directory
+            while ($file = readdir($sourceDirectoryHandle)) {
+
+                // skip dotfiles
+                if (in_array($file, ['.', '..'], true)) {
+                    continue;
+                }
+
+                $sourceFilePath = "{$sourcePath}/{$file}";
+                $destinationFilePath = "{$destinationPath}/{$file}";
+
+                if (is_dir($sourceFilePath)) {
+
+                    // recursively copy directory content
+                    if (!$this->copyDirectory($sourceFilePath, $destinationFilePath)) {
+                        return false;
+                    }
+                    continue;
+
+                }
+
+                if (!copy($sourceFilePath, $destinationFilePath)) {
+                    return false;
+                }
+            }
+
+            return true;
+
+        } finally {
+            closedir($sourceDirectoryHandle);
         }
     }
 }
