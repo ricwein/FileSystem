@@ -178,7 +178,7 @@ class Stream
             $length = $filesize - $offset;
         }
 
-        if ($length < 0) {
+        if ($length <= 0) {
             return '';
         }
 
