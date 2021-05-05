@@ -29,9 +29,6 @@ class Memory extends Storage
     protected int $lastAccessed = 0;
     protected int $created = 0;
 
-    /**
-     * @param string|null $content
-     */
     public function __construct(?string $content = null)
     {
         if ($content !== null) {
@@ -237,10 +234,9 @@ class Memory extends Storage
 
     /**
      * @inheritDoc
-     * @return Binary\Memory
      * @throws AccessDeniedException
      */
-    public function getHandle(int $mode): Binary
+    public function getHandle(int $mode): Binary\Memory
     {
         return new Binary\Memory($mode, $this);
     }
@@ -312,8 +308,6 @@ class Memory extends Storage
 
     /**
      * @inheritDoc
-     * @param Storage $destination
-     * @return bool
      * @throws Exception
      * @throws FileNotFoundException
      */
@@ -337,8 +331,6 @@ class Memory extends Storage
 
     /**
      * @inheritDoc
-     * @param Storage $destination
-     * @return bool
      * @throws Exception
      * @throws FileNotFoundException
      */

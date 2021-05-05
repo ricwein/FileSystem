@@ -32,7 +32,7 @@ class Path
     private bool $loaded = false;
 
     /**
-     * @var scalar[]|FileSystem[]|self[]|Storage\Disk[]
+     * @var string[]|int[]|FileSystem[]|self[]|Storage\Disk[]
      */
     private array $components;
 
@@ -90,7 +90,7 @@ class Path
     protected ?SplFileInfo $fileInfo = null;
 
     /**
-     * @param string[]|FileSystem[]|self[]|Storage\Disk[] $components
+     * @param string[]|int[]|FileSystem[]|self[]|Storage\Disk[] $components
      * @throws UnexpectedValueException
      */
     public function __construct(array $components)
@@ -136,10 +136,6 @@ class Path
     }
 
     /**
-     * @param string|int|self|Storage\Disk|FileSystem $component
-     * @param bool $isFirstElement
-     * @param bool $isLastElement
-     * @return string
      * @throws UnexpectedValueException
      * @throws FileSystemRuntimeException
      */
@@ -170,7 +166,6 @@ class Path
     }
 
     /**
-     * @return void
      * @throws UnexpectedValueException
      * @throws FileSystemRuntimeException
      */
@@ -255,7 +250,6 @@ class Path
     /**
      * reset internal loaded-state,
      * resulting in reloading all paths on next access
-     * @return self
      */
     public function reload(): self
     {
@@ -274,7 +268,6 @@ class Path
     }
 
     /**
-     * @return SplFileInfo
      * @throws UnexpectedValueException
      * @throws FileSystemRuntimeException
      */
@@ -290,7 +283,6 @@ class Path
 
     /**
      * check if path is in open_basedir restrictions
-     * @return bool
      * @throws UnexpectedValueException
      * @throws FileSystemRuntimeException
      */
@@ -369,8 +361,6 @@ class Path
     }
 
     /**
-     * @param string $key
-     * @return bool
      * @throws FileSystemRuntimeException
      * @throws UnexpectedValueException
      */
@@ -388,8 +378,6 @@ class Path
     }
 
     /**
-     * @param string $key
-     * @return string|null
      * @throws UnexpectedValueException
      * @throws FileSystemRuntimeException
      */
@@ -407,7 +395,6 @@ class Path
     }
 
     /**
-     * @return string
      * @throws UnexpectedValueException
      * @throws FileSystemRuntimeException
      */

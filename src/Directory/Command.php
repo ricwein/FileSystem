@@ -40,9 +40,7 @@ class Command extends Directory
 
     /**
      * @inheritDoc
-     * @param Storage\Disk $storage
-     * @param int $constraints
-     * @param File|File[]|Storage\Disk|Storage\Disk[]|Path|Path[]|string|string[] $executablePath
+     * @param File[]|Storage\Disk[]|Path[]|string[] $executablePath
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws FileNotFoundException
@@ -54,7 +52,7 @@ class Command extends Directory
         parent::__construct($storage, $constraints);
 
         // try to find binary in given file-paths
-        $this->bin = $this->selectBinaryPath(array_merge((array)$executablePath, $this->paths));
+        $this->bin = $this->selectBinaryPath(array_merge($executablePath, $this->paths));
 
         if ($this->bin === null) {
             throw new FileNotFoundException(sprintf('unable to find binary in paths: "%s"', implode('", "', (array)$executablePath)), 500);
@@ -62,8 +60,7 @@ class Command extends Directory
     }
 
     /**
-     * @param File[]|Path[]|string[] $paths
-     * @return string|null
+     * @param File[]|Storage\Disk[]|Path[]|string[] $paths
      * @throws RuntimeException
      * @throws ConstraintsException
      * @throws UnexpectedValueException
@@ -91,11 +88,6 @@ class Command extends Directory
         return null;
     }
 
-    /**
-     * @param string $cmd
-     * @param object|array $variables
-     * @return string
-     */
     protected function bindVariables(string $cmd, object|array $variables): string
     {
         return preg_replace_callback('/\$\(\s*([^)]+)\s*\)/', static function ($match) use ($variables): string {
@@ -138,9 +130,6 @@ class Command extends Directory
 
 
     /**
-     * @param string $cmd
-     * @param array $arguments
-     * @return string|bool
      * @throws AccessDeniedException
      * @throws FileNotFoundException
      * @throws RuntimeException
@@ -155,9 +144,6 @@ class Command extends Directory
     }
 
     /**
-     * @param string $cmd
-     * @param array $arguments
-     * @return string|bool
      * @throws AccessDeniedException
      * @throws FileNotFoundException
      * @throws RuntimeException
@@ -219,25 +205,16 @@ class Command extends Directory
         throw new RuntimeException('shell-execution is disabled', 500);
     }
 
-    /**
-     * @return string|null
-     */
     public function getLastCommand(): ?string
     {
         return $this->lastCommand;
     }
 
-    /**
-     * @return int
-     */
     public function lastExitCode(): int
     {
         return $this->lastExitCode;
     }
 
-    /**
-     * @return string
-     */
     public function __toString(): string
     {
         return sprintf('%s binary: "%s"', parent::__toString(), $this->bin);

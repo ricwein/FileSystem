@@ -39,17 +39,13 @@ use SplFileInfo;
  */
 class Disk extends Storage
 {
-    /**
-     * @var Path
-     */
     protected Path $path;
 
     /**
-     * @param string[]|FileSystem[]|Path[]|self[] $path
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function __construct(...$path)
+    public function __construct(string|FileSystem|Path|self ...$path)
     {
         if (empty($path)) {
             throw new RuntimeException('unable to load Disk-Storage without a path', 400);
@@ -58,7 +54,6 @@ class Disk extends Storage
     }
 
     /**
-     * @return void
      * @throws AccessDeniedException
      * @throws RuntimeException
      * @throws UnexpectedValueException
@@ -79,7 +74,6 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @return array
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -90,7 +84,6 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @return bool
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -99,9 +92,6 @@ class Disk extends Storage
         return $this->constraints->isValidPath($this->path);
     }
 
-    /**
-     * @return Path
-     */
     public function path(): Path
     {
         return $this->path;
@@ -119,7 +109,6 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @return bool
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -130,7 +119,6 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @return bool
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -141,7 +129,6 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @return bool
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -152,7 +139,6 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @return bool
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -163,7 +149,6 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @return bool
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -174,10 +159,6 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @param int $offset
-     * @param int|null $length
-     * @param int $mode
-     * @return string
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
@@ -201,7 +182,6 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @return array
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
@@ -217,9 +197,6 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @param int $offset
-     * @param int|null $length
-     * @param int $mode
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
@@ -282,14 +259,6 @@ class Disk extends Storage
         return true;
     }
 
-
-    /**
-     * @param bool $recursive
-     * @param int|null $constraints
-     * @param callable|null $filter
-     * @param int $mode
-     * @return Iterator
-     */
     protected function getIterator(bool $recursive, ?int $constraints = null, ?callable $filter = null, int $mode = RecursiveIteratorIterator::SELF_FIRST): Iterator
     {
         if (!$recursive) {
@@ -318,7 +287,6 @@ class Disk extends Storage
 
     /**
      * removes directory from disk
-     * @return bool
      * @throws AccessDeniedException
      * @throws FileNotFoundException
      * @throws RuntimeException
@@ -363,12 +331,9 @@ class Disk extends Storage
     }
 
     /**
-     * @param bool $recursive
-     * @param int|null $constraints
-     * @param callable|null $iteratorFilter
-     * @return Generator
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @inheritDoc
      * @internal
      */
     public function list(bool $recursive = false, ?int $constraints = null, ?callable $iteratorFilter = null): Generator
@@ -394,7 +359,6 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @return int
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -443,7 +407,6 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @return int
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -497,8 +460,6 @@ class Disk extends Storage
     }
 
     /**
-     * @param bool $ifNewOnly
-     * @return bool
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -524,9 +485,6 @@ class Disk extends Storage
         return str_starts_with($this->path->basename, '.');
     }
 
-    /**
-     * @return string
-     */
     public function __toString(): string
     {
         return sprintf('%s at: "%s"', parent::__toString(), (string)$this->path);
@@ -534,12 +492,10 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @param int $mode
-     * @return Binary\Disk
      * @throws AccessDeniedException
      * @throws RuntimeException
      */
-    public function getHandle(int $mode): Binary
+    public function getHandle(int $mode): Binary\Disk
     {
         return new Binary\Disk($mode, $this);
     }
@@ -547,7 +503,6 @@ class Disk extends Storage
     /**
      * changes current directory
      * @param string[]|FileSystem[]|Path[]|self[] $path
-     * @return void
      * @throws UnexpectedValueException
      * @internal
      */
@@ -585,8 +540,6 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @param Storage $destination
-     * @return bool
      * @throws Exception
      * @throws FileNotFoundException
      * @throws RuntimeException
@@ -618,8 +571,6 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @param Storage $destination
-     * @return bool
      * @throws Exception
      * @throws FileNotFoundException
      * @throws RuntimeException
@@ -650,8 +601,6 @@ class Disk extends Storage
     }
 
     /**
-     * @param Disk $destination
-     * @return bool
      * @internal
      */
     public function copyDirectoryTo(self $destination): bool
@@ -661,11 +610,6 @@ class Disk extends Storage
         return $result;
     }
 
-    /**
-     * @param string $sourcePath
-     * @param string $destinationPath
-     * @return bool
-     */
     protected function copyDirectory(string $sourcePath, string $destinationPath): bool
     {
         // open the source directory
@@ -684,8 +628,8 @@ class Disk extends Storage
                     continue;
                 }
 
-                $sourceFilePath = "{$sourcePath}/{$file}";
-                $destinationFilePath = "{$destinationPath}/{$file}";
+                $sourceFilePath = "$sourcePath/$file";
+                $destinationFilePath = "$destinationPath/$file";
 
                 if (is_dir($sourceFilePath)) {
 

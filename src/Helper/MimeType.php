@@ -13,10 +13,8 @@ namespace ricwein\FileSystem\Helper;
  */
 class MimeType
 {
-
     /**
      * map general file extensions to mime-type
-     * @var array
      */
     protected const EXTENSIONS = [
         'json' => 'application/json',
@@ -55,7 +53,6 @@ class MimeType
 
     /**
      * map image extensions to mime-type
-     * @var array
      */
     protected const EXTENSIONS_IMAGES = [
         'png' => 'image/png',
@@ -72,7 +69,6 @@ class MimeType
 
     /**
      * map video extensions to mime-type
-     * @var array
      */
     protected const EXTENSIONS_VIDEOS = [
         'mp3' => 'audio/mpeg',
@@ -100,8 +96,6 @@ class MimeType
 
     /**
      * fetch file-extension for given mimetype
-     * @param string $mimetype
-     * @return string|null
      */
     public static function getExtensionFor(string $mimetype): ?string
     {
@@ -115,8 +109,6 @@ class MimeType
 
     /**
      * fetch mimetype for given file-extension
-     * @param string $extension
-     * @return string|null
      */
     public static function getMimeFor(string $extension): ?string
     {
@@ -124,19 +116,11 @@ class MimeType
         return $extensions[$extension] ?? null;
     }
 
-    /**
-     * @param string $mimetype
-     * @return bool
-     */
     public static function isImage(string $mimetype): bool
     {
         return in_array($mimetype, static::EXTENSIONS_IMAGES, true);
     }
 
-    /**
-     * @param string $mimetype
-     * @return bool
-     */
     public static function isVideo(string $mimetype): bool
     {
         return in_array($mimetype, static::EXTENSIONS_VIDEOS, true);

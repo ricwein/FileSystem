@@ -14,6 +14,7 @@ use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\File;
@@ -45,11 +46,6 @@ class DirectoryIterator
     protected ?int $constraints;
     protected bool $recursive;
 
-    /**
-     * @param Storage $storage
-     * @param bool $recursive
-     * @param int|null $constraints
-     */
     public function __construct(Storage $storage, bool $recursive = false, ?int $constraints = null)
     {
         $this->storage = $storage;
@@ -59,7 +55,6 @@ class DirectoryIterator
 
     /**
      * @param callable $filter in format: function(Storage $file): bool
-     * @return self
      */
     public function filterStorage(callable $filter): self
     {
@@ -69,7 +64,6 @@ class DirectoryIterator
 
     /**
      * @param callable $filter in format: function(FileSystem $file): bool
-     * @return self
      */
     public function filter(callable $filter): self
     {
@@ -80,7 +74,6 @@ class DirectoryIterator
     /**
      * fastest, but most low-level filter
      * @param callable $filter in format: function(SplFileInfo $file, mixed $key): bool
-     * @return $this
      */
     public function filterPath(callable $filter): self
     {
@@ -98,7 +91,7 @@ class DirectoryIterator
 
     /**
      * low-level storage iterator
-     * @return Generator
+     * @return Generator|Storage[]
      * @throws UnexpectedValueException
      * @throws UnsupportedException
      * @throws RuntimeException
@@ -114,7 +107,6 @@ class DirectoryIterator
             throw new RuntimeException(sprintf('Found Unsupported Storage Engine (%s) for pathFilter.', get_class($this->storage)), 400);
         }
 
-        /** @var Storage $storage */
         foreach ($iterator as $storage) {
 
             // apply middle low level filters
@@ -129,8 +121,7 @@ class DirectoryIterator
     }
 
     /**
-     * @param int|null $constraints
-     * @return Generator
+     * @return Generator|FileSystem[]
      * @throws UnsupportedException
      * @throws AccessDeniedException
      * @throws Exception
@@ -157,8 +148,7 @@ class DirectoryIterator
 
     /**
      * list only files
-     * @param int|null $constraints
-     * @return Generator
+     * @return Generator|File[]
      * @throws AccessDeniedException
      * @throws Exception
      * @throws UnexpectedValueException
@@ -175,8 +165,7 @@ class DirectoryIterator
 
     /**
      * list only directories
-     * @param int|null $constraints
-     * @return Generator
+     * @return Generator|Directory[]
      * @throws AccessDeniedException
      * @throws Exception
      * @throws UnexpectedValueException
@@ -191,6 +180,9 @@ class DirectoryIterator
         }
     }
 
+    /**
+     * @internal
+     */
     public function getStorage(): Storage
     {
         return $this->storage;

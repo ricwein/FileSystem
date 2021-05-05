@@ -15,7 +15,6 @@ use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
-use Throwable;
 
 /**
  * like Disk, but for temporary files
@@ -68,7 +67,6 @@ class Uploaded extends Disk
 
     /**
      * get original upload name if available
-     * @return string
      */
     public function getOriginalName(): string
     {
@@ -76,8 +74,6 @@ class Uploaded extends Disk
     }
 
     /**
-     * @param int $error
-     * @return void
      * @throws RuntimeException
      */
     protected function checkUploadError(int $error): void
@@ -103,7 +99,7 @@ class Uploaded extends Disk
     /**
      * @inheritDoc
      */
-    public function getConstraintViolations(Throwable $previous = null): ?ConstraintsException
+    public function getConstraintViolations(ConstraintsException $previous = null): ?ConstraintsException
     {
         return parent::getConstraintViolations($previous ?? $this->previousConstraintError);
     }
@@ -111,7 +107,7 @@ class Uploaded extends Disk
     /**
      * @inheritDoc
      */
-    public function setConstraints(int $constraints): Storage
+    public function setConstraints(int $constraints): static
     {
         return parent::setConstraints($constraints & ~Constraint::IN_SAFEPATH);
     }

@@ -12,7 +12,6 @@ use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage\Disk;
-use ricwein\FileSystem\Storage;
 
 /**
  * creates a absolute path from current-working-directory
@@ -23,7 +22,7 @@ class Current extends Disk
     /**
      * @inheritDoc
      */
-    public function __construct(...$path)
+    public function __construct(string|FileSystem|Path|Disk ...$path)
     {
         $fistComponent = reset($path);
 
@@ -44,7 +43,7 @@ class Current extends Disk
     /**
      * @inheritDoc
      */
-    public function setConstraints(int $constraints): Storage
+    public function setConstraints(int $constraints): static
     {
         return parent::setConstraints($constraints & ~Constraint::IN_SAFEPATH);
     }

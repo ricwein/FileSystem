@@ -22,13 +22,9 @@ use ricwein\FileSystem\Exceptions\RuntimeException;
  */
 abstract class FileSystem
 {
-    /**
-     * @var Storage
-     */
     protected Storage $storage;
 
     /**
-     * @param Storage $storage
      * @param int $constraints Constraint::LOOSE || Constraint::STRICT || Constraint::IN_SAFEPATH | Constraint::IN_OPENBASEDIR | Constraint::DISALLOW_LINK
      */
     public function __construct(Storage $storage, int $constraints = Constraint::STRICT)
@@ -39,7 +35,6 @@ abstract class FileSystem
 
     /**
      * validate constraints and check file permissions
-     * @return void
      * @throws Exceptions\ConstraintsException
      */
     protected function checkFileReadPermissions(): void
@@ -57,16 +52,12 @@ abstract class FileSystem
         unset($this->storage);
     }
 
-    /**
-     * @return Storage
-     */
     public function storage(): Storage
     {
         return $this->storage;
     }
 
     /**
-     * @return Path
      * @throws RuntimeException
      */
     public function path(): Path
@@ -78,9 +69,6 @@ abstract class FileSystem
         throw new RuntimeException('unable to fetch path from non-disk FileSystem', 500);
     }
 
-    /**
-     * @return bool
-     */
     public function isDotfile(): bool
     {
         return $this->storage->isDotfile();
@@ -88,8 +76,6 @@ abstract class FileSystem
 
     /**
      * get last-modified timestamp
-     * @param int $type
-     * @return int|null
      * @throws Exceptions\ConstraintsException
      */
     public function getTime(int $type = Time::LAST_MODIFIED): ?int
@@ -100,8 +86,6 @@ abstract class FileSystem
 
     /**
      * get last-modified as DateTime
-     * @param int $type
-     * @return DateTime|null
      * @throws Exception
      */
     public function getDate(int $type = Time::LAST_MODIFIED): ?DateTime
@@ -112,13 +96,11 @@ abstract class FileSystem
 
     /**
      * remove file
-     * @return self
      */
-    abstract public function remove(): self;
+    abstract public function remove(): static;
 
     /**
      * check if path is readable
-     * @return bool
      */
     public function isReadable(): bool
     {
@@ -127,7 +109,6 @@ abstract class FileSystem
 
     /**
      * check if path is writeable
-     * @return bool
      */
     public function isWriteable(): bool
     {
@@ -136,7 +117,6 @@ abstract class FileSystem
 
     /**
      * check if path is a symlink
-     * @return bool
      */
     public function isSymlink(): bool
     {
@@ -147,22 +127,14 @@ abstract class FileSystem
      * calculate hash above content or filename
      * @param int $mode Hash::CONTENT | Hash::FILENAME | Hash::FILEPATH
      * @param string $algo hashing-algorithm
-     * @param bool $raw
-     * @return string
      */
     abstract public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): string;
 
-    /**
-     * @return bool
-     */
     public function isValid(): bool
     {
         return $this->storage->doesSatisfyConstraints();
     }
 
-    /**
-     * @return string
-     */
     public function __toString(): string
     {
         return (string)$this->storage;
@@ -170,7 +142,6 @@ abstract class FileSystem
 
     /**
      * check if file exists and is an actual file
-     * @return bool
      */
     public function isFile(): bool
     {
@@ -179,7 +150,6 @@ abstract class FileSystem
 
     /**
      * check if directory exists and is an actual directory
-     * @return bool
      */
     public function isDir(): bool
     {
@@ -189,11 +159,9 @@ abstract class FileSystem
     /**
      * remove file from filesystem on object destruction
      * => leaving scope or removing object reference
-     * @param bool $activate
-     * @return self
      * @throws AccessDeniedException
      */
-    public function removeOnFree(bool $activate = true): self
+    public function removeOnFree(bool $activate = true): static
     {
         if (!$this->storage->doesSatisfyConstraints()) {
             throw new AccessDeniedException(sprintf('unable to remove: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->path()->raw : get_class($this->storage)), 404, $this->storage->getConstraintViolations());
@@ -205,18 +173,11 @@ abstract class FileSystem
     /**
      * cast current object to given class-name,
      * reusing internal storage-objects
-     * @param string $class
-     * @return self
      */
-    public function as(string $class): self
+    public function as(string $class): static
     {
         return new $class($this->storage);
     }
 
-    /**
-     * @param Storage $destination
-     * @param int|null $constraints
-     * @return $this
-     */
     abstract public function copyTo(Storage $destination, ?int $constraints = null): static;
 }

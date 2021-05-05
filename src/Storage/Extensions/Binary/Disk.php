@@ -17,19 +17,12 @@ class Disk extends Binary
 {
     protected ?string $filePath;
 
-    /**
-     * @var resource|null
-     */
+    /** @var resource|null */
     protected $handle = null;
-
-    /**
-     * @var array
-     */
     private array $stat;
 
     /**
      * @inheritDoc
-     * @param DiskStorage $storage
      * @throws RuntimeException
      */
     public function __construct(int $mode, DiskStorage $storage)
@@ -56,8 +49,6 @@ class Disk extends Binary
 
 
     /**
-     * @param int $mode
-     * @return void
      * @throws RuntimeException
      */
     protected function openHandle(int $mode): void
@@ -199,7 +190,6 @@ class Disk extends Binary
      * runtime test to prevent TOCTOU attacks (race conditions) through
      * verifying that the hash matches and the current cursor position/file
      * size matches their values when the file was first opened
-     * @return void
      * @throws RuntimeException
      */
     protected function toctouTest(): void

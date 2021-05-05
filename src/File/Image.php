@@ -32,7 +32,6 @@ class Image extends File
 
     /**
      * @inheritDoc
-     * @param string $driver
      * @throws UnsupportedException
      */
     public function __construct(Storage $storage, int $constraints = Constraint::STRICT, string $driver = 'gd')
@@ -47,8 +46,6 @@ class Image extends File
     }
 
     /**
-     * @param callable $callback
-     * @return self
      * @throws RuntimeException
      * @throws AccessDeniedException
      * @throws ConstraintsException
@@ -92,9 +89,6 @@ class Image extends File
     }
 
     /**
-     * @param string $newFormat
-     * @param float|null $quality
-     * @return self
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws FileNotFoundException
@@ -109,10 +103,6 @@ class Image extends File
     }
 
     /**
-     * @param int|null $width
-     * @param int|null $height
-     * @param bool $aspectRatio
-     * @return self
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws FileNotFoundException
@@ -135,10 +125,7 @@ class Image extends File
     }
 
     /**
-     * @param int $width
-     * @param int $height
      * @param bool $upsize allows upsizing of the image
-     * @return self
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws FileNotFoundException
@@ -174,9 +161,6 @@ class Image extends File
 
     /**
      * @param int $filesize destination filesize in bytes
-     * @param string|null $format
-     * @param int $minQuality
-     * @return self
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws FileNotFoundException

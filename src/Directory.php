@@ -15,6 +15,7 @@ use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Helper\DirectoryIterator;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Helper\Path;
 
 /**
  * represents a selected directory
@@ -22,15 +23,12 @@ use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 class Directory extends FileSystem
 {
     /**
-     * @noinspection PhpDocFieldTypeMismatchInspection
      * @var Storage\Disk
      */
     protected Storage $storage;
 
     /**
      * @inheritDoc
-     * @param Storage $storage
-     * @param int $constraints
      * @throws AccessDeniedException
      * @throws Exceptions\RuntimeException
      * @throws UnexpectedValueException
@@ -58,6 +56,7 @@ class Directory extends FileSystem
      * @throws Exceptions\RuntimeException
      * @throws FileNotFoundException
      * @throws UnexpectedValueException
+     * @inheritDoc
      */
     protected function checkFileReadPermissions(): void
     {
@@ -70,7 +69,6 @@ class Directory extends FileSystem
 
     /**
      * create new dir if not exists
-     * @return self
      * @throws AccessDeniedException
      * @throws Exceptions\ConstraintsException
      * @throws Exceptions\RuntimeException
@@ -91,14 +89,13 @@ class Directory extends FileSystem
 
     /**
      * @inheritDoc
-     * @return FileSystem
      * @throws AccessDeniedException
      * @throws Exceptions\ConstraintsException
      * @throws Exceptions\RuntimeException
      * @throws FileNotFoundException
      * @throws UnexpectedValueException
      */
-    public function remove(): FileSystem
+    public function remove(): static
     {
         if (!$this->storage->doesSatisfyConstraints()) {
             throw $this->storage->getConstraintViolations();
@@ -110,7 +107,6 @@ class Directory extends FileSystem
 
     /**
      * @inheritDoc
-     * @return bool
      * @throws Exceptions\RuntimeException
      * @throws UnexpectedValueException
      */
@@ -120,9 +116,6 @@ class Directory extends FileSystem
     }
 
     /**
-     * @param bool $recursive
-     * @param int|null $constraints
-     * @return DirectoryIterator
      * @throws Exceptions\ConstraintsException
      * @throws Exceptions\RuntimeException
      * @throws UnexpectedValueException
@@ -138,10 +131,6 @@ class Directory extends FileSystem
 
     /**
      * @inheritDoc
-     * @param int $mode
-     * @param string $algo
-     * @param bool $recursive
-     * @return string
      * @throws AccessDeniedException
      * @throws Exceptions\ConstraintsException
      * @throws Exceptions\Exception
@@ -164,8 +153,6 @@ class Directory extends FileSystem
 
     /**
      * calculate size
-     * @param bool $recursive
-     * @return int
      * @throws AccessDeniedException
      * @throws Exceptions\Exception
      * @throws Exceptions\UnsupportedException
@@ -184,11 +171,9 @@ class Directory extends FileSystem
 
     /**
      * changes current directory
-     * @param string[]|FileSystem[]|Helper\Path[]|Storage\Disk[] $path
-     * @return self
      * @throws UnexpectedValueException
      */
-    public function cd(...$path): self
+    public function cd(string|FileSystem|Path|Storage\Disk ...$path): self
     {
         $this->storage->cd($path);
         return $this;
@@ -196,8 +181,6 @@ class Directory extends FileSystem
 
     /**
      * move directory upwards (like /../)
-     * @param int $move
-     * @return self
      * @throws UnexpectedValueException
      */
     public function up(int $move = 1): self
@@ -207,24 +190,19 @@ class Directory extends FileSystem
     }
 
     /**
-     * @param string $filename
-     * @param int|null $constraints
-     * @param string $as
-     * @param mixed ...$arguments
-     * @return File
      * @throws Exceptions\ConstraintsException
      * @throws Exceptions\RuntimeException
      * @throws UnexpectedValueException
      */
-    public function file(string $filename, ?int $constraints = null, string $as = File::class, ...$arguments): File
+    public function file(string $filename, ?int $constraints = null, string $as = File::class, mixed ...$arguments): File
     {
         if (!$this->storage->doesSatisfyConstraints()) {
             throw $this->storage->getConstraintViolations();
         }
 
-        $dirpath = $this->path()->raw;
-        if (is_dir($dirpath)) {
-            $dirpath = realpath($dirpath);
+        $dirPath = $this->path()->raw;
+        if (is_dir($dirPath)) {
+            $dirPath = realpath($dirPath);
         }
 
         $safepath = $this->path()->safepath;
@@ -233,10 +211,10 @@ class Directory extends FileSystem
         }
 
         /** @var Storage $storage */
-        if (is_dir($safepath) && strpos($dirpath, $safepath) === 0) {
-            $storage = new Storage\Disk($safepath, str_replace($safepath, '', $dirpath), $filename);
+        if (is_dir($safepath) && str_starts_with($dirPath, $safepath)) {
+            $storage = new Storage\Disk($safepath, str_replace($safepath, '', $dirPath), $filename);
         } else {
-            $storage = new Storage\Disk($dirpath, $filename);
+            $storage = new Storage\Disk($dirPath, $filename);
         }
 
         return new $as(
@@ -247,16 +225,11 @@ class Directory extends FileSystem
     }
 
     /**
-     * @param string $dirname
-     * @param int|null $constraints
-     * @param string $as
-     * @param mixed ...$arguments
-     * @return self
      * @throws Exceptions\ConstraintsException
      * @throws Exceptions\RuntimeException
      * @throws UnexpectedValueException
      */
-    public function dir(string $dirname, ?int $constraints = null, string $as = self::class, ...$arguments): Directory
+    public function dir(string $dirname, ?int $constraints = null, string $as = self::class, mixed ...$arguments): Directory
     {
         if (!$this->storage->doesSatisfyConstraints()) {
             throw $this->storage->getConstraintViolations();
@@ -271,9 +244,6 @@ class Directory extends FileSystem
     }
 
     /**
-     * @param Storage $destination
-     * @param int|null $constraints
-     * @return static
      * @throws AccessDeniedException
      * @throws Exceptions\ConstraintsException
      * @throws Exceptions\RuntimeException
@@ -295,9 +265,6 @@ class Directory extends FileSystem
     }
 
     /**
-     * @param Storage\Disk $destination
-     * @param int|null $constraints
-     * @return bool
      * @throws AccessDeniedException
      * @throws Exceptions\ConstraintsException
      * @throws Exceptions\RuntimeException

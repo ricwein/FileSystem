@@ -35,8 +35,6 @@ class Flysystem extends Storage
     protected string $type;
 
     /**
-     * @param FilesystemAdapter|FlyFilesystem $filesystem
-     * @param string $path filename or directory
      * @throws FlySystemException
      * @throws UnexpectedValueException
      */
@@ -55,7 +53,6 @@ class Flysystem extends Storage
     }
 
     /**
-     * @return void
      * @throws AccessDeniedException
      * @throws FlySystemException
      */
@@ -77,7 +74,6 @@ class Flysystem extends Storage
     }
 
     /**
-     * @return array
      * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnsupportedException
@@ -101,9 +97,6 @@ class Flysystem extends Storage
         return true;
     }
 
-    /**
-     * @return string
-     */
     public function path(): string
     {
         return $this->path;
@@ -123,7 +116,6 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @return bool
      */
     public function isDir(): bool
     {
@@ -140,7 +132,6 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @return bool
      */
     public function isSymlink(): bool
     {
@@ -166,10 +157,6 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @param int $offset
-     * @param int|null $length
-     * @param int $mode
-     * @return string
      * @throws FileNotFoundException
      * @throws FlySystemException
      * @throws RuntimeException
@@ -190,7 +177,6 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @return array
      * @throws FileNotFoundException
      * @throws FlySystemException
      * @throws RuntimeException
@@ -202,9 +188,6 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @param int $offset
-     * @param int|null $length
-     * @param int $mode
      * @throws FileNotFoundException
      * @throws FlySystemException
      * @throws RuntimeException
@@ -239,7 +222,6 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @return bool
      * @throws FlySystemException
      */
     public function removeFile(): bool
@@ -249,7 +231,6 @@ class Flysystem extends Storage
     }
 
     /**
-     * @return bool
      * @throws AccessDeniedException
      * @throws FlySystemException
      */
@@ -265,8 +246,6 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @param bool $recursive
-     * @return Generator
      * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
@@ -285,7 +264,6 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @return int
      * @throws FlySystemException
      */
     public function getSize(): int
@@ -295,8 +273,6 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @param bool $withEncoding
-     * @return string|null
      */
     public function getFileType(bool $withEncoding = false): ?string
     {
@@ -305,10 +281,6 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @param int $mode
-     * @param string $algo
-     * @param bool $raw
-     * @return string|null
      * @throws FileNotFoundException
      * @throws FlySystemException
      * @throws RuntimeException
@@ -341,8 +313,6 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @param int $type
-     * @return int
      * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnsupportedException
@@ -361,10 +331,6 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @param bool $ifNewOnly
-     * @param int|null $time
-     * @param int|null $atime
-     * @return bool
      * @throws FlySystemException
      */
     public function touch(bool $ifNewOnly = false, ?int $time = null, ?int $atime = null): bool
@@ -385,7 +351,6 @@ class Flysystem extends Storage
     }
 
     /**
-     * @return bool
      * @throws FlySystemException
      */
     public function mkdir(): bool
@@ -402,9 +367,6 @@ class Flysystem extends Storage
         return str_starts_with($this->path, '.');
     }
 
-    /**
-     * @return string
-     */
     public function __toString(): string
     {
         return sprintf('%s/[Adapter: %s] at: "%s"', parent::__toString(), get_class($this->flysystem), $this->path);
@@ -441,8 +403,6 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @param Storage $destination
-     * @return bool
      * @throws FileNotFoundException
      * @throws FlySystemException
      * @throws RuntimeException
@@ -474,8 +434,6 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @param Storage $destination
-     * @return bool
      * @throws FileNotFoundException
      * @throws FlySystemException
      * @throws RuntimeException

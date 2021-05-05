@@ -20,32 +20,27 @@ class Constraint
 {
     /**
      * no requirements
-     * @var int
      */
     public const LOOSE = 0b00000000;
 
     /**
      * the resulting path is inside the first given path,
      * this mitigates /../ -traversion attacks
-     * @var int
      */
     public const IN_SAFEPATH = 0b00000001;
 
     /**
      * checks if file is in open_basedir restrictions
-     * @var int
      */
     public const IN_OPENBASEDIR = 0b00000010;
 
     /**
      * path must not be a symlink
-     * @var int
      */
     public const DISALLOW_LINK = 0b00000100;
 
     /**
      * includes all Constraints
-     * @var int
      */
     public const STRICT = 0b11111111;
 
@@ -54,27 +49,17 @@ class Constraint
     protected int $failedFor = 0;
     protected bool $hasRun = false;
 
-    /**
-     * @param int $constraints
-     */
     public function __construct(int $constraints = self::STRICT)
     {
         $this->constraints = $constraints;
     }
 
-    /**
-     * @return int
-     */
     public function getConstraints(): int
     {
         return $this->constraints;
     }
 
-    /**
-     * @param Throwable|null $previous
-     * @return Throwable|ConstraintsException|null
-     */
-    public function getErrors(Throwable $previous = null): ?Throwable
+    public function getErrors(ConstraintsException $previous = null): ?ConstraintsException
     {
         $rules = [
             self::DISALLOW_LINK,
@@ -93,8 +78,6 @@ class Constraint
     }
 
     /**
-     * @param Path $path
-     * @return bool
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */

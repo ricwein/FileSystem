@@ -23,7 +23,6 @@ class PathFinder
      * list of possible paths
      * => !not components of a single path!
      * @param string[]|Path[]|Storage[]|FileSystem[] $paths
-     * @return Storage
      * @throws FileNotFoundException
      * @throws UnexpectedValueException
      * @throws RuntimeException

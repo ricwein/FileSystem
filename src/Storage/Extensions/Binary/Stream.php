@@ -11,13 +11,10 @@ use ricwein\FileSystem\Storage\Stream as StreamStorage;
 
 class Stream extends Binary
 {
-    /**
-     */
     protected StreamResource $stream;
 
     /**
      * @inheritDoc
-     * @param StreamStorage $storage
      */
     public function __construct(int $mode, StreamStorage $storage)
     {

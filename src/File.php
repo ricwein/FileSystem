@@ -53,7 +53,6 @@ class File extends FileSystem
 
     /**
      * validate constraints and check file permissions
-     * @return void
      * @throws AccessDeniedException
      * @throws ConstraintsException
      */
@@ -69,10 +68,6 @@ class File extends FileSystem
     }
 
     /**
-     * @param int $offset
-     * @param int|null $length
-     * @param int $mode
-     * @return string
      * @throws ConstraintsException
      * @throws FileNotFoundException
      */
@@ -91,14 +86,9 @@ class File extends FileSystem
     {
         $this->checkFileReadPermissions();
         return $this->storage->readFileAsLines();
-
     }
 
     /**
-     * @param int $offset
-     * @param int|null $length
-     * @param int $mode
-     * @return void
      * @throws ConstraintsException
      * @throws FileNotFoundException
      */
@@ -110,14 +100,11 @@ class File extends FileSystem
 
     /**
      * write content to storage
-     * @param string $content
-     * @param bool $append
      * @param int $mode LOCK_EX
-     * @return self
      * @throws AccessDeniedException
      * @throws ConstraintsException
      */
-    public function write(string $content, bool $append = false, int $mode = LOCK_EX): self
+    public function write(string $content, bool $append = false, int $mode = LOCK_EX): static
     {
         $this->checkFileWritePermissions();
 
@@ -130,9 +117,6 @@ class File extends FileSystem
 
     /**
      * copy file-content to new destination
-     * @param Storage $destination
-     * @param int|null $constraints
-     * @return static new File-object
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws Exceptions\Exception
@@ -152,8 +136,6 @@ class File extends FileSystem
 
     /**
      * @param Storage &$destination mutable
-     * @param int|null $constraints
-     * @return bool success
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws Exceptions\Exception
@@ -193,9 +175,6 @@ class File extends FileSystem
 
     /**
      * copy file-content to new destination
-     * @param Storage $destination
-     * @param int|null $constraints
-     * @return self new File-object
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws Exceptions\Exception
@@ -204,7 +183,7 @@ class File extends FileSystem
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function moveTo(Storage $destination, ?int $constraints = null): self
+    public function moveTo(Storage $destination, ?int $constraints = null): static
     {
         // actual move file to file: use native functions if possible
         if (!$this->moveFileTo($destination, $constraints)) {
@@ -216,8 +195,6 @@ class File extends FileSystem
 
     /**
      * @param Storage &$destination mutable
-     * @param int|null $constraints
-     * @return bool success
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws Exceptions\Exception
@@ -270,8 +247,6 @@ class File extends FileSystem
 
     /**
      * guess content-type (mime) of storage
-     * @param bool $withEncoding
-     * @return string
      * @throws ConstraintsException
      * @throws FileNotFoundException
      * @throws UnexpectedValueException
@@ -289,10 +264,6 @@ class File extends FileSystem
 
     /**
      * @inheritDoc
-     * @param int $mode
-     * @param string $algo
-     * @param bool $raw
-     * @return string
      * @throws ConstraintsException
      * @throws FileNotFoundException
      * @throws RuntimeException
@@ -311,7 +282,6 @@ class File extends FileSystem
 
     /**
      * calculate size
-     * @return int
      * @throws ConstraintsException
      * @throws FileNotFoundException
      */
@@ -322,10 +292,8 @@ class File extends FileSystem
     }
 
     /**
-     * @param bool $ifNewOnly
      * @param null|int $time last-modified time
      * @param null|int $atime last-access time
-     * @return bool
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws Exceptions\Exception
@@ -339,13 +307,12 @@ class File extends FileSystem
 
     /**
      * @inheritDoc
-     * @return FileSystem
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws FileNotFoundException
      * @throws RuntimeException
      */
-    public function remove(): FileSystem
+    public function remove(): static
     {
         $this->checkFileWritePermissions();
 
@@ -362,8 +329,6 @@ class File extends FileSystem
 
     /**
      * access file for binary read/write actions
-     * @param int $mode
-     * @return Binary
      * @throws ConstraintsException
      * @throws Exceptions\UnsupportedException
      * @throws FileNotFoundException
@@ -376,15 +341,11 @@ class File extends FileSystem
     }
 
     /**
-     * @param int|null $constraints
-     * @param string $as
-     * @param mixed ...$arguments
-     * @return Directory
      * @throws ConstraintsException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function dir(?int $constraints = null, string $as = Directory::class, ...$arguments): Directory
+    public function dir(?int $constraints = null, string $as = Directory::class, mixed ...$arguments): Directory
     {
         if (!$this->storage->doesSatisfyConstraints()) {
             throw $this->storage->getConstraintViolations();

@@ -18,17 +18,14 @@ class Stream
     protected $handle;
 
     protected bool $closeOnFree = false;
-
     protected ?int $lock = null;
-
     protected ?array $metadata = null;
 
     /**
      * @param resource $handle
-     * @param bool $closeOnFree
      * @throws RuntimeException
      */
-    public function __construct($handle, bool $closeOnFree = true)
+    public function __construct(mixed $handle, bool $closeOnFree = true)
     {
         if (!is_resource($handle)) {
             throw new RuntimeException(sprintf('file-handle must be of type \'resource\' but \'%s\' given', get_debug_type($handle)), 500);
@@ -39,9 +36,6 @@ class Stream
     }
 
     /**
-     * @param string $filename
-     * @param string $mode
-     * @return static
      * @throws RuntimeException
      */
     public static function fromResourceName(string $filename, string $mode = 'rb+'): self
@@ -57,8 +51,6 @@ class Stream
         return $stream;
     }
 
-    /**
-     */
     public function __destruct()
     {
         if ($this->lock !== null) {
@@ -82,8 +74,6 @@ class Stream
     }
 
     /**
-     * @param int $mode
-     * @return $this
      * @throws RuntimeException
      */
     public function lock(int $mode): self
@@ -113,11 +103,9 @@ class Stream
     }
 
     /**
-     * @param int $offset
-     * @return self
      * @throws RuntimeException
      */
-    public function rewind(int $offset = 0): self
+    public function rewind(int $offset = 0): static
     {
         if (fseek($this->handle, $offset) !== 0) {
             throw new RuntimeException('error while rewinding file', 500);
@@ -128,19 +116,14 @@ class Stream
 
     /**
      * auto-close stream on destruction
-     * @param bool $activate
-     * @return self
      */
-    public function closeOnFree(bool $activate = true): self
+    public function closeOnFree(bool $activate = true): static
     {
         $this->closeOnFree = $activate;
         return $this;
     }
 
     /**
-     * @param string $algo
-     * @param bool $raw
-     * @return string
      * @throws RuntimeException
      */
     public function getHash(string $algo = 'sha256', bool $raw = false): string
@@ -153,7 +136,6 @@ class Stream
     }
 
     /**
-     * @param string $content
      * @throws RuntimeException
      */
     public function write(string $content): void
@@ -164,9 +146,6 @@ class Stream
     }
 
     /**
-     * @param int $offset
-     * @param int|null $length
-     * @return string
      * @throws RuntimeException
      */
     public function read(int $offset = 0, ?int $length = null): string
@@ -191,9 +170,6 @@ class Stream
     }
 
     /**
-     * @param resource $handle
-     * @param int $offset
-     * @param int|null $length
      * @throws RuntimeException
      */
     public function copyTo($handle, int $offset = 0, ?int $length = null): void
@@ -212,9 +188,6 @@ class Stream
     }
 
     /**
-     * @param Stream $stream
-     * @param int $offset
-     * @param int|null $length
      * @throws RuntimeException
      */
     public function copyToStream(self $stream, int $offset = 0, ?int $length = null): void
@@ -231,10 +204,6 @@ class Stream
     }
 
     /**
-     * @param int $offset
-     * @param int|null $length
-     * @param int $bufferSize
-     * @return void
      * @throws RuntimeException
      */
     public function passthru(int $offset = 0, ?int $length = null, int $bufferSize = 1024): void
@@ -276,7 +245,6 @@ class Stream
     }
 
     /**
-     * @param array $metadata
      * @internal
      */
     public function updateMetaData(array $metadata): void

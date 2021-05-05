@@ -16,15 +16,10 @@ use ricwein\FileSystem\Storage\Extensions\Binary;
 
 class Memory extends Binary
 {
-
-    /**
-     * @var MemoryStorage
-     */
     protected MemoryStorage $storage;
 
     /**
      * @inheritDoc
-     * @param MemoryStorage $storage
      */
     public function __construct(int $mode, MemoryStorage $storage)
     {

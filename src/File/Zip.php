@@ -64,13 +64,8 @@ class Zip extends File
     /**
      * automatically close and reopened zip-archive after x files added,
      * to prevent running into file descriptors limit
-     * @var int
      */
     private const AUTO_COMMIT_AFTER = 128;
-
-    /**
-     * @var int
-     */
     public const DEFAULT_ENCRYPTION = ZipArchive::EM_AES_256;
 
     /**
@@ -91,7 +86,6 @@ class Zip extends File
 
     /**
      * @inheritDoc
-     * @param Storage\Disk $storage
      */
     public function __construct(Storage\Disk $storage, int $constraints = Constraint::STRICT, int $flags = ZipArchive::CREATE)
     {
@@ -119,7 +113,6 @@ class Zip extends File
 
     /**
      * closes internale zip-archive
-     * @return bool
      */
     protected function closeArchive(): bool
     {
@@ -139,7 +132,6 @@ class Zip extends File
     /**
      * open internal zip-archive with given flags
      * => this can create a new zip-file
-     * @return bool
      * @throws ConstraintsException
      * @throws RuntimeException
      */
@@ -168,7 +160,7 @@ class Zip extends File
             throw new RuntimeException(sprintf('[%d] Error while opening ZipArchive: "unknown"', $result), 500);
         }
 
-        // validate zip-file contraints
+        // validate zip-file constraints
         if (!$this->storage->doesSatisfyConstraints()) {
             $this->archive->close();
             throw $this->storage->getConstraintViolations();
@@ -186,7 +178,6 @@ class Zip extends File
 
     /**
      * finish last running zip-transaction and close archive
-     * @return self
      */
     public function commit(): self
     {
@@ -196,9 +187,7 @@ class Zip extends File
 
     /**
      * en/decrypt archive with given password
-     * @param string|null $password
      * @param int|null $encryption encryption-mode
-     * @return self
      */
     public function withPassword(?string $password = null, ?int $encryption = null): self
     {
@@ -217,7 +206,6 @@ class Zip extends File
 
     /**
      * @param int $mode ZipArchive::CM_DEFAULT | CM_STORE | CM_SHRINK | CM_DEFLATE
-     * @return self
      */
     public function setCompression(int $mode): self
     {
@@ -226,10 +214,7 @@ class Zip extends File
     }
 
     /**
-     * @param Storage\Disk $destination
-     * @param int|null $constraints
      * @param string[]|null $entries
-     * @return Directory<Storage\Disk>
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws RuntimeException
@@ -266,9 +251,6 @@ class Zip extends File
 
     /**
      * add file or directory to zip-archive
-     * @param FileSystem $file
-     * @param string|null $asNode
-     * @return self
      * @throws ConstraintsException
      * @throws FileNotFoundException
      * @throws FlySystemException
@@ -295,9 +277,6 @@ class Zip extends File
 
     /**
      * add file or directory storage to zip-archive
-     * @param Storage $storage
-     * @param string|null $asNode
-     * @return self
      * @throws ConstraintsException
      * @throws FileNotFoundException
      * @throws FlySystemException
@@ -316,10 +295,8 @@ class Zip extends File
 
     /**
      * adds directory to zip-archive
-     * @param Directory $directory
      * @param string $toNode adds content of directory to a sub-directory, or the root of the zip-archive
      * @param callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
-     * @return self
      * @throws ConstraintsException
      * @throws FileNotFoundException
      * @throws FlySystemException
@@ -333,10 +310,8 @@ class Zip extends File
     }
 
     /**
-     * @param Storage $storage
      * @param string $toNode adds content of directory to a sub-directory, or the root of the zip-archive
      * @param callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
-     * @return self
      * @throws ConstraintsException
      * @throws FileNotFoundException
      * @throws FlySystemException
@@ -351,10 +326,8 @@ class Zip extends File
 
     /**
      * adds directory-content to zip-archive
-     * @param Directory $directory
      * @param string $toNode adds content of directory to a sub-directory, or the root of the zip-archive
      * @param callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
-     * @return self
      * @throws ConstraintsException
      * @throws FileNotFoundException
      * @throws FlySystemException
@@ -368,10 +341,8 @@ class Zip extends File
     }
 
     /**
-     * @param Storage $storage
      * @param string $toNode adds content of directory to a sub-directory, or the root of the zip-archive
      * @param callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
-     * @return self
      * @throws ConstraintsException
      * @throws FileNotFoundException
      * @throws RuntimeException
@@ -391,9 +362,6 @@ class Zip extends File
     }
 
     /**
-     * @param DirectoryIterator $iterator
-     * @param string $toNode
-     * @return $this
      * @throws ConstraintsException
      * @throws FileNotFoundException
      * @throws FlySystemException
@@ -427,9 +395,6 @@ class Zip extends File
     }
 
     /**
-     * @param File $file
-     * @param string|null $name
-     * @return self
      * @throws ConstraintsException
      * @throws FileNotFoundException
      * @throws FlySystemException
@@ -445,9 +410,6 @@ class Zip extends File
     }
 
     /**
-     * @param Storage $storage
-     * @param string|null $name
-     * @return self
      * @throws ConstraintsException
      * @throws FileNotFoundException
      * @throws RuntimeException
@@ -496,8 +458,6 @@ class Zip extends File
     }
 
     /**
-     * @param Storage\Disk $file
-     * @param string|null $name
      * @return string filename in zip-archive
      * @throws RuntimeException
      */
@@ -514,8 +474,6 @@ class Zip extends File
     }
 
     /**
-     * @param Storage\Memory $file
-     * @param string|null $name
      * @return string filename in zip-archive
      * @throws FileNotFoundException
      * @throws RuntimeException
@@ -543,8 +501,6 @@ class Zip extends File
     }
 
     /**
-     * @param Storage\Flysystem $file
-     * @param string|null $name
      * @return string filename in zip-archive
      * @throws FileNotFoundException
      * @throws RuntimeException
@@ -564,7 +520,6 @@ class Zip extends File
 
     /**
      * get archive status
-     * @return string
      * @throws ConstraintsException
      * @throws RuntimeException
      */
@@ -582,7 +537,6 @@ class Zip extends File
     }
 
     /**
-     * @return int
      * @throws ConstraintsException
      * @throws RuntimeException
      */
@@ -596,9 +550,6 @@ class Zip extends File
     }
 
     /**
-     * @param string $comment
-     * @param string|null $forFile
-     * @return self
      * @throws ConstraintsException
      * @throws RuntimeException
      */
@@ -618,8 +569,6 @@ class Zip extends File
     }
 
     /**
-     * @param string|null $forFile
-     * @return string|null
      * @throws ConstraintsException
      * @throws RuntimeException
      */
@@ -635,8 +584,6 @@ class Zip extends File
 
     /**
      * get stats-array for single entry
-     * @param string $forFile
-     * @return array|null
      * @throws ConstraintsException
      * @throws RuntimeException
      */
@@ -657,7 +604,7 @@ class Zip extends File
      * @inheritDoc
      * @return File
      */
-    public function moveTo(Storage $destination, ?int $constraints = null): File
+    public function moveTo(Storage $destination, ?int $constraints = null): static
     {
         // actual move file to file: use native functions if possible
         if (!$this->moveFileTo($destination, $constraints)) {

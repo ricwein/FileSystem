@@ -46,51 +46,72 @@ class Stream extends Storage
         $this->created = $now;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function doesSatisfyConstraints(): bool
     {
         return true;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function isFile(): bool
     {
         return true;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function isDir(): bool
     {
         return false;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function isExecutable(): bool
     {
         return false;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function isSymlink(): bool
     {
         return false;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function isReadable(): bool
     {
         return $this->stream->isReadable();
     }
 
+    /**
+     * @inheritDoc
+     */
     public function isWriteable(): bool
     {
         return $this->stream->isWriteable();
     }
 
+    /**
+     * @inheritDoc
+     */
     public function isDotfile(): bool
     {
         return false;
     }
 
     /**
-     * @param int $offset
-     * @param int|null $length
-     * @param int $mode
-     * @return string
+     * @inheritDoc
      * @throws FileNotFoundException
      * @throws RuntimeException
      */
@@ -111,7 +132,7 @@ class Stream extends Storage
     }
 
     /**
-     * @return array
+     * @inheritDoc
      * @throws FileNotFoundException
      * @throws RuntimeException
      */
@@ -127,9 +148,7 @@ class Stream extends Storage
     }
 
     /**
-     * @param int $offset
-     * @param int|null $length
-     * @param int $mode
+     * @inheritDoc
      * @throws FileNotFoundException
      * @throws RuntimeException
      */
@@ -152,10 +171,7 @@ class Stream extends Storage
     }
 
     /**
-     * @param string $content
-     * @param bool $append
-     * @param int $mode
-     * @return bool
+     * @inheritDoc
      * @throws FileNotFoundException
      * @throws RuntimeException
      */
@@ -182,6 +198,9 @@ class Stream extends Storage
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     public function removeFile(): bool
     {
         $uri = $this->stream->getAttribute('uri');
@@ -195,11 +214,17 @@ class Stream extends Storage
         return true;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getSize(): int
     {
         return $this->stream->getSize();
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getTime(int $type = Time::LAST_MODIFIED): ?int
     {
         switch ($type) {
@@ -215,8 +240,7 @@ class Stream extends Storage
     }
 
     /**
-     * @param bool $withEncoding
-     * @return string|null
+     * @inheritDoc
      * @throws FileNotFoundException
      * @throws RuntimeException
      */
@@ -233,10 +257,7 @@ class Stream extends Storage
     }
 
     /**
-     * @param int $mode
-     * @param string $algo
-     * @param bool $raw
-     * @return string|null
+     * @inheritDoc
      * @throws RuntimeException
      */
     public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): ?string
@@ -254,6 +275,9 @@ class Stream extends Storage
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     public function touch(bool $ifNewOnly = false, ?int $time = null, ?int $atime = null): bool
     {
         $this->lastModified = $time ?? time();
@@ -265,14 +289,16 @@ class Stream extends Storage
         return true;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getStream(string $mode = 'rb+'): StreamResource
     {
         return $this->stream;
     }
 
     /**
-     * @param StreamResource $stream
-     * @return bool
+     * @inheritDoc
      * @throws RuntimeException
      */
     public function writeFromStream(StreamResource $stream): bool
@@ -282,8 +308,7 @@ class Stream extends Storage
     }
 
     /**
-     * @param Storage $destination
-     * @return bool
+     * @inheritDoc
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnsupportedException
@@ -304,8 +329,7 @@ class Stream extends Storage
     }
 
     /**
-     * @param Storage $destination
-     * @return bool
+     * @inheritDoc
      * @throws FileNotFoundException
      * @throws FilesystemException
      * @throws RuntimeException

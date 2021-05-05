@@ -19,11 +19,11 @@ use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 class Resource extends Memory
 {
     /**
-     * @param mixed $resource
+     * @param GdImage|mixed $resource
      * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
-    public function __construct($resource)
+    public function __construct(mixed $resource)
     {
         switch (true) {
             case $resource instanceof GdImage:
