@@ -32,7 +32,7 @@ class Path
     private bool $loaded = false;
 
     /**
-     * @var string[]|FileSystem[]|self[]
+     * @var scalar[]|FileSystem[]|self[]|Storage\Disk[]
      */
     private array $components;
 
@@ -90,7 +90,7 @@ class Path
     protected ?SplFileInfo $fileInfo = null;
 
     /**
-     * @param string[]|FileSystem[]|self[] $components
+     * @param string[]|FileSystem[]|self[]|Storage\Disk[] $components
      * @throws UnexpectedValueException
      */
     public function __construct(array $components)

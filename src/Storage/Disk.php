@@ -45,7 +45,7 @@ class Disk extends Storage
     protected Path $path;
 
     /**
-     * @param string[]|FileSystem[]|Path[] $path
+     * @param string[]|FileSystem[]|Path[]|self[] $path
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -546,7 +546,7 @@ class Disk extends Storage
 
     /**
      * changes current directory
-     * @param string[]|FileSystem[]|Path[] $path
+     * @param string[]|FileSystem[]|Path[]|self[] $path
      * @return void
      * @throws UnexpectedValueException
      * @internal

@@ -184,7 +184,7 @@ class Directory extends FileSystem
 
     /**
      * changes current directory
-     * @param string[]|FileSystem[]|Helper\Path[] $path
+     * @param string[]|FileSystem[]|Helper\Path[]|Storage\Disk[] $path
      * @return self
      * @throws UnexpectedValueException
      */
