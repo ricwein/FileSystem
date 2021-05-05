@@ -259,7 +259,7 @@ class File extends FileSystem
             return $mime;
         }
 
-        throw new UnexpectedValueException('unable to determin files content-type', 500);
+        throw new UnexpectedValueException('unable to determine files content-type', 500);
     }
 
     /**

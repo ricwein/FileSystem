@@ -95,6 +95,7 @@ class DirectoryIterator
      * @throws UnexpectedValueException
      * @throws UnsupportedException
      * @throws RuntimeException
+     * @noinspection PhpDocSignatureInspection
      */
     public function storages(): Generator
     {
@@ -126,6 +127,7 @@ class DirectoryIterator
      * @throws AccessDeniedException
      * @throws Exception
      * @throws UnexpectedValueException
+     * @noinspection PhpDocSignatureInspection
      */
     public function all(?int $constraints = null): Generator
     {
@@ -153,6 +155,7 @@ class DirectoryIterator
      * @throws Exception
      * @throws UnexpectedValueException
      * @throws UnsupportedException
+     * @noinspection PhpDocSignatureInspection
      */
     public function files(?int $constraints = null): Generator
     {
@@ -170,6 +173,7 @@ class DirectoryIterator
      * @throws Exception
      * @throws UnexpectedValueException
      * @throws UnsupportedException
+     * @noinspection PhpDocSignatureInspection
      */
     public function dirs(?int $constraints = null): Generator
     {

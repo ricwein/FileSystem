@@ -57,7 +57,7 @@ class Image extends File
         $mimetype = $this->getType();
 
         if (!MimeType::isImage($mimetype)) {
-            throw new RuntimeException('unspported mimetype for image-manipulation', 400);
+            throw new RuntimeException('unsupported mimetype for image-manipulation', 400);
         }
 
         // fetch image (path or content)

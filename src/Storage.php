@@ -19,7 +19,6 @@ use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
 use ricwein\FileSystem\Helper\Stream;
 use ricwein\FileSystem\Storage\Extensions\Binary;
-use Throwable;
 
 /**
  * base-implementation for all Storage Adapters
@@ -214,6 +213,7 @@ abstract class Storage
      * @throws UnsupportedException
      * @noinspection PhpInconsistentReturnPointsInspection
      * @internal
+     * @noinspection PhpDocSignatureInspection
      */
     public function list(bool $recursive = false, ?int $constraints = null): Generator
     {

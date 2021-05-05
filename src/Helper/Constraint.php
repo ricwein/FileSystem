@@ -11,7 +11,6 @@ namespace ricwein\FileSystem\Helper;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
-use Throwable;
 
 /**
  * file-path validation class
@@ -25,7 +24,7 @@ class Constraint
 
     /**
      * the resulting path is inside the first given path,
-     * this mitigates /../ -traversion attacks
+     * this mitigates /../ -traversal attacks
      */
     public const IN_SAFEPATH = 0b00000001;
 
