@@ -63,6 +63,9 @@ All Storage-Types must extend the abstract base class `Filesystem\Storage`.
 > DO NOT:
 
 ```php
+use ricwein\FileSystem\Directory;
+use ricwein\FileSystem\Storage;
+
 $originalDir = new Directory(new Storage\Disk(__DIR__));
 $copyDir = new Directory($originalDir->storage());
 
@@ -72,6 +75,9 @@ $copyDir->cd('test'); // will also changes $originalDir path!
 > DO:
 
 ```php
+use ricwein\FileSystem\Directory;
+use ricwein\FileSystem\Storage;
+
 $originalDir = new Directory(new Storage\Disk(__DIR__));
 $copyDir = new Directory(clone $originalDir->storage());
 
@@ -111,7 +117,7 @@ All *FileSystem*-base-classes must be initialized using a Storage.
 | `isValid()` | run constraints validation |
 | `getHandle([string $mode])` | gets new file-Handle for binary file-access |
 | `storage()` | access internal storage adapter |
-| `path()` | tries to access filesystem-path |
+| `getPath()` | fetch filesystem-path |
 | `getStream()` | returns `Stream` wrapper around internal resource pointing to actual file |
 | `dir([,int $constraints [,string $as [,...$arguments]]])` | get parent `Directory` of file |
 
@@ -141,7 +147,7 @@ $content = $file->read();
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 
-$file = new File(new Storage\Stream(fopen('php://output')));
+$file = new File(new Storage\Stream(fopen('php://output', 'wb')));
 $content = $file->write('content');
 ```
 
@@ -150,9 +156,9 @@ $content = $file->write('content');
 ```php
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
-use League\Flysystem\Adapter\Local;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 
-$file = new File(new Storage\Flysystem(new Local(__DIR__), 'test.txt'));
+$file = new File(new Storage\Flysystem(new LocalFilesystemAdapter(__DIR__), 'test.txt'));
 $content = $file->read();
 ```
 
@@ -180,7 +186,7 @@ Like Files, Directories must be initialized using a Storage.
 | `isDotfile()` | is directory a hidden dot-file? |
 | `isValid()` | run constraints validation |
 | `storage()` | access internal storage adapter |
-| `path()` | tries to access filesystem-path |
+| `getPath()` | fetch filesystem-path |
 | `file(string $filename [,int $constraints [,string $as [,...$arguments]]])` | get `File` in current directory by name |
 | `dir(string $dirname [,int $constraints [,string $as [,...$arguments]]])` | get `Directory` in current directory by name (`clone`s storage!) |
 
@@ -259,6 +265,10 @@ The following constraints are set as default (as part of `Constraint::STRICT`), 
 - `Directory\Command`: Allows running shell-commands inside the given directory.
 
 ```php
+use ricwein\FileSystem\Directory;
+use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Storage;
+
 $git = new Directory\Command(new Storage\Disk(__DIR__), Constraint::STRICT, ['/usr/local/bin/git', '/usr/bin/git']);
 $ref = $git->execSafe('rev-parse HEAD');
 ```
@@ -270,12 +280,17 @@ $ref = $git->execSafe('rev-parse HEAD');
 > Be aware: all image-file manipulations are directly mutating the original file!
 
 ```php
+use Intervention\Image\Image;
+use ricwein\FileSystem\File;
+use ricwein\FileSystem\Storage;
+
 $image = new File\Image(new Storage\Disk('test.png'));
 $image->resizeToFit(1024, 1024);
 $image->compress(1048576); // iterative process to reduce filesize to be less than given filesize (1MB) by reducing the jpg-quality
 // $image->encode('jpg');
-$image->edit(function (Intervention\Image $image): Intervention\Image {
+$image->edit(function (Image $image): Image {
     // add advanced image-manipulation here
+    [...]
     return $image;
 });
 ```
@@ -283,6 +298,10 @@ $image->edit(function (Intervention\Image $image): Intervention\Image {
 - `File\Zip`: Allows basic zip-operations, like creating a new archive or extracting an existing one.
 
 ```php
+use ricwein\FileSystem\Directory;
+use ricwein\FileSystem\File;
+use ricwein\FileSystem\Storage;
+
 $zip = new File\Zip(new Storage\Disk('archive.zip'));
 
 // create zip file
@@ -300,13 +319,21 @@ $extractDir = $zip->extractTo(new Storage\Disk\Temp);
 - `Disk\Current`: Uses current-working-directory (`getcwd()`) as safepath. Useful for cli-scripts in combination with `Directory\Command`.
 
  ```php
- $current = new File(new Storage\Disk(getcwd(), 'file.json'), Constraints::STRICT & ~Constraint::IN_SAFEPATH);
+use ricwein\FileSystem\File;
+use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Storage;
+
+ $current = new File(new Storage\Disk(getcwd(), 'file.json'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
  // is the same as:
  $current = new File(new Storage\Disk\Current('file.json'));
  ```
 
  ```php
- $git = new Command(new Storage\Disk\Current, Constraint::STRICT, ['/usr/local/bin/git', '/usr/bin/git']);
+use ricwein\FileSystem\Directory;
+use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Storage;
+
+ $git = new Directory\Command(new Storage\Disk\Current, Constraint::STRICT, ['/usr/local/bin/git', '/usr/bin/git']);
 
  if (!$git->execSafe('pull $branch', ['branch' => 'develop'])) {
      echo 'failed to execute: ' . $git->getLastCommand() . PHP_EOL;
@@ -318,6 +345,9 @@ $extractDir = $zip->extractTo(new Storage\Disk\Temp);
 - `Disk\Temp`: Uses the system-temp directory to create a temporary file/directory. The file is automatically removed after freeing the object instance!
 
  ```php
+use ricwein\FileSystem\File;
+use ricwein\FileSystem\Storage;
+
  $temp = new File(new Storage\Disk\Temp);
  $temp->write('test');
  $temp->read();
@@ -327,6 +357,9 @@ $extractDir = $zip->extractTo(new Storage\Disk\Temp);
 - `Disk\Uploaded`: Provides safe and easy *uploaded-files* access through php's native `is_uploaded_file()` and `move_uploaded_file()` functions.
 
  ```php
+use ricwein\FileSystem\File;
+use ricwein\FileSystem\Storage;
+
  $uploaded = new File(new Storage\Disk\Uploaded($_FILES['file']));
  $file = $uploaded->moveTo(new Storage\Disk(__DIR__, 'uploads'));
  ```
@@ -336,6 +369,9 @@ $extractDir = $zip->extractTo(new Storage\Disk\Temp);
 > ATTENTION: Usually it's a better idea to just use `Stream` instead!
 
  ```php
+use ricwein\FileSystem\File;
+use ricwein\FileSystem\Storage;
+
  $resource = fopen('test.json', 'rb');
  $file = new File(new Storage\Memory\Resource($resource));
  fclose($resource);

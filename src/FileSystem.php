@@ -58,11 +58,28 @@ abstract class FileSystem
     }
 
     /**
+     * fetch internal path system
      * @throws UnsupportedException
      */
     public function path(): Path|string
     {
         if ($this->storage instanceof Storage\Disk || $this->storage instanceof Storage\Flysystem) {
+            return $this->storage->path();
+        }
+
+        throw new UnsupportedException('Unable to fetch path from non-disk FileSystem.', 500);
+    }
+
+    /**
+     * fetch most specific file/directory path, which is available for the used storage engine
+     * @throws UnsupportedException
+     */
+    public function getPath(): string
+    {
+        if ($this->storage instanceof Storage\Disk) {
+            return $this->storage->path()->real ?? $this->storage->path()->raw;
+        }
+        if ($this->storage instanceof Storage\Flysystem) {
             return $this->storage->path();
         }
 
