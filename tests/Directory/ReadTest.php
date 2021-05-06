@@ -29,7 +29,7 @@ class ReadTest extends TestCase
     public function testMemoryInit(): void
     {
         $this->expectException(UnsupportedException::class);
-        $this->expectExceptionMessage('In-memory directories are not supported.');
+        $this->expectExceptionMessage('Only Disk and FlySystem Storages are supported for Directories.');
 
         new Directory(new Storage\Memory());
     }
@@ -42,7 +42,7 @@ class ReadTest extends TestCase
         $path = __DIR__ . '/../_examples';
 
         return array_filter(scandir($path), static function (string $filename) use ($path): bool {
-            return (strpos($filename, '.') !== 0) && is_file($path . '/' . $filename);
+            return (!str_starts_with($filename, '.')) && is_file($path . '/' . $filename);
         });
     }
 

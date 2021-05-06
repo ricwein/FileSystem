@@ -21,6 +21,7 @@ use RecursiveIteratorIterator;
 use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\FileSystem;
@@ -58,6 +59,7 @@ class Disk extends Storage
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws FileNotFoundException
+     * @throws UnsupportedException
      */
     public function __destruct()
     {
@@ -76,6 +78,7 @@ class Disk extends Storage
      * @inheritDoc
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function getDetails(): array
     {
@@ -86,6 +89,7 @@ class Disk extends Storage
      * @inheritDoc
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function doesSatisfyConstraints(): bool
     {
@@ -101,6 +105,7 @@ class Disk extends Storage
      * @inheritDoc
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function isFile(): bool
     {
@@ -111,6 +116,7 @@ class Disk extends Storage
      * @inheritDoc
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function isDir(): bool
     {
@@ -121,6 +127,7 @@ class Disk extends Storage
      * @inheritDoc
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function isExecutable(): bool
     {
@@ -131,6 +138,7 @@ class Disk extends Storage
      * @inheritDoc
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function isSymlink(): bool
     {
@@ -141,6 +149,7 @@ class Disk extends Storage
      * @inheritDoc
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function isReadable(): bool
     {
@@ -151,6 +160,7 @@ class Disk extends Storage
      * @inheritDoc
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function isWriteable(): bool
     {
@@ -162,6 +172,7 @@ class Disk extends Storage
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function readFile(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): string
     {
@@ -185,6 +196,7 @@ class Disk extends Storage
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function readFileAsLines(): array
     {
@@ -200,6 +212,7 @@ class Disk extends Storage
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function streamFile(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): void
     {
@@ -291,6 +304,7 @@ class Disk extends Storage
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      * @internal
      */
     public function removeDir(): bool
@@ -361,6 +375,7 @@ class Disk extends Storage
      * @inheritDoc
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function getSize(): int
     {
@@ -389,6 +404,7 @@ class Disk extends Storage
     /**
      * @inheritDoc
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): ?string
     {
@@ -409,6 +425,7 @@ class Disk extends Storage
      * @inheritDoc
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function getTime(int $type = Time::LAST_MODIFIED): ?int
     {
@@ -462,6 +479,7 @@ class Disk extends Storage
     /**
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function mkdir(bool $ifNewOnly = false): bool
     {

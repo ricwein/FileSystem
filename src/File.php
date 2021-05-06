@@ -344,6 +344,8 @@ class File extends FileSystem
      * @throws ConstraintsException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws Exceptions\UnsupportedException
+     * @throws FilesystemException
      */
     public function dir(?int $constraints = null, string $as = Directory::class, mixed ...$arguments): Directory
     {
@@ -351,17 +353,35 @@ class File extends FileSystem
             throw $this->storage->getConstraintViolations();
         }
 
-        $dirPath = $this->path()->directory;
+        if ($this->storage instanceof Storage\Flysystem) {
+            $filePath = $this->storage->path();
+
+            if (false !== $lastDelimiterPos = strrpos($filePath, '/')) {
+                $dirPath = substr($filePath, 0, $lastDelimiterPos);
+            } else {
+                $dirPath = '';
+            }
+
+            return new $as(
+                new Storage\Flysystem($this->storage->getFlySystem(), $dirPath),
+                $constraints ?? $this->storage->getConstraints(),
+                ...$arguments
+            );
+        }
+
+
+        $path = $this->path();
+        $dirPath = $path->directory;
         if (is_dir($dirPath)) {
             $dirPath = realpath($dirPath);
         }
 
-        $safepath = $this->path()->safepath;
+        $safepath = $path->safepath;
         if (is_dir($safepath)) {
             $safepath = realpath($safepath);
         }
 
-        if (is_dir($safepath)) {
+        if ($safepath !== null && is_dir($safepath)) {
             $storage = new Storage\Disk($safepath, str_replace($safepath, '', $dirPath));
         } else {
             $storage = new Storage\Disk($dirPath);

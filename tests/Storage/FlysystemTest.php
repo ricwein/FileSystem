@@ -103,4 +103,32 @@ class FlysystemTest extends TestCase
             self::assertTrue($file->isFile());
         }
     }
+
+    /**
+     * @throws AccessDeniedException
+     * @throws ConstraintsException
+     * @throws FlySystemException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws UnsupportedException
+     */
+    public function testNavigation(): void
+    {
+        $dir = new Directory(new Storage\Flysystem(new LocalFilesystemAdapter(__DIR__ . '/..'), '_examples'));
+        self::assertTrue($dir->isDir());
+
+        $file = $dir->file('archive.zip');
+        self::assertTrue($file->isFile());
+        self::assertFalse($file->isDir());
+        self::assertSame($file->path(), '_examples/archive.zip');
+
+        $dirAgain = $file->dir();
+        self::assertTrue($dirAgain->isDir());
+        self::assertFalse($dirAgain->isFile());
+        self::assertSame($dirAgain->path(), '_examples');
+
+        $parentDir = $dirAgain->up();
+        self::assertTrue($parentDir->isDir());
+        self::assertFalse($parentDir->isFile());
+    }
 }

@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Helper;
 
 use ricwein\FileSystem\Exceptions\RuntimeException as FileSystemRuntimeException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
@@ -106,6 +107,7 @@ class Path
      * @return string[]
      * @throws FileSystemRuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     protected function normalizePathComponents(): array
     {
@@ -138,6 +140,7 @@ class Path
     /**
      * @throws UnexpectedValueException
      * @throws FileSystemRuntimeException
+     * @throws UnsupportedException
      */
     protected static function normalize(FileSystem|Path|int|string|Storage\Disk $component, bool $isFirstElement, bool $isLastElement): string
     {
@@ -168,6 +171,7 @@ class Path
     /**
      * @throws UnexpectedValueException
      * @throws FileSystemRuntimeException
+     * @throws UnsupportedException
      */
     protected function resolvePath(): void
     {
@@ -270,6 +274,7 @@ class Path
     /**
      * @throws UnexpectedValueException
      * @throws FileSystemRuntimeException
+     * @throws UnsupportedException
      */
     public function fileInfo(): SplFileInfo
     {
@@ -285,6 +290,7 @@ class Path
      * check if path is in open_basedir restrictions
      * @throws UnexpectedValueException
      * @throws FileSystemRuntimeException
+     * @throws UnsupportedException
      */
     public function isInOpenBasedir(): bool
     {
@@ -324,6 +330,7 @@ class Path
      * @return string[]
      * @throws UnexpectedValueException
      * @throws FileSystemRuntimeException
+     * @throws UnsupportedException
      */
     public function getDetails(): array
     {
@@ -362,7 +369,7 @@ class Path
 
     /**
      * @throws FileSystemRuntimeException
-     * @throws UnexpectedValueException
+     * @throws UnexpectedValueException|UnsupportedException
      */
     public function __isset(string $key): bool
     {
@@ -380,6 +387,7 @@ class Path
     /**
      * @throws UnexpectedValueException
      * @throws FileSystemRuntimeException
+     * @throws UnsupportedException
      */
     public function __get(string $key): ?string
     {
@@ -397,6 +405,7 @@ class Path
     /**
      * @throws UnexpectedValueException
      * @throws FileSystemRuntimeException
+     * @throws UnsupportedException
      */
     public function __toString(): string
     {

@@ -11,6 +11,7 @@ namespace ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\Constraint;
@@ -64,6 +65,7 @@ class Command extends Directory
      * @throws RuntimeException
      * @throws ConstraintsException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     protected function selectBinaryPath(array $paths): ?string
     {
@@ -134,6 +136,7 @@ class Command extends Directory
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function execSafe(string $cmd = '', array $arguments = []): bool|string
     {
@@ -148,6 +151,7 @@ class Command extends Directory
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function exec(string $cmd = '', array $arguments = []): bool|string
     {

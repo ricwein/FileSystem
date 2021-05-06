@@ -45,11 +45,19 @@ class Flysystem extends Storage
         } elseif ($filesystem instanceof FlyFilesystem) {
             $this->flysystem = $filesystem;
         } else {
-            throw new UnexpectedValueException(sprintf('unable to init Flysystem storage-engine from %s', get_debug_type($filesystem)), 500);
+            throw new UnexpectedValueException(sprintf('Unable to init Flysystem storage-engine from %s.', get_debug_type($filesystem)), 500);
         }
 
         $this->path = $path;
         $this->type = $this->flysystem->mimeType($path);
+    }
+
+    /**
+     * @internal
+     */
+    public function getFlySystem(): FlyFilesystem
+    {
+        return $this->flysystem;
     }
 
     /**
@@ -456,4 +464,16 @@ class Flysystem extends Storage
                 return true;
         }
     }
+
+
+    /**
+     * changes current directory
+     * @param string[] $path
+     * @internal
+     */
+    public function cd(array $path): void
+    {
+        $this->path .= sprintf("%s", implode('/', $path));
+    }
+
 }

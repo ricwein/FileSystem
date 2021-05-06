@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Storage\Disk;
 
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\Constraint;
@@ -21,6 +22,7 @@ class Current extends Disk
 
     /**
      * @inheritDoc
+     * @throws UnsupportedException
      */
     public function __construct(string|FileSystem|Path|Disk ...$path)
     {
@@ -32,7 +34,7 @@ class Current extends Disk
             empty($path)
             || (is_string($fistComponent) && !str_starts_with($fistComponent, DIRECTORY_SEPARATOR))
             || ($fistComponent instanceof Path && !str_starts_with($fistComponent->raw, DIRECTORY_SEPARATOR))
-            || ($fistComponent instanceof FileSystem && !str_starts_with($fistComponent->path()->raw, DIRECTORY_SEPARATOR))
+            || ($fistComponent instanceof FileSystem && ($path = $fistComponent->path()) && ($path = is_string($path) ? $path : $path->raw) && !str_starts_with($path, DIRECTORY_SEPARATOR))
         ) {
             array_unshift($path, getcwd());
         }

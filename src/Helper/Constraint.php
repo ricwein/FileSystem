@@ -11,6 +11,7 @@ namespace ricwein\FileSystem\Helper;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 
 /**
  * file-path validation class
@@ -79,6 +80,7 @@ class Constraint
     /**
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function isValidPath(Path $path): bool
     {

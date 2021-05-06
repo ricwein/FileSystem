@@ -13,9 +13,9 @@ use Exception;
 use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\Constraint;
-use ricwein\FileSystem\Exceptions\RuntimeException;
 
 /**
  * base of all FileSystem type-classes (File/Directory)
@@ -58,15 +58,15 @@ abstract class FileSystem
     }
 
     /**
-     * @throws RuntimeException
+     * @throws UnsupportedException
      */
-    public function path(): Path
+    public function path(): Path|string
     {
-        if ($this->storage instanceof Storage\Disk) {
+        if ($this->storage instanceof Storage\Disk || $this->storage instanceof Storage\Flysystem) {
             return $this->storage->path();
         }
 
-        throw new RuntimeException('unable to fetch path from non-disk FileSystem', 500);
+        throw new UnsupportedException('Unable to fetch path from non-disk FileSystem.', 500);
     }
 
     public function isDotfile(): bool
