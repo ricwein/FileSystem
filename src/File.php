@@ -397,8 +397,6 @@ class File extends FileSystem
 
     /**
      * open and return file-stream
-     * @param string $mode
-     * @return Stream
      * @throws ConstraintsException
      * @throws FileNotFoundException
      */
