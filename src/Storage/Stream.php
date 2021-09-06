@@ -28,7 +28,7 @@ class Stream extends Storage
      * @throws RuntimeException
      * @throws UnsupportedException
      */
-    public function __construct(mixed $stream)
+    public function __construct(mixed $stream, private bool $lockOnIO = true)
     {
         if ($stream instanceof StreamResource) {
             $this->stream = $stream;
@@ -123,11 +123,15 @@ class Stream extends Storage
             throw new FileNotFoundException('File not found', 404);
         }
 
-        $this->stream->lock($mode);
+        if ($this->lockOnIO) {
+            $this->stream->lock($mode);
+        }
         try {
             return $this->stream->read($offset, $length);
         } finally {
-            $this->stream->unlock();
+            if ($this->lockOnIO) {
+                $this->stream->unlock();
+            }
         }
     }
 
@@ -162,11 +166,15 @@ class Stream extends Storage
 
         $output = StreamResource::fromResourceName('php://output', 'wb');
 
-        $this->stream->lock($mode);
+        if ($this->lockOnIO) {
+            $this->stream->lock($mode);
+        }
         try {
             $this->stream->copyToStream($output, $offset, $length);
         } finally {
-            $this->stream->unlock();
+            if ($this->lockOnIO) {
+                $this->stream->unlock();
+            }
         }
     }
 
@@ -183,7 +191,10 @@ class Stream extends Storage
             throw new FileNotFoundException('File not writeable', 400);
         }
 
-        $this->stream->lock($mode);
+        if ($this->lockOnIO) {
+            $this->stream->lock($mode);
+        }
+
         try {
 
             if (!$append) {
@@ -194,7 +205,9 @@ class Stream extends Storage
             return true;
 
         } finally {
-            $this->stream->unlock();
+            if ($this->lockOnIO) {
+                $this->stream->unlock();
+            }
         }
     }
 
