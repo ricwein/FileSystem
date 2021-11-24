@@ -314,6 +314,32 @@ $zip->commit();
 $extractDir = $zip->extractTo(new Storage\Disk\Temp);
 ```
 
+- `File\SSLCertificate`: Access some basic x509 SSL Certificate information, either from:
+  - a certificate-file (usually `.crt`)
+  - a Server (by URL) if it's serving a ssl based protocol like `HTTPS`
+
+```php
+use ricwein\FileSystem\File;
+use ricwein\FileSystem\Storage;
+
+$cert = new File\SSLCertificate(new Storage\File('certs/domain.crt'));
+// OR
+$cert = new File\SSLCertificate(new Storage\Memory('ssl://domain.com:443')); // or for HTTPS simply: 'domain.com' 
+
+// check if cert it currently valid (by timestamps)
+$isValid = $cert->isValid();
+// check if cert is also valid for a given host
+$isValidForHost = $cert->isValidFor('subdomain.domain.com');
+
+// show some certificate details
+print_r([
+    'issuer' => $cert->getIssuer(),
+    'subject' =>  $cert->getValidDomains(),
+    'validFrom' => $cert->validFrom()->format('d.m.Y H:i:s'),
+    'validTo' => $cert->validTo()->format('d.m.Y H:i:s'),
+]);
+```
+
 ### Storage Extensions
 
 - `Disk\Current`: Uses current-working-directory (`getcwd()`) as safepath. Useful for cli-scripts in combination with `Directory\Command`.

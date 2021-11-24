@@ -12,7 +12,8 @@
   "require": {
     "php": ">=8.0",
     "ext-fileinfo": "*",
-    "ext-zip": "*"
+    "ext-zip": "*",
+    "ext-openssl": "*"
   },
   "require-dev": {
     "intervention/image": "^2.5",

@@ -429,16 +429,13 @@ class Disk extends Storage
      */
     public function getTime(int $type = Time::LAST_MODIFIED): ?int
     {
-        switch ($type) {
-            case Time::LAST_MODIFIED:
-                return $this->path->fileInfo()->getMTime();
-            case Time::LAST_ACCESSED:
-                return $this->path->fileInfo()->getATime();
-            case Time::CREATED:
-                return $this->path->fileInfo()->getCTime();
-        }
+        return match ($type) {
+            Time::LAST_MODIFIED => $this->path->fileInfo()->getMTime(),
+            Time::LAST_ACCESSED => $this->path->fileInfo()->getATime(),
+            Time::CREATED => $this->path->fileInfo()->getCTime(),
+            default => null,
+        };
 
-        return null;
     }
 
     /**
