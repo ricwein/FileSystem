@@ -69,7 +69,7 @@ use ricwein\FileSystem\Storage;
 $originalDir = new Directory(new Storage\Disk(__DIR__));
 $copyDir = new Directory($originalDir->storage());
 
-$copyDir->cd('test'); // will also changes $originalDir path!
+$copyDir->cd('test'); // will also change $originalDir path!
 ```
 
 > DO:
@@ -94,32 +94,32 @@ All *FileSystem*-base-classes must be initialized using a Storage.
 
 ### Methods
 
-| method | description |
-|---|---|
-| `read(?$offset, ?$length, $mode)` | read and return file-content, allows partial read with `$offset` and `$length` parameters, file is locked while reading with `$mode`|
-| `stream(?$offset, ?$length, $mode)` | stream file into output-buffer, file is locked while reading with `$mode`|
-| `write($content, $append, $mode)` | write `$content` to file, creates new file if it doesn't already exists, allows appended writing if `$append` isset, locks file with `$mode` |
-| `copyTo($destination [,Constraint $constraints])` | copy file to new `$destination` Storage-adapter |
-| `moveTo($destination [,Constraint $constraints])` | like `copyTo()`, but moves files instead |
-| `touch([bool $ifNewOnly])` | create file if it doesn't exists, updates last-modified timestamp |
-| `remove()` | try to remove file |
-| `getType([bool $withEncoding])` | guess files mime-type |
-| `getTime([Time $type])` | get last-modified unix-timestamp |
-| `getDate([Time $type])` | same as  `getTime()`, but returns a DateTime object instead |
-| `getSize()` | calculate size |
-| `getHash([Hash $mode [,string $algo [,bool $raw]]])` | calculates a hash over `$mode` with `$algo` algorithm |
-| `isReadable()` | is file readable? |
-| `isWriteable()` | is file writeable? |
-| `isSymlink()` | is file a symlink? |
-| `isFile()` | is selected path an actual file? |
-| `isDir()` | is selected path a directory? => always `false` for File instance |
-| `isDotfile()` | is file a hidden dot-file? |
-| `isValid()` | run constraints validation |
-| `getHandle([string $mode])` | gets new file-Handle for binary file-access |
-| `storage()` | access internal storage adapter |
-| `getPath()` | fetch filesystem-path |
-| `getStream()` | returns `Stream` wrapper around internal resource pointing to actual file |
-| `dir([,int $constraints [,string $as [,...$arguments]]])` | get parent `Directory` of file |
+| method                                                    | description                                                                                                                                  |
+|-----------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| `read(?$offset, ?$length, $mode)`                         | read and return file-content, allows partial read with `$offset` and `$length` parameters, file is locked while reading with `$mode`         |
+| `stream(?$offset, ?$length, $mode)`                       | stream file into output-buffer, file is locked while reading with `$mode`                                                                    |
+| `write($content, $append, $mode)`                         | write `$content` to file, creates new file if it doesn't already exists, allows appended writing if `$append` isset, locks file with `$mode` |
+| `copyTo($destination [,Constraint $constraints])`         | copy file to new `$destination` Storage-adapter                                                                                              |
+| `moveTo($destination [,Constraint $constraints])`         | like `copyTo()`, but moves files instead                                                                                                     |
+| `touch([bool $ifNewOnly])`                                | create file if it doesn't exists, updates last-modified timestamp                                                                            |
+| `remove()`                                                | try to remove file                                                                                                                           |
+| `getType([bool $withEncoding])`                           | guess files mime-type                                                                                                                        |
+| `getTime([Time $type])`                                   | get last-modified unix-timestamp                                                                                                             |
+| `getDate([Time $type])`                                   | same as  `getTime()`, but returns a DateTime object instead                                                                                  |
+| `getSize()`                                               | calculate size                                                                                                                               |
+| `getHash([Hash $mode [,string $algo [,bool $raw]]])`      | calculates a hash over `$mode` with `$algo` algorithm                                                                                        |
+| `isReadable()`                                            | is file readable?                                                                                                                            |
+| `isWriteable()`                                           | is file writeable?                                                                                                                           |
+| `isSymlink()`                                             | is file a symlink?                                                                                                                           |
+| `isFile()`                                                | is selected path an actual file?                                                                                                             |
+| `isDir()`                                                 | is selected path a directory? => always `false` for File instance                                                                            |
+| `isDotfile()`                                             | is file a hidden dot-file?                                                                                                                   |
+| `isValid()`                                               | run constraints validation                                                                                                                   |
+| `getHandle([string $mode])`                               | gets new file-Handle for binary file-access                                                                                                  |
+| `storage()`                                               | access internal storage adapter                                                                                                              |
+| `getPath()`                                               | fetch filesystem-path                                                                                                                        |
+| `getStream()`                                             | returns `Stream` wrapper around internal resource pointing to actual file                                                                    |
+| `dir([,int $constraints [,string $as [,...$arguments]]])` | get parent `Directory` of file                                                                                                               |
 
 ### Open and read a file from the local filesystem
 
@@ -168,27 +168,27 @@ Like Files, Directories must be initialized using a Storage.
 
 ### Methods
 
-| method | description |
-|---|---|
-| `list($recursive)` | returns DirectoryIterator-Object to list directory-content as new `File`/`Directory` objects |
-| `mkdir()` | try to create directory |
-| `remove()` | try to remove directory |
-| `copyTo($destination [,Constraint $constraints])` | copy directory recursively to new `$destination` Storage-adapter |
-| `getTime([Time $type])` | get last-modified unix-timestamp |
-| `getDate([Time $type])` | same as  `getTime()`, but returns a DateTime object instead |
-| `getSize([bool $recursive])` | calculate size |
-| `getHash([Hash $mode [,string $algo [,bool $raw]]])` | calculates a hash over `$mode` with `$algo` algorithm |
-| `isReadable()` | is directory readable? |
-| `isWriteable()` | is directory writeable? |
-| `isSymlink()` | is directory a symlink? |
-| `isFile()` | is selected path a file? => always `false` for Directory instance |
-| `isDir()` | is selected path an actual directory? |
-| `isDotfile()` | is directory a hidden dot-file? |
-| `isValid()` | run constraints validation |
-| `storage()` | access internal storage adapter |
-| `getPath()` | fetch filesystem-path |
-| `file(string $filename [,int $constraints [,string $as [,...$arguments]]])` | get `File` in current directory by name |
-| `dir(string $dirname [,int $constraints [,string $as [,...$arguments]]])` | get `Directory` in current directory by name (`clone`s storage!) |
+| method                                                                      | description                                                                                  |
+|-----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| `list($recursive)`                                                          | returns DirectoryIterator-Object to list directory-content as new `File`/`Directory` objects |
+| `mkdir()`                                                                   | try to create directory                                                                      |
+| `remove()`                                                                  | try to remove directory                                                                      |
+| `copyTo($destination [,Constraint $constraints])`                           | copy directory recursively to new `$destination` Storage-adapter                             |
+| `getTime([Time $type])`                                                     | get last-modified unix-timestamp                                                             |
+| `getDate([Time $type])`                                                     | same as  `getTime()`, but returns a DateTime object instead                                  |
+| `getSize([bool $recursive])`                                                | calculate size                                                                               |
+| `getHash([Hash $mode [,string $algo [,bool $raw]]])`                        | calculates a hash over `$mode` with `$algo` algorithm                                        |
+| `isReadable()`                                                              | is directory readable?                                                                       |
+| `isWriteable()`                                                             | is directory writeable?                                                                      |
+| `isSymlink()`                                                               | is directory a symlink?                                                                      |
+| `isFile()`                                                                  | is selected path a file? => always `false` for Directory instance                            |
+| `isDir()`                                                                   | is selected path an actual directory?                                                        |
+| `isDotfile()`                                                               | is directory a hidden dot-file?                                                              |
+| `isValid()`                                                                 | run constraints validation                                                                   |
+| `storage()`                                                                 | access internal storage adapter                                                              |
+| `getPath()`                                                                 | fetch filesystem-path                                                                        |
+| `file(string $filename [,int $constraints [,string $as [,...$arguments]]])` | get `File` in current directory by name                                                      |
+| `dir(string $dirname [,int $constraints [,string $as [,...$arguments]]])`   | get `Directory` in current directory by name (`clone`s storage!)                             |
 
 ### check if directory is readable
 
@@ -251,10 +251,10 @@ The following constraints are set as default (as part of `Constraint::STRICT`), 
  $file = new File(new Storage\Disk(__DIR__ . $_GET['file']));
 
  // path is passed as single parameters (comma instead of dot!)
- // this throws an error since the resulting path is not within __DIR__
+ // this throws an error since the resulting path is not within the safepath (__DIR__)
  $file = new File(new Storage\Disk(__DIR__, $_GET['file']));
 
- // however: disabling the safepath-constraint wold also allow ../ path attacks:
+ // however: disabling the safepath-constraint would also allow path traversal attacks:
  $file = new File(new Storage\Disk(__DIR__, $_GET['file']), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
  ```
 
@@ -392,7 +392,7 @@ use ricwein\FileSystem\Storage;
 
 - `Memory\Resource`: Reads resource content into **MEMORY** on construction. The resource can be closed afterwards.
 
-> ATTENTION: Usually it's a better idea to just use `Stream` instead!
+> ATTENTION: Usually it's a better idea to just use `Storage\Stream` instead!
 
  ```php
 use ricwein\FileSystem\File;

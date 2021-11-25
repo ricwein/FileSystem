@@ -145,7 +145,7 @@ class ReadTest extends TestCase
 
         /** @var File $file */
         foreach ($iterator->all() as $file) {
-            self::assertContains($file->path()->filename, ['test.png', 'archive.zip']);
+            self::assertContains($file->path()->filename, ['test.png', 'archive.zip', 'certificate.crt']);
         }
     }
 
@@ -167,7 +167,7 @@ class ReadTest extends TestCase
 
         /** @var File $file */
         foreach ($iterator->all() as $file) {
-            self::assertContains($file->path()->filename, ['test.png', 'archive.zip']);
+            self::assertContains($file->path()->filename, ['test.png', 'archive.zip', 'certificate.crt']);
         }
     }
 

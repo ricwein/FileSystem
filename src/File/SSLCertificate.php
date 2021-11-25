@@ -4,11 +4,13 @@ namespace ricwein\FileSystem\File;
 
 use DateTime;
 use Exception;
+use ricwein\FileSystem\Enum\CertificateContentType;
 use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Enum\Time;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\Exception as FileSystemException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Helper\Constraint;
@@ -25,9 +27,16 @@ use function stream_socket_client;
 class SSLCertificate extends File
 {
     private ?array $certificateInfo = null;
+    private int $certificateContentType;
 
-    public function __construct(Storage $storage, int $constraints = Constraint::STRICT, private int $timeout = 30)
+    /**
+     * @param int|null $certificateContentType CertificateContentType::DOMAIN | CertificateContentType::CERTIFICATE
+     * @throws AccessDeniedException
+     * @throws FileSystemException
+     */
+    public function __construct(Storage $storage, int $constraints = Constraint::STRICT, ?int $certificateContentType = null, private int $timeout = 30)
     {
+        $this->certificateContentType = $certificateContentType ?? $storage instanceof Storage\Memory ? CertificateContentType::DOMAIN : CertificateContentType::CERTIFICATE;
         parent::__construct($storage, $constraints);
     }
 
@@ -65,7 +74,6 @@ class SSLCertificate extends File
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnsupportedException
-     * @throws UnexpectedValueException
      * @internal
      */
     public function getCertificateInfo(): array
@@ -74,55 +82,42 @@ class SSLCertificate extends File
             return $info;
         }
 
-        if ($this->storage instanceof Storage\Memory) {
-            $content = $this->storage->readFile();
+        $content = $this->storage->readFile();
 
-            // probably a ssl-certificate in memory, just parsing it is fine
-            if (str_contains($content, "\n")) {
-                if (false === $certInfo = openssl_x509_parse($content)) {
-                    throw new RuntimeException("Unable to parse ssl-certificate.", 500);
-                }
-                $this->certificateInfo = $certInfo;
-                return $certInfo;
-            }
-
-            $url = $this->parseCertificateURL($content);
-
-            $sslContext = stream_context_create(["ssl" => ["capture_peer_cert" => TRUE]]);
-            $sslStream = stream_socket_client($url, $errorCode, $errorMessage, $this->timeout, STREAM_CLIENT_CONNECT, $sslContext);
-            if (false === $sslStream) {
-                throw new RuntimeException("Unable to open stream to: '$url' - ERROR [$errorCode]: $errorMessage.", 500);
-            }
-
-            try {
-                $certResource = stream_context_get_params($sslStream);
-                $certificate = $certResource['options']['ssl']['peer_certificate'];
-                if (false === $certInfo = openssl_x509_parse($certificate)) {
-                    throw new RuntimeException("Unable to parse ssl-certificate for: '$url'.", 500);
-                }
-                $this->certificateInfo = $certInfo;
-                return $certInfo;
-            } finally {
-                fclose($sslStream);
-            }
-        }
-
-        if ($this->storage instanceof Storage\Disk) {
-            if (false === $certInfo = openssl_x509_parse($this->storage->readFile())) {
+        if (($this->certificateContentType & CertificateContentType::CERTIFICATE) === CertificateContentType::CERTIFICATE) {
+            if (false === $certInfo = openssl_x509_parse($content)) {
                 throw new RuntimeException("Unable to parse ssl-certificate for file: '{$this->getPath()}'.", 500);
             }
             $this->certificateInfo = $certInfo;
             return $certInfo;
         }
 
-        throw new UnsupportedException("Unable to fetch ssl-certificate info from storage of type %s", get_debug_type($this->storage), 500);
+        // probably a ssl-certificate in memory, just parsing it is fine
+        $url = $this->parseCertificateURL($content);
+
+        $sslContext = stream_context_create(["ssl" => ["capture_peer_cert" => TRUE]]);
+        $sslStream = stream_socket_client($url, $errorCode, $errorMessage, $this->timeout, STREAM_CLIENT_CONNECT, $sslContext);
+        if (false === $sslStream) {
+            throw new RuntimeException("Unable to open stream to: '$url' - ERROR [$errorCode]: $errorMessage.", 500);
+        }
+
+        try {
+            $certResource = stream_context_get_params($sslStream);
+            $certificate = $certResource['options']['ssl']['peer_certificate'];
+            if (false === $certInfo = openssl_x509_parse($certificate)) {
+                throw new RuntimeException("Unable to parse ssl-certificate for: '$url'.", 500);
+            }
+            $this->certificateInfo = $certInfo;
+            return $certInfo;
+        } finally {
+            fclose($sslStream);
+        }
     }
 
     /**
      * @throws FileNotFoundException
      * @throws UnsupportedException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
      */
     public function getIssuerName(): ?string
     {
@@ -134,7 +129,6 @@ class SSLCertificate extends File
      * @throws FileNotFoundException
      * @throws UnsupportedException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
      */
     public function getIssuer(): array
     {
@@ -145,7 +139,6 @@ class SSLCertificate extends File
      * @return string[]
      * @throws FileNotFoundException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
     public function getValidDomains(): array
@@ -216,7 +209,6 @@ class SSLCertificate extends File
      * @throws FileNotFoundException
      * @throws UnsupportedException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
      */
     public function validFrom(): ?DateTime
     {
@@ -239,7 +231,6 @@ class SSLCertificate extends File
      * @throws FileNotFoundException
      * @throws UnsupportedException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
      */
     public function validTo(): ?DateTime
     {
@@ -262,7 +253,6 @@ class SSLCertificate extends File
      * @throws FileNotFoundException
      * @throws UnsupportedException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
      */
     public function isValid(): bool
     {
@@ -347,7 +337,6 @@ class SSLCertificate extends File
      * @throws FileNotFoundException
      * @throws UnsupportedException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
      */
     public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): string
     {

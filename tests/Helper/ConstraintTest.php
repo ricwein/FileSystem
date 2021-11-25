@@ -7,6 +7,7 @@ namespace ricwein\FileSystem\Tests\Helper;
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Helper\Path;
 
@@ -18,6 +19,7 @@ class ConstraintTest extends TestCase
     /**
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function testPathConstraints(): void
     {
