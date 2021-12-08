@@ -34,7 +34,7 @@ class Current extends Disk
             empty($path)
             || (is_string($fistComponent) && !str_starts_with($fistComponent, DIRECTORY_SEPARATOR))
             || ($fistComponent instanceof Path && !str_starts_with($fistComponent->raw, DIRECTORY_SEPARATOR))
-            || ($fistComponent instanceof FileSystem && ($path = $fistComponent->path()) && ($path = is_string($path) ? $path : $path->raw) && !str_starts_with($path, DIRECTORY_SEPARATOR))
+            || ($fistComponent instanceof FileSystem && ($rootPath = $fistComponent->getPath()) && !str_starts_with($rootPath, DIRECTORY_SEPARATOR))
         ) {
             array_unshift($path, getcwd());
         }
