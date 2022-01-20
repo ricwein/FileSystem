@@ -10,21 +10,21 @@
     }
   ],
   "require": {
-    "php": ">=8.0",
+    "php": ">=8.0.2",
     "ext-fileinfo": "*",
     "ext-zip": "*",
     "ext-openssl": "*"
   },
   "require-dev": {
     "intervention/image": "^2.7",
-    "league/flysystem": "^2.3",
-    "overtrue/phplint": "^3.0",
+    "league/flysystem": "^3.0",
+    "overtrue/phplint": "^4.0",
     "phpunit/phpunit": "^9.5",
     "ext-gd": "*"
   },
   "config": {
     "platform": {
-      "php": "8.0"
+      "php": "8.0.2"
     },
     "sort-packages": true
   },

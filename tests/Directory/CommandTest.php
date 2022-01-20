@@ -86,4 +86,28 @@ class CommandTest extends TestCase
             ['/', new Path(['/']), new Storage\Disk('/'), new File(new Storage\Disk('/'))]
         );
     }
+
+    /**
+     * @throws AccessDeniedException
+     * @throws UnsupportedException
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws ConstraintsException
+     * @throws UnexpectedValueException
+     */
+    public function testCommandPrepend(): void
+    {
+        $ls = new Command(
+            new Storage\Disk(__DIR__, '../_examples'),
+            Constraint::STRICT & ~Constraint::IN_SAFEPATH,
+            ['/bin/ls', '/usr/local/bin/ls']
+        );
+
+        $ls->exec('TEST=test $(bin)', prependBinary: false);
+        self::assertSame('TEST=test /bin/ls', $ls->getLastCommand());
+
+        $this->expectException(RuntimeException::class);
+        $ls->exec('TEST=test $(bin)', prependBinary: true);
+        self::assertSame('/bin/ls TEST=test', $ls->getLastCommand());
+    }
 }

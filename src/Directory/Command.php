@@ -115,7 +115,7 @@ class Command extends Directory
 
             // check for return type
             if ($current === null) {
-                return '[null]';
+                return '';
             }
 
             if (is_scalar($current)) {
@@ -153,7 +153,7 @@ class Command extends Directory
      * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
-    public function exec(string $cmd = '', array $arguments = []): bool|string
+    public function exec(string $cmd = '', array $arguments = [], bool $prependBinary = true): bool|string
     {
 
         // validate constraints
@@ -165,12 +165,14 @@ class Command extends Directory
         $this->lastExitCode = 0;
 
         // cleanup cmd
-        $cmd = trim(str_ireplace("$this->bin ", '', $cmd));
-        $cmd = sprintf("\"%s\" %s", $this->bin, $cmd);
+        if ($prependBinary) {
+            $cmd = trim(str_ireplace("$this->bin ", '', $cmd));
+            $cmd = sprintf("\"%s\" %s", $this->bin, $cmd);
+        }
 
         $cmd = $this->bindVariables($cmd, $arguments);
         $cmd = $this->bindVariables($cmd, ['path' => $this->storage->path()]);
-        $cmd = $this->bindVariables($cmd, ['path' => ['bin' => $this->bin]]);
+        $cmd = $this->bindVariables($cmd, ['bin' => $this->bin]);
 
         $cmd = rtrim($cmd);
         $this->lastCommand = $cmd;
