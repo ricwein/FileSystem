@@ -1,9 +1,4 @@
 <?php
-
-/**
- * @author Richard Weinhold
- */
-
 declare(strict_types=1);
 
 namespace ricwein\FileSystem;
@@ -26,6 +21,7 @@ use ricwein\FileSystem\Storage\Extensions\Binary;
 abstract class Storage
 {
     protected ?Constraint $constraints = null;
+    protected Path $path;
 
     /**
      * remove file from filesystem on object destruction
@@ -72,6 +68,11 @@ abstract class Storage
     public function __toString(): string
     {
         return sprintf('[Storage: %s]', trim(str_replace(self::class, '', get_class($this)), '\\'));
+    }
+
+    public function getPath(): Path
+    {
+        return $this->path;
     }
 
     /**
@@ -162,7 +163,7 @@ abstract class Storage
      * get last-modified timestamp
      * @internal
      */
-    abstract public function getTime(int $type = Time::LAST_MODIFIED): ?int;
+    abstract public function getTime(Time $type = Time::LAST_MODIFIED): ?int;
 
     /**
      * guess content-type (mime) of file
@@ -172,12 +173,11 @@ abstract class Storage
 
     /**
      * calculate file-hash
-     * @param int $mode Hash::CONTENT | Hash::FILENAME | Hash::FILEPATH
      * @param string $algo hashing-algorithm
      * @throws RuntimeException
      * @internal
      */
-    abstract public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): ?string;
+    abstract public function getFileHash(Hash $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): ?string;
 
     /**
      * @param null|int $time last-modified time

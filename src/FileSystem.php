@@ -13,8 +13,6 @@ use Exception;
 use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
-use ricwein\FileSystem\Exceptions\UnsupportedException;
-use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\Constraint;
 
 /**
@@ -25,7 +23,7 @@ abstract class FileSystem
     protected Storage $storage;
 
     /**
-     * @param int $constraints Constraint::LOOSE || Constraint::STRICT || Constraint::IN_SAFEPATH | Constraint::IN_OPENBASEDIR | Constraint::DISALLOW_LINK
+     * @param int $constraints Constraint::LOOSE || Constraint::STRICT || Constraint::IN_SAFEPATH | Constraint::IN_OPEN_BASEDIR | Constraint::DISALLOW_LINK
      */
     public function __construct(Storage $storage, int $constraints = Constraint::STRICT)
     {
@@ -58,32 +56,11 @@ abstract class FileSystem
     }
 
     /**
-     * fetch internal path system
-     * @throws UnsupportedException
-     */
-    public function path(): Path|string
-    {
-        if ($this->storage instanceof Storage\Disk || $this->storage instanceof Storage\Flysystem) {
-            return $this->storage->path();
-        }
-
-        throw new UnsupportedException('Unable to fetch path from non-disk FileSystem.', 500);
-    }
-
-    /**
      * fetch most specific file/directory path, which is available for the used storage engine
-     * @throws UnsupportedException
      */
-    public function getPath(): string
+    public function getPath(): Path
     {
-        if ($this->storage instanceof Storage\Disk) {
-            return $this->storage->path()->real ?? $this->storage->path()->raw;
-        }
-        if ($this->storage instanceof Storage\Flysystem) {
-            return $this->storage->path();
-        }
-
-        throw new UnsupportedException('Unable to fetch path from non-disk FileSystem.', 500);
+        return $this->storage->getPath();
     }
 
     public function isDotfile(): bool
@@ -95,7 +72,7 @@ abstract class FileSystem
      * get last-modified timestamp
      * @throws Exceptions\ConstraintsException
      */
-    public function getTime(int $type = Time::LAST_MODIFIED): ?int
+    public function getTime(Time $type = Time::LAST_MODIFIED): ?int
     {
         $this->checkFileReadPermissions();
         return $this->storage->getTime($type);
@@ -105,7 +82,7 @@ abstract class FileSystem
      * get last-modified as DateTime
      * @throws Exception
      */
-    public function getDate(int $type = Time::LAST_MODIFIED): ?DateTime
+    public function getDate(Time $type = Time::LAST_MODIFIED): ?DateTime
     {
         $timestamp = $this->getTime($type);
         return DateTime::createFromFormat('U', (string)$timestamp);
@@ -142,10 +119,9 @@ abstract class FileSystem
 
     /**
      * calculate hash above content or filename
-     * @param int $mode Hash::CONTENT | Hash::FILENAME | Hash::FILEPATH
      * @param string $algo hashing-algorithm
      */
-    abstract public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): string;
+    abstract public function getHash(Hash $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): string;
 
     public function isValid(): bool
     {
@@ -181,7 +157,7 @@ abstract class FileSystem
     public function removeOnFree(bool $activate = true): static
     {
         if (!$this->storage->doesSatisfyConstraints()) {
-            throw new AccessDeniedException(sprintf('unable to remove: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->path()->raw : get_class($this->storage)), 404, $this->storage->getConstraintViolations());
+            throw new AccessDeniedException(sprintf('unable to remove: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->getPath()->getRawPath() : get_class($this->storage)), 404, $this->storage->getConstraintViolations());
         }
         $this->storage->removeOnFree($activate);
         return $this;

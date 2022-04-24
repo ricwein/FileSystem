@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\File;
 
+use League\Flysystem\FilesystemException;
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
@@ -17,8 +18,11 @@ class DirectoryTest extends TestCase
 {
     /**
      * @throws AccessDeniedException
+     * @throws ConstraintsException
      * @throws Exception
      * @throws RuntimeException
+     * @throws UnexpectedValueException
+     * @throws FilesystemException
      */
     public function testSinglePath(): void
     {
@@ -28,15 +32,16 @@ class DirectoryTest extends TestCase
         self::assertTrue($file->isValid());
         self::assertTrue($dir->isValid());
 
-        self::assertSame($file->path()->directory, $dir->path()->real);
-        self::assertSame(__DIR__, $dir->path()->real);
-        self::assertSame(dirname($file->path()->real), $dir->path()->real);
+        self::assertSame($file->getPath()->getDirectory(), $dir->getPath()->getRealPath());
+        self::assertSame(__DIR__, $dir->getPath()->getRealPath());
+        self::assertSame(dirname($file->getPath()->getRealPath()), $dir->getPath()->getRealPath());
     }
 
     /**
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws Exception
+     * @throws FilesystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -52,9 +57,9 @@ class DirectoryTest extends TestCase
         self::assertTrue($file->isValid());
         self::assertTrue($dir->isValid());
 
-        self::assertSame(realpath($file->path()->directory), $dir->path()->real);
-        self::assertSame(__DIR__, $dir->path()->real);
-        self::assertSame(dirname($file->path()->real), $dir->path()->real);
+        self::assertSame(realpath($file->getPath()->getDirectory()), $dir->getPath()->getRealPath());
+        self::assertSame(__DIR__, $dir->getPath()->getRealPath());
+        self::assertSame(dirname($file->getPath()->getRealPath()), $dir->getPath()->getRealPath());
     }
 
     /**
@@ -63,6 +68,7 @@ class DirectoryTest extends TestCase
      * @throws Exception
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws FilesystemException
      */
     public function testThreePartedPath(): void
     {
@@ -77,8 +83,8 @@ class DirectoryTest extends TestCase
         self::assertTrue($file->isValid());
         self::assertTrue($dir->isValid());
 
-        self::assertSame(realpath($file->path()->directory), $dir->path()->real);
-        self::assertSame(__DIR__, $dir->path()->real);
-        self::assertSame(dirname($file->path()->real), $dir->path()->real);
+        self::assertSame(realpath($file->getPath()->getDirectory()), $dir->getPath()->getRealPath());
+        self::assertSame(__DIR__, $dir->getPath()->getRealPath());
+        self::assertSame(dirname($file->getPath()->getRealPath()), $dir->getPath()->getRealPath());
     }
 }

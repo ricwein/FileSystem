@@ -9,14 +9,14 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Helper;
 
 use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\Path;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 
 /**
- * creates a absolute path from current-working-directory
+ * creates an absolute path from current-working-directory
  */
 class PathFinder
 {
@@ -24,10 +24,10 @@ class PathFinder
      * list of possible paths
      * => !not components of a single path!
      * @param string[]|Path[]|Storage[]|FileSystem[] $paths
+     * @return Storage
      * @throws FileNotFoundException
-     * @throws UnexpectedValueException
      * @throws RuntimeException
-     * @throws UnsupportedException
+     * @throws UnexpectedValueException
      */
     public static function try(array $paths): Storage
     {
@@ -37,7 +37,7 @@ class PathFinder
                     return new Storage\Disk($diskPath);
                 }
             } elseif ($diskPath instanceof Path) {
-                if ($diskPath->fileInfo()->isFile() || $diskPath->fileInfo()->isDir()) {
+                if ($diskPath->isFile() || $diskPath->isDir()) {
                     return new Storage\Disk($diskPath);
                 }
             } elseif ($diskPath instanceof Storage) {

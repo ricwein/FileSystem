@@ -39,7 +39,7 @@ class MemoryResourceTest extends TestCase
     {
         $file = new File(new Storage\Disk(__DIR__, '../_examples', 'test.txt'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
 
-        $resource = fopen($file->path()->real, 'rb');
+        $resource = fopen($file->getPath()->getRealPath(), 'rb');
         $memory = new File(new Storage\Memory\Resource($resource));
         fclose($resource);
         self::assertSame($file->read(), $memory->read());

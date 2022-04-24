@@ -238,18 +238,13 @@ class Stream extends Storage
     /**
      * @inheritDoc
      */
-    public function getTime(int $type = Time::LAST_MODIFIED): ?int
+    public function getTime(Time $type = Time::LAST_MODIFIED): ?int
     {
-        switch ($type) {
-            case Time::LAST_MODIFIED:
-                return $this->lastModified;
-            case Time::LAST_ACCESSED:
-                return $this->lastAccessed;
-            case Time::CREATED:
-                return $this->created;
-        }
-
-        return null;
+        return match ($type) {
+            Time::LAST_MODIFIED => $this->lastModified,
+            Time::LAST_ACCESSED => $this->lastAccessed,
+            Time::CREATED => $this->created,
+        };
     }
 
     /**
@@ -273,19 +268,13 @@ class Stream extends Storage
      * @inheritDoc
      * @throws RuntimeException
      */
-    public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): ?string
+    public function getFileHash(Hash $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): ?string
     {
-        switch ($mode) {
-            case Hash::CONTENT:
-                return $this->stream->getHash($algo, $raw);
-            case Hash::LAST_MODIFIED:
-                return hash($algo, (string)$this->lastModified, $raw);
-            case Hash::FILENAME:
-            case Hash::FILEPATH:
-                throw new RuntimeException('Unable to calculate filepath/name hash for stream.', 500);
-            default:
-                throw new RuntimeException('Unknown hashing-mode.', 500);
-        }
+        return match ($mode) {
+            Hash::CONTENT => $this->stream->getHash($algo, $raw),
+            Hash::LAST_MODIFIED => hash($algo, (string)$this->lastModified, $raw),
+            Hash::FILENAME, Hash::FILEPATH => throw new RuntimeException('Unable to calculate filepath/name hash for stream.', 500),
+        };
     }
 
     /**

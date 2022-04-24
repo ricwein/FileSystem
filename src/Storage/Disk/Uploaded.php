@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Storage\Disk;
 
-use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Path;
 use ricwein\FileSystem\Storage\Disk;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Exceptions\RuntimeException;
@@ -52,7 +52,7 @@ class Uploaded extends Disk
         if (!isset($file['tmp_name']) || !is_string($file['tmp_name'])) {
             throw new UnexpectedValueException('invalid or missing \'tmp_name\'', 500);
         }
-        $this->path = new Path([$file['tmp_name']]);
+        $this->path = new Path($file['tmp_name']);
 
         if (array_key_exists('error', $file) && is_int($file['error'])) {
             $this->checkUploadError($file['error']);
@@ -79,7 +79,7 @@ class Uploaded extends Disk
     protected function checkUploadError(int $error): void
     {
         if (isset(self::UPLOAD_ERRORS[$error])) {
-            throw new RuntimeException(sprintf(self::UPLOAD_ERRORS[$error], $this->path->raw), 500);
+            throw new RuntimeException(sprintf(self::UPLOAD_ERRORS[$error], $this->path->getRawPath()), 500);
         }
     }
 
@@ -88,7 +88,7 @@ class Uploaded extends Disk
      */
     public function doesSatisfyConstraints(): bool
     {
-        if (!is_uploaded_file($this->path->raw)) {
+        if (!is_uploaded_file($this->path->getRawPath())) {
             $this->previousConstraintError = new ConstraintsException('invalid uploaded file', 500);
             return false;
         }
@@ -121,10 +121,10 @@ class Uploaded extends Disk
 
             // use native safe-move function for uploaded files
             case $destination instanceof Disk:
-                if (!move_uploaded_file($this->path->real, $destination->path()->raw)) {
+                if (!move_uploaded_file($this->path->getRealPath(), $destination->getPath()->getRawPath())) {
                     return false;
                 }
-                $destination->path()->reload();
+                $destination->getPath()->reload();
                 return true;
 
             // use a temp-file for safe-move before moving file into destination-storage
@@ -132,7 +132,7 @@ class Uploaded extends Disk
             case $destination instanceof Storage\Memory:
             default:
                 $temp = new Storage\Disk\Temp();
-                if (!move_uploaded_file($this->path->real, $temp->path()->raw)) {
+                if (!move_uploaded_file($this->path->getRealPath(), $temp->getPath()->getRawPath())) {
                     return false;
                 }
                 return $temp->moveFileTo($destination);

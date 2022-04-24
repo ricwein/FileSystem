@@ -1,9 +1,4 @@
 <?php
-
-/**
- * @author Richard Weinhold
- */
-
 declare(strict_types=1);
 
 namespace ricwein\FileSystem\Helper;

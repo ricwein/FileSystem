@@ -210,7 +210,7 @@ $hashes = [];
 $dir = new Directory(new Storage\Disk(__DIR__));
 
 foreach($dir->list(true)->files() as $file) {
-    $hashes[$file->path()->filename] = $file->getHash();
+    $hashes[$file->getPath()->getFilename()] = $file->getHash();
 }
 ```
 
@@ -235,7 +235,7 @@ In this example, the `$file` object shares the ***Constraints*** (inherited) and
 
 The following constraints are set as default (as part of `Constraint::STRICT`), but can be overwritten with the second argument of the `File($storage, $constraints)` or `Directory($storage, $constraints)` constructor:
 
-- `Constraint::IN_OPENBASEDIR` => the path must be within the `open_basedir` php-ini paths, this allows throwing exceptions before running into php core errors
+- `Constraint::IN_OPEN_BASEDIR` => the path must be within the `open_basedir` php-ini paths, this allows throwing exceptions before running into php core errors
 - `Constraint::DISALLOW_LINK` => the path must not be a (symbolic-) link
 - `Constraint::IN_SAFEPATH` => if a file/directory path is build out of multiple components (parameters), the resulting file/directory destination must be inside the first path-component (called ***safepath***)
 

@@ -31,7 +31,7 @@ class UploadedFileTest extends TestCase
             'error' => 0,
         ]))->removeOnFree(false), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
 
-        self::assertFalse(is_uploaded_file($file->path()->raw));
+        self::assertFalse(is_uploaded_file($file->getPath()->getRawPath()));
 
         $this->expectException(ConstraintsException::class);
         $this->expectExceptionMessage("invalid uploaded file");

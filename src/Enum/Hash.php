@@ -11,25 +11,35 @@ namespace ricwein\FileSystem\Enum;
 /**
  * enum like hash-type const
  */
-class Hash
+enum Hash
 {
     /**
      * hash over filename only
      */
-    public const FILENAME = 0b0001;
+    case FILENAME;
 
     /**
      * hash over full filepath
      */
-    public const FILEPATH = 0b0010;
+    case FILEPATH;
 
     /**
      * hash over file-content
      */
-    public const CONTENT = 0b0100;
+    case CONTENT;
 
     /**
      * hash over last-modified timestamp, fine to check for changes
      */
-    public const LAST_MODIFIED = 0b1000;
+    case LAST_MODIFIED;
+
+    public function asString(): string
+    {
+        return match ($this) {
+            self::FILENAME => 'filename',
+            self::FILEPATH => 'filepath',
+            self::CONTENT => 'content',
+            self::LAST_MODIFIED => 'last-modified',
+        };
+    }
 }

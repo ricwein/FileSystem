@@ -23,6 +23,7 @@ use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Path;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Enum\Hash;
@@ -30,7 +31,6 @@ use ricwein\FileSystem\Helper\Stream;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\MimeType;
 use ricwein\FileSystem\Storage\Extensions\Binary;
 use SplFileInfo;
@@ -40,8 +40,6 @@ use SplFileInfo;
  */
 class Disk extends Storage
 {
-    protected Path $path;
-
     /**
      * @throws RuntimeException
      * @throws UnexpectedValueException
@@ -51,7 +49,7 @@ class Disk extends Storage
         if (empty($path)) {
             throw new RuntimeException('unable to load Disk-Storage without a path', 400);
         }
-        $this->path = new Path($path);
+        $this->path = new Path(...$path);
     }
 
     /**
@@ -63,116 +61,91 @@ class Disk extends Storage
      */
     public function __destruct()
     {
-        if (!$this->selfDestruct || !file_exists($this->path->raw)) {
+        if (!$this->selfDestruct) {
             return;
         }
 
-        if (is_file($this->path->raw)) {
+        if ($this->path->isFile()) {
             $this->removeFile();
-        } elseif (is_dir($this->path->raw)) {
+            return;
+        }
+
+        if ($this->path->isDir()) {
             $this->removeDir();
         }
     }
 
     /**
      * @inheritDoc
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function getDetails(): array
     {
-        return array_merge(parent::getDetails(), $this->path->getDetails());
+        return array_merge(
+            parent::getDetails(),
+            $this->path->__debugInfo()
+        );
     }
 
     /**
      * @inheritDoc
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function doesSatisfyConstraints(): bool
     {
         return $this->constraints->isValidPath($this->path);
     }
 
-    public function path(): Path
-    {
-        return $this->path;
-    }
-
     /**
      * @inheritDoc
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function isFile(): bool
     {
-        return $this->path->real !== null && file_exists($this->path->real) && $this->path->fileInfo()->isFile();
+        return $this->path->isFile();
     }
 
     /**
      * @inheritDoc
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function isDir(): bool
     {
-        return $this->path->real !== null && file_exists($this->path->real) && $this->path->fileInfo()->isDir();
+        return $this->path->isDir();
     }
 
     /**
      * @inheritDoc
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function isExecutable(): bool
     {
-        return $this->isFile() && $this->path->fileInfo()->isExecutable();
+        return $this->isFile() && $this->path->isExecutable();
     }
 
     /**
      * @inheritDoc
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function isSymlink(): bool
     {
-        return $this->path->real !== null && $this->path->fileInfo()->isLink();
+        return $this->path->doesExist() && $this->path->isLink();
     }
 
     /**
      * @inheritDoc
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function isReadable(): bool
     {
-        return $this->path->real !== null && $this->path->fileInfo()->isReadable();
+        return $this->path->isReadable();
     }
 
     /**
      * @inheritDoc
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function isWriteable(): bool
     {
-        return $this->path->fileInfo()->isWritable();
+        return $this->path->isWritable();
     }
 
     /**
      * @inheritDoc
      * @throws FileNotFoundException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function readFile(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): string
     {
@@ -194,30 +167,25 @@ class Disk extends Storage
     /**
      * @inheritDoc
      * @throws FileNotFoundException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function readFileAsLines(): array
     {
-        if (!$this->isFile() || !$this->isReadable()) {
-            throw new FileNotFoundException('file not found', 404);
+        if (!$this->isFile() || !$this->isReadable() || (null === $realpath = $this->path->getRealPath())) {
+            throw new FileNotFoundException('File not found or not readable', 404);
         }
 
-        return file($this->path->real);
+        return file($realpath);
     }
 
     /**
      * @inheritDoc
      * @throws FileNotFoundException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function streamFile(int $offset = 0, ?int $length = null, int $mode = LOCK_SH): void
     {
         if (!$this->isFile() || !$this->isReadable()) {
-            throw new FileNotFoundException('file not found', 404);
+            throw new FileNotFoundException('File not found or not readable', 404);
         }
 
         // open file-handler in readonly mode
@@ -264,7 +232,11 @@ class Disk extends Storage
     {
         $this->selfDestruct = false;
 
-        if (!unlink($this->path->real ?? $this->path->raw)) {
+        if (null === $realpath = $this->path->getRealPath()) {
+            return true;
+        }
+
+        if (!unlink($realpath)) {
             return false;
         }
 
@@ -272,10 +244,17 @@ class Disk extends Storage
         return true;
     }
 
+    /**
+     * @throws FileNotFoundException
+     */
     protected function getIterator(bool $recursive, ?int $constraints = null, ?callable $filter = null, int $mode = RecursiveIteratorIterator::SELF_FIRST): Iterator
     {
+        if (null === $realpath = $this->path->getRealPath()) {
+            throw new FileNotFoundException('File or Directory not found', 404);
+        }
+
         if (!$recursive) {
-            $innerIterator = new DirectoryIterator($this->path->real);
+            $innerIterator = new DirectoryIterator($realpath);
 
             if ($filter === null) {
                 return $innerIterator;
@@ -285,9 +264,9 @@ class Disk extends Storage
         }
 
         if (($constraints ?? $this->constraints->getConstraints()) & Constraint::DISALLOW_LINK) {
-            $innerIterator = new RecursiveDirectoryIterator($this->path->real, FilesystemIterator::SKIP_DOTS);
+            $innerIterator = new RecursiveDirectoryIterator($realpath, FilesystemIterator::SKIP_DOTS);
         } else {
-            $innerIterator = new RecursiveDirectoryIterator($this->path->real, FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS);
+            $innerIterator = new RecursiveDirectoryIterator($realpath, FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS);
         }
 
         if ($filter === null) {
@@ -310,7 +289,7 @@ class Disk extends Storage
     public function removeDir(): bool
     {
         if (!$this->isDir()) {
-            throw new FileNotFoundException(sprintf('unable to remove directory for path: "%s"', $this->path->raw), 500);
+            throw new FileNotFoundException(sprintf('Unable to remove directory for path: "%s"', $this->path->getRawPath()), 500);
         }
 
         try {
@@ -321,7 +300,7 @@ class Disk extends Storage
 
                 // file not readable
                 if (!$splFile->isReadable()) {
-                    throw new AccessDeniedException(sprintf('unable to access file for path: "%s"', $splFile->getPathname()), 500);
+                    throw new AccessDeniedException(sprintf('Unable to access file for path: "%s"', $splFile->getPathname()), 500);
                 }
 
                 // try to remove files/dirs/links
@@ -337,7 +316,7 @@ class Disk extends Storage
                 }
             }
 
-            return rmdir($this->path->raw);
+            return rmdir($this->path->getRawPath());
         } finally {
             $this->selfDestruct = false;
             $this->path->reload();
@@ -345,6 +324,7 @@ class Disk extends Storage
     }
 
     /**
+     * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @inheritDoc
@@ -353,7 +333,7 @@ class Disk extends Storage
     public function list(bool $recursive = false, ?int $constraints = null, ?callable $iteratorFilter = null): Generator
     {
         if (!$this->isDir()) {
-            throw new RuntimeException(sprintf('unable to open directory "%s"', $this->path->raw), 500);
+            throw new RuntimeException(sprintf('unable to open directory "%s"', $this->path->getRawPath()), 500);
         }
 
         $iterator = $this->getIterator($recursive, $constraints, $iteratorFilter);
@@ -365,21 +345,18 @@ class Disk extends Storage
             }
 
             yield new self(
-                $this->path->real,
-                str_replace($this->path->real, '', $file->getPathname())
+                $this->path->getRealPath(),
+                str_replace($this->path->getRealPath(), '', $file->getPathname())
             );
         }
     }
 
     /**
      * @inheritDoc
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function getSize(): int
     {
-        return $this->path->fileInfo()->getSize();
+        return $this->path->getSize();
     }
 
     /**
@@ -387,53 +364,48 @@ class Disk extends Storage
      */
     public function getFileType(bool $withEncoding = false): ?string
     {
-        if ($this->path->real === null) {
+        if (!$this->path->doesExist()) {
             return null;
         }
 
         // detect mimetype by magic.mime
-        $type = (new finfo($withEncoding ? FILEINFO_MIME : FILEINFO_MIME_TYPE))->file($this->path->raw);
+        $fileInfo = new finfo($withEncoding ? FILEINFO_MIME : FILEINFO_MIME_TYPE);
+        $type = $fileInfo->file($this->path->getRawPath());
+
         if (!in_array($type, [false, 'text/plain', 'application/octet-stream', 'inode/x-empty'], true)) {
             return $type;
         }
 
         // detect mimetype by file-extension
-        return MimeType::getMimeFor($this->path->extension);
+        return MimeType::getMimeFor($this->path->getExtension());
     }
 
     /**
      * @inheritDoc
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
-    public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): ?string
+    public function getFileHash(Hash $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): ?string
     {
-        if ($this->path->real === null) {
+        if (null === $realPath = $this->path->getRealPath()) {
             return null;
         }
 
         return match ($mode) {
-            Hash::CONTENT => hash_file($algo, $this->path->real, $raw),
-            Hash::FILENAME => hash($algo, $this->path->filename, $raw),
-            Hash::FILEPATH => hash($algo, $this->path->real, $raw),
+            Hash::CONTENT => hash_file($algo, $realPath, $raw),
+            Hash::FILENAME => hash($algo, $this->path->getFilename(), $raw),
+            Hash::FILEPATH => hash($algo, $realPath, $raw),
             Hash::LAST_MODIFIED => hash($algo, (string)$this->getTime(), $raw),
-            default => throw new RuntimeException('unknown hashing-mode', 500),
         };
     }
 
     /**
      * @inheritDoc
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
-    public function getTime(int $type = Time::LAST_MODIFIED): ?int
+    public function getTime(Time $type = Time::LAST_MODIFIED): ?int
     {
         return match ($type) {
-            Time::LAST_MODIFIED => $this->path->fileInfo()->getMTime(),
-            Time::LAST_ACCESSED => $this->path->fileInfo()->getATime(),
-            Time::CREATED => $this->path->fileInfo()->getCTime(),
-            default => null,
+            Time::LAST_MODIFIED => $this->path->getMTime(),
+            Time::LAST_ACCESSED => $this->path->getATime(),
+            Time::CREATED => $this->path->getCTime(),
         };
 
     }
@@ -451,15 +423,15 @@ class Disk extends Storage
         if ($atime !== null && $time !== null) {
 
             /** @noinspection PotentialMalwareInspection dafuq? */
-            $result = touch($this->path->raw, $time, $atime);
+            $result = touch($this->path->getRawPath(), $time, $atime);
 
         } elseif ($time !== null) {
 
-            $result = touch($this->path->raw, $time);
+            $result = touch($this->path->getRawPath(), $time);
 
         } else {
 
-            $result = touch($this->path->raw);
+            $result = touch($this->path->getRawPath());
 
         }
 
@@ -473,18 +445,13 @@ class Disk extends Storage
         return true;
     }
 
-    /**
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
-     */
     public function mkdir(bool $ifNewOnly = false): bool
     {
         if ($ifNewOnly && $this->isDir() && $this->isFile()) {
             return true;
         }
 
-        if (mkdir($concurrentDirectory = $this->path->raw, 0777, true) || !is_dir($concurrentDirectory)) {
+        if (mkdir($concurrentDirectory = $this->path->getRawPath(), 0777, true) || !is_dir($concurrentDirectory)) {
             $this->path->reload();
             return true;
         }
@@ -497,12 +464,12 @@ class Disk extends Storage
      */
     public function isDotfile(): bool
     {
-        return str_starts_with($this->path->basename, '.');
+        return $this->path->isDotfile();
     }
 
     public function __toString(): string
     {
-        return sprintf('%s at: "%s"', parent::__toString(), (string)$this->path);
+        return sprintf('%s at: "%s"', parent::__toString(), $this->path);
     }
 
     /**
@@ -519,12 +486,13 @@ class Disk extends Storage
      * changes current directory
      * @param string[]|FileSystem[]|Path[]|self[] $path
      * @throws UnexpectedValueException
+     * @throws RuntimeException
      * @internal
      */
     public function cd(array $path): void
     {
         array_unshift($path, $this->path);
-        $this->path = new Path($path);
+        $this->path = new Path(...$path);
     }
 
 
@@ -534,7 +502,7 @@ class Disk extends Storage
      */
     public function getStream(string $mode = 'rb+'): Stream
     {
-        return Stream::fromResourceName($this->path->real, $mode);
+        return Stream::fromResourceName($this->path->getRawPath(), $mode);
     }
 
     /**
@@ -543,7 +511,7 @@ class Disk extends Storage
      */
     public function writeFromStream(Stream $stream): bool
     {
-        $destHandle = Stream::fromResourceName($this->path->real, 'wb');
+        $destHandle = Stream::fromResourceName($this->path->getRawPath(), 'wb');
 
         try {
             $stream->copyToStream($destHandle);
@@ -568,10 +536,14 @@ class Disk extends Storage
             case $destination instanceof self:
 
                 // copy file from disk to disk
-                if (!copy($this->path->real, $destination->path()->raw)) {
+                if (!copy(
+                    from: $this->path->getRealOrRawPath(),
+                    to: $destination->getPath()->getRawPath()
+                )) {
                     return false;
                 }
-                $destination->path()->reload();
+
+                $destination->getPath()->reload();
                 return true;
 
             case $destination instanceof Flysystem:
@@ -597,10 +569,13 @@ class Disk extends Storage
 
             // copy file from disk to disk
             case $destination instanceof self:
-                if (!rename($this->path->real, $destination->path()->raw)) {
+                if (!rename(
+                    from: $this->path->getRealOrRawPath(),
+                    to: $destination->getPath()->getRawPath()
+                )) {
                     return false;
                 }
-                $destination->path()->reload();
+                $destination->getPath()->reload();
                 return true;
 
             case $destination instanceof Flysystem:
@@ -620,8 +595,13 @@ class Disk extends Storage
      */
     public function copyDirectoryTo(self $destination): bool
     {
-        $result = $this->copyDirectory($this->path()->real, $destination->path()->raw);
-        $destination->path()->reload();
+        $result = $this->copyDirectory(
+            sourcePath: $this->path->getRealOrRawPath(),
+            destinationPath: $destination->getPath()->getRawPath()
+        );
+
+        $destination->getPath()->reload();
+
         return $result;
     }
 

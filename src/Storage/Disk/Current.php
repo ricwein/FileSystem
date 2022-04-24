@@ -8,21 +8,20 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Storage\Disk;
 
-use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\FileSystem;
-use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Path;
 use ricwein\FileSystem\Storage\Disk;
 
-/**
- * creates a absolute path from current-working-directory
- */
 class Current extends Disk
 {
 
     /**
      * @inheritDoc
-     * @throws UnsupportedException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function __construct(string|FileSystem|Path|Disk ...$path)
     {
@@ -33,8 +32,8 @@ class Current extends Disk
         if (
             empty($path)
             || (is_string($fistComponent) && !str_starts_with($fistComponent, DIRECTORY_SEPARATOR))
-            || ($fistComponent instanceof Path && !str_starts_with($fistComponent->raw, DIRECTORY_SEPARATOR))
-            || ($fistComponent instanceof FileSystem && ($rootPath = $fistComponent->getPath()) && !str_starts_with($rootPath, DIRECTORY_SEPARATOR))
+            || ($fistComponent instanceof Path && !str_starts_with($fistComponent->getRawPath(), DIRECTORY_SEPARATOR))
+            || ($fistComponent instanceof FileSystem && ($rootPath = $fistComponent->getPath()) && !str_starts_with($rootPath->getRealOrRawPath(), DIRECTORY_SEPARATOR))
         ) {
             array_unshift($path, getcwd());
         }

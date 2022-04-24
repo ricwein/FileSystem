@@ -22,8 +22,6 @@ class ReadTest extends TestCase
 {
     /**
      * @throws AccessDeniedException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
     public function testMemoryInit(): void
@@ -71,7 +69,7 @@ class ReadTest extends TestCase
             self::assertInstanceOf(File::class, $file);
             self::assertInstanceOf(Storage\Disk::class, $file->storage());
 
-            self::assertContains($file->path()->filename, $this->listTestfiles());
+            self::assertContains($file->getPath()->getFilename(), $this->listTestfiles());
         }
     }
 
@@ -94,7 +92,7 @@ class ReadTest extends TestCase
             self::assertInstanceOf(File::class, $file);
             self::assertInstanceOf(Storage\Disk::class, $file->storage());
 
-            self::assertContains($file->path()->filename, $this->listTestfiles());
+            self::assertContains($file->getPath()->getFilename(), $this->listTestfiles());
         }
     }
 
@@ -108,11 +106,11 @@ class ReadTest extends TestCase
     public function testListingDirectories(): void
     {
         $dir = new Directory(new Storage\Disk(__DIR__, '..'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
-        $path = $dir->path()->raw;
+        $path = $dir->getPath()->getRawPath();
 
         // dynamically fetch list of all directories which should be returned
         $shouldDirs = array_filter(scandir($path), static function (string $filename) use ($path): bool {
-            return (strpos($filename, '.') !== 0) && is_dir($path . '/' . $filename);
+            return (!str_starts_with($filename, '.')) && is_dir($path . '/' . $filename);
         });
 
 
@@ -123,7 +121,7 @@ class ReadTest extends TestCase
             self::assertInstanceOf(Directory::class, $dir);
             self::assertInstanceOf(Storage\Disk::class, $dir->storage());
 
-            self::assertContains($dir->path()->basename, $shouldDirs);
+            self::assertContains($dir->getPath()->getBasename(), $shouldDirs);
         }
     }
 
@@ -145,7 +143,7 @@ class ReadTest extends TestCase
 
         /** @var File $file */
         foreach ($iterator->all() as $file) {
-            self::assertContains($file->path()->filename, ['test.png', 'archive.zip', 'certificate.crt']);
+            self::assertContains($file->getPath()->getFilename(), ['test.png', 'archive.zip', 'certificate.crt']);
         }
     }
 
@@ -167,7 +165,7 @@ class ReadTest extends TestCase
 
         /** @var File $file */
         foreach ($iterator->all() as $file) {
-            self::assertContains($file->path()->filename, ['test.png', 'archive.zip', 'certificate.crt']);
+            self::assertContains($file->getPath()->getFilename(), ['test.png', 'archive.zip', 'certificate.crt']);
         }
     }
 
@@ -184,12 +182,12 @@ class ReadTest extends TestCase
 
         $iterator = $dir->list(false);
         $iterator->filter(static function (FileSystem $file): bool {
-            return $file->isFile() && ($file->path()->extension === 'png');
+            return $file->isFile() && ($file->getPath()->getExtension() === 'png');
         });
 
         /** @var File $file */
         foreach ($iterator->all() as $file) {
-            self::assertSame($file->path()->filename, 'test.png');
+            self::assertSame($file->getPath()->getFilename(), 'test.png');
         }
     }
 }

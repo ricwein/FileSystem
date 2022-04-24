@@ -80,7 +80,8 @@ class FlysystemTest extends TestCase
      */
     public function testDirectoryRead(): void
     {
-        $dir = new Directory(new Storage\Flysystem(new LocalFilesystemAdapter(__DIR__ . '/..'), '_examples'));
+        $flySystem = new LocalFilesystemAdapter(__DIR__ . '/..');
+        $dir = new Directory(new Storage\Flysystem($flySystem, '_examples'));
         self::assertTrue($dir->isDir());
 
         $files = [];
@@ -120,12 +121,12 @@ class FlysystemTest extends TestCase
         $file = $dir->file('archive.zip');
         self::assertTrue($file->isFile());
         self::assertFalse($file->isDir());
-        self::assertSame($file->path(), '_examples/archive.zip');
+        self::assertSame($file->getPath()->getRawPath(), '_examples/archive.zip');
 
         $dirAgain = $file->dir();
         self::assertTrue($dirAgain->isDir());
         self::assertFalse($dirAgain->isFile());
-        self::assertSame($dirAgain->path(), '_examples');
+        self::assertSame($dirAgain->getPath()->getRawPath(), '_examples');
 
         $parentDir = $dirAgain->up();
         self::assertTrue($parentDir->isDir());

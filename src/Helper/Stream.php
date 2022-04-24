@@ -9,9 +9,6 @@ namespace ricwein\FileSystem\Helper;
 
 use ricwein\FileSystem\Exceptions\RuntimeException;
 
-/**
- * creates a absolute path from current-working-directory
- */
 class Stream
 {
     /** @var resource $handle */

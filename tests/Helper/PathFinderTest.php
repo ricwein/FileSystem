@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\Helper;
 
+use League\Flysystem\FilesystemException;
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
@@ -11,9 +12,10 @@ use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
+use ricwein\FileSystem\Path;
 use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\PathFinder;
 
 /**
@@ -33,12 +35,12 @@ class PathFinderTest extends TestCase
     {
         $current = __FILE__;
         $file = new File(PathFinder::try([
-            "{$current}.notExistingFilename",
+            "$current.notExistingFilename",
             $current,
         ]));
 
         self::assertTrue($file->isFile());
-        self::assertSame($file->path()->real, $current);
+        self::assertSame($current, $file->getPath()->getRealPath());
     }
 
     /**
@@ -52,12 +54,12 @@ class PathFinderTest extends TestCase
     public function testPaths(): void
     {
         $file = new File(PathFinder::try([
-            new Path([__FILE__, '.notExistingFilename']),
-            new Path([__FILE__]),
+            new Path(__FILE__, '.notExistingFilename'),
+            new Path(__FILE__),
         ]));
 
         self::assertTrue($file->isFile());
-        self::assertSame($file->path()->real, __FILE__);
+        self::assertSame(__FILE__, $file->getPath()->getRealPath());
     }
 
     /**
@@ -76,7 +78,7 @@ class PathFinderTest extends TestCase
         ]));
 
         self::assertTrue($file->isFile());
-        self::assertSame($file->path()->real, __FILE__);
+        self::assertSame(__FILE__, $file->getPath()->getRealPath());
     }
 
     /**
@@ -86,6 +88,8 @@ class PathFinderTest extends TestCase
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws FilesystemException
+     * @throws UnsupportedException
      */
     public function testTempPaths(): void
     {
@@ -96,7 +100,7 @@ class PathFinderTest extends TestCase
 
         self::assertTrue($file->isFile());
         self::assertInstanceOf(Storage\Disk\Temp::class, $file->storage());
-        self::assertSame($file->dir()->path()->real, realpath(sys_get_temp_dir()));
+        self::assertSame(realpath(sys_get_temp_dir()), $file->dir()->getPath()->getRealPath());
     }
 
     /**
@@ -115,7 +119,7 @@ class PathFinderTest extends TestCase
         ]));
 
         self::assertTrue($file->isFile());
-        self::assertSame($file->path()->real, realpath(__FILE__));
+        self::assertSame(realpath(__FILE__), $file->getPath()->getRealPath());
     }
 
     /**
@@ -131,7 +135,7 @@ class PathFinderTest extends TestCase
         $this->expectExceptionMessage("file not found");
 
         new File(PathFinder::try([
-            new Path([__FILE__, '.notExistingFilename']),
+            new Path(__FILE__, '.notExistingFilename'),
             new File(new Storage\Disk(__FILE__, '.notExistingFilename')),
             new File(new Storage\Disk(__DIR__, '.notExistingFilename')),
         ]));

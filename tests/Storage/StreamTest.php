@@ -5,7 +5,6 @@ namespace ricwein\FileSystem\Tests\Storage;
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Helper\Stream;
 use ricwein\FileSystem\Storage;
@@ -57,12 +56,11 @@ class StreamTest extends TestCase
      * @throws RuntimeException
      * @throws UnsupportedException
      * @throws FileNotFoundException
-     * @throws UnexpectedValueException
      */
     public function testHashCalculation(): void
     {
         $origin = new Storage\Disk(__DIR__, '../', '_examples', 'archive.zip');
-        $fileStream = new Storage\Stream(fopen($origin->path()->real, 'rb'));
+        $fileStream = new Storage\Stream(fopen($origin->getPath()->getRealPath(), 'rb'));
         $tempStream = new Storage\Stream(fopen('php://temp', 'rb+'));
         $tempStream->writeFile($origin->readFile());
 

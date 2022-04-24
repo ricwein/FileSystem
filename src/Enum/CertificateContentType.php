@@ -2,8 +2,8 @@
 
 namespace ricwein\FileSystem\Enum;
 
-class CertificateContentType
+enum CertificateContentType
 {
-    public const DOMAIN = 0b01;
-    public const CERTIFICATE = 0b10;
+    case DOMAIN;
+    case CERTIFICATE;
 }

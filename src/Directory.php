@@ -1,9 +1,4 @@
 <?php
-
-/**
- * @author Richard Weinhold
- */
-
 declare(strict_types=1);
 
 namespace ricwein\FileSystem;
@@ -16,7 +11,6 @@ use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Helper\DirectoryIterator;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
-use ricwein\FileSystem\Helper\Path;
 
 /**
  * represents a selected directory
@@ -32,8 +26,6 @@ class Directory extends FileSystem
     /**
      * @inheritDoc
      * @throws AccessDeniedException
-     * @throws Exceptions\RuntimeException
-     * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
     public function __construct(Storage $storage, int $constraints = Constraint::STRICT)
@@ -51,13 +43,8 @@ class Directory extends FileSystem
 
     protected function getDirectoryPath(): string
     {
-        if ($this->storage instanceof Storage\Disk) {
-            $path = $this->storage->path();
-            return $path->real ?? $path->raw;
-        }
-
-        if ($this->storage instanceof Storage\Flysystem) {
-            return $this->storage->path();
+        if ($this->storage instanceof Storage\Disk || $this->storage instanceof Storage\Flysystem) {
+            return $this->storage->getPath()->getRealOrRawPath();
         }
 
         return (string)$this->storage;
@@ -65,10 +52,7 @@ class Directory extends FileSystem
 
     /**
      * @throws Exceptions\ConstraintsException
-     * @throws Exceptions\RuntimeException
      * @throws FileNotFoundException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      * @inheritDoc
      */
     protected function checkFileReadPermissions(): void
@@ -84,10 +68,7 @@ class Directory extends FileSystem
      * create new dir if not exists
      * @throws AccessDeniedException
      * @throws Exceptions\ConstraintsException
-     * @throws Exceptions\RuntimeException
-     * @throws UnexpectedValueException
      * @throws FlysystemException
-     * @throws UnsupportedException
      */
     public function mkdir(): self
     {
@@ -96,7 +77,7 @@ class Directory extends FileSystem
         }
 
         if (!$this->storage->isDir() && !$this->storage->mkdir()) {
-            throw new AccessDeniedException(sprintf('unable to create directory at: "%s"', $this->storage->path()->raw), 500);
+            throw new AccessDeniedException(sprintf('unable to create directory at: "%s"', $this->storage->getPath()->getRawPath()), 500);
         }
 
         return $this;
@@ -124,9 +105,6 @@ class Directory extends FileSystem
 
     /**
      * @inheritDoc
-     * @throws Exceptions\RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function isDir(): bool
     {
@@ -135,9 +113,6 @@ class Directory extends FileSystem
 
     /**
      * @throws Exceptions\ConstraintsException
-     * @throws Exceptions\RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function list(bool $recursive = false, ?int $constraints = null): DirectoryIterator
     {
@@ -158,7 +133,7 @@ class Directory extends FileSystem
      * @throws Exceptions\UnsupportedException
      * @throws UnexpectedValueException
      */
-    public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false, bool $recursive = true): string
+    public function getHash(Hash $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false, bool $recursive = true): string
     {
         $fileHashes = [];
 
@@ -190,6 +165,7 @@ class Directory extends FileSystem
 
     /**
      * changes current directory
+     * @throws Exceptions\RuntimeException
      * @throws UnexpectedValueException
      */
     public function cd(string|FileSystem|Path|Storage\Disk ...$path): self
@@ -200,6 +176,7 @@ class Directory extends FileSystem
 
     /**
      * move directory upwards (like /../)
+     * @throws Exceptions\RuntimeException
      * @throws UnexpectedValueException
      */
     public function up(int $move = 1): self
@@ -213,7 +190,6 @@ class Directory extends FileSystem
      * @throws Exceptions\RuntimeException
      * @throws UnexpectedValueException
      * @throws FlysystemException
-     * @throws UnsupportedException
      */
     public function file(string $filename, ?int $constraints = null, string $as = File::class, mixed ...$arguments): File
     {
@@ -223,7 +199,7 @@ class Directory extends FileSystem
 
         if ($this->storage instanceof Storage\Flysystem) {
             return new $as(
-                new Storage\Flysystem($this->storage->getFlySystem(), "{$this->storage->path()}/$filename"),
+                new Storage\Flysystem($this->storage->getFlySystem(), "{$this->storage->getPath()->getRawPath()}/$filename"),
                 $constraints ?? $this->storage->getConstraints(),
                 ...$arguments
             );
@@ -234,7 +210,7 @@ class Directory extends FileSystem
             $dirPath = realpath($dirPath);
         }
 
-        $safepath = $this->storage->path()->safepath;
+        $safepath = $this->storage->getPath()->getSafePath();
         if (is_dir($safepath)) {
             $safepath = realpath($safepath);
         }
@@ -276,9 +252,7 @@ class Directory extends FileSystem
     /**
      * @throws AccessDeniedException
      * @throws Exceptions\ConstraintsException
-     * @throws Exceptions\RuntimeException
      * @throws FileNotFoundException
-     * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
     public function copyTo(Storage $destination, ?int $constraints = null): static
@@ -297,10 +271,7 @@ class Directory extends FileSystem
     /**
      * @throws AccessDeniedException
      * @throws Exceptions\ConstraintsException
-     * @throws Exceptions\RuntimeException
      * @throws FileNotFoundException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     protected function copyDirectoryTo(Storage\Disk $destination, ?int $constraints = null): bool
     {

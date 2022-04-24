@@ -12,7 +12,6 @@ use Exception;
 use League\Flysystem\FilesystemException as FlySystemException;
 use ricwein\FileSystem\Exceptions\Hint;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
-use ricwein\FileSystem\Helper\Path;
 use ZipArchive;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
@@ -138,8 +137,6 @@ class Zip extends File
      * => this can create a new zip-file
      * @throws ConstraintsException
      * @throws RuntimeException
-     * @throws UnsupportedException
-     * @throws UnexpectedValueException
      */
     protected function openArchive(): bool
     {
@@ -147,7 +144,7 @@ class Zip extends File
             return false;
         }
 
-        $result = $this->archive->open($this->path()->raw, $this->flags);
+        $result = $this->archive->open($this->getPath()->getRawPath(), $this->flags);
 
         if (($this->flags & ZipArchive::CREATE) === ZipArchive::CREATE && $result === ZipArchive::ER_NOZIP && $this->storage->isFile()) {
             throw new RuntimeException(
@@ -176,7 +173,7 @@ class Zip extends File
             $this->archive->setPassword($this->password);
         }
 
-        $this->path()->reload();
+        $this->getPath()->reload();
 
         $this->isOpen = true;
         return true;
@@ -223,10 +220,9 @@ class Zip extends File
      * @param string[]|null $entries
      * @throws AccessDeniedException
      * @throws ConstraintsException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      * @throws FlySystemException
+     * @throws RuntimeException
+     * @throws UnsupportedException
      */
     public function extractTo(Storage\Disk $destination, ?int $constraints = null, ?array $entries = null): Directory
     {
@@ -247,10 +243,10 @@ class Zip extends File
         }
 
         // try to extract archive (or selected entries only)
-        $result = $this->archive->extractTo($destinationDir->path()->raw, $entries);
+        $result = $this->archive->extractTo($destinationDir->getPath()->getRawPath(), $entries);
 
         if ($result !== true) {
-            throw new RuntimeException(sprintf('unable to extract ZipArchive in path: "%s"%s', $destinationDir->path()->raw, $this->password === null ? '' : ', wrong password?'), 500);
+            throw new RuntimeException(sprintf('unable to extract ZipArchive in path: "%s"%s', $destinationDir->getPath()->getRawPath(), $this->password === null ? '' : ', wrong password?'), 500);
         }
 
         return $destinationDir;
@@ -302,7 +298,7 @@ class Zip extends File
 
     /**
      * adds directory to zip-archive
-     * @param string $toNode adds content of directory to a sub-directory, or the root of the zip-archive
+     * @param string $toNode adds content of directory to a subdirectory, or the root of the zip-archive
      * @param callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
      * @throws ConstraintsException
      * @throws FileNotFoundException
@@ -317,7 +313,7 @@ class Zip extends File
     }
 
     /**
-     * @param string $toNode adds content of directory to a sub-directory, or the root of the zip-archive
+     * @param string $toNode adds content of directory to a subdirectory, or the root of the zip-archive
      * @param callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
      * @throws ConstraintsException
      * @throws FileNotFoundException
@@ -328,21 +324,13 @@ class Zip extends File
      */
     public function addDirectoryStorage(Storage $storage, string $toNode = '/', ?callable $filter = null): self
     {
-        if (!method_exists($storage, 'path')) {
-            throw new UnsupportedException('Unable to fetch path from non-disk FileSystem.', 500);
-        }
-        $path = $storage->path();
-
-        if ($path instanceof Path) {
-            $path = $path->raw;
-        }
-
-        return $this->addDirectoryStorageContent($storage, rtrim($toNode, '/') . '/' . basename($path) . '/', $filter);
+        $path = $storage->getPath();
+        return $this->addDirectoryStorageContent($storage, rtrim($toNode, '/') . '/' . basename($path->getRawPath()) . '/', $filter);
     }
 
     /**
      * adds directory-content to zip-archive
-     * @param string $toNode adds content of directory to a sub-directory, or the root of the zip-archive
+     * @param string $toNode adds content of directory to a subdirectory, or the root of the zip-archive
      * @param callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
      * @throws ConstraintsException
      * @throws FileNotFoundException
@@ -357,7 +345,7 @@ class Zip extends File
     }
 
     /**
-     * @param string $toNode adds content of directory to a sub-directory, or the root of the zip-archive
+     * @param string $toNode adds content of directory to a subdirectory, or the root of the zip-archive
      * @param callable|null $filter DirectoryIterator-Filter in format: function(Storage $file): bool
      * @throws ConstraintsException
      * @throws FileNotFoundException
@@ -397,10 +385,10 @@ class Zip extends File
 
             if ($iteratorStorage instanceof Storage\Disk && $fileStorage instanceof Storage\Disk) {
                 // relative file-path for in-ziparchive-name:
-                if (str_starts_with($fileStorage->path()->raw, $iteratorStorage->path()->raw)) {
-                    $filepath = str_replace((rtrim($iteratorStorage->path()->raw, '/') . '/'), '', $fileStorage->path()->raw);
+                if (str_starts_with($fileStorage->getPath()->getRawPath(), $iteratorStorage->getPath()->getRawPath())) {
+                    $filepath = str_replace((rtrim($iteratorStorage->getPath()->getRawPath(), '/') . '/'), '', $fileStorage->getPath()->getRawPath());
                 } else {
-                    $filepath = str_replace((rtrim($iteratorStorage->path()->real, '/') . '/'), '', $fileStorage->path()->real);
+                    $filepath = str_replace((rtrim($iteratorStorage->getPath()->getRealPath(), '/') . '/'), '', $fileStorage->getPath()->getRealPath());
                 }
 
                 // append given directory-name:
@@ -411,7 +399,7 @@ class Zip extends File
             }
 
             if ($fileStorage instanceof Storage\Flysystem) {
-                $this->addFileStorage($fileStorage, $fileStorage->path());
+                $this->addFileStorage($fileStorage, $fileStorage->getPath()->getRawPath());
                 continue;
             }
 
@@ -428,12 +416,11 @@ class Zip extends File
      * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function addFile(File $file, ?string $name = null): self
     {
         if (!$file->isFile() || !$file->isReadable()) {
-            throw new FileNotFoundException(sprintf('unable to open file: "%s"', $file->storage() instanceof Storage\Disk ? $file->path()->raw : get_class($file->storage())), 404);
+            throw new FileNotFoundException(sprintf('unable to open file: "%s"', $file->storage() instanceof Storage\Disk ? $file->getPath()->getRawPath() : get_class($file->storage())), 404);
         }
         return $this->addFileStorage($file->storage(), $name);
     }
@@ -441,10 +428,9 @@ class Zip extends File
     /**
      * @throws ConstraintsException
      * @throws FileNotFoundException
+     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
-     * @throws FlySystemException
-     * @throws UnsupportedException
      */
     public function addFileStorage(Storage $storage, ?string $name = null): self
     {
@@ -453,7 +439,7 @@ class Zip extends File
         }
 
         if (!$storage->isFile() || !$storage->isReadable()) {
-            throw new FileNotFoundException(sprintf('unable to open file: "%s"', $storage instanceof Storage\Disk ? $storage->path()->raw : get_class($storage)), 404);
+            throw new FileNotFoundException(sprintf('unable to open file: "%s"', $storage instanceof Storage\Disk ? $storage->getPath()->getRawPath() : get_class($storage)), 404);
         }
 
         // add file to archive
@@ -493,11 +479,11 @@ class Zip extends File
      */
     private function addFileFromDisk(Storage\Disk $file, ?string $name = null): string
     {
-        $name = $name ?? $file->path()->filename;
+        $name = $name ?? $file->getPath()->getFilename();
         $name = str_replace(['\\', DIRECTORY_SEPARATOR], '/', $name);
 
-        if (!$this->archive->addFile($file->path()->real, $name)) {
-            throw new RuntimeException(sprintf('failed to add File "%s" from Disk (%s) to ZipArchive', $name, $file->path()->real), 500);
+        if (!$this->archive->addFile($file->getPath()->getRealPath(), $name)) {
+            throw new RuntimeException(sprintf('failed to add File "%s" from Disk (%s) to ZipArchive', $name, $file->getPath()->getRealPath()), 500);
         }
 
         return $name;
@@ -516,7 +502,7 @@ class Zip extends File
             $name = sprintf("file.%s", bin2hex(random_bytes(8)));
             $mime = $file->getFileType();
 
-            if (null !== $mime && null !== $extension = MimeType::getExtensionFor($mime)) {
+            if (null !== $extension = MimeType::getExtensionFor($mime)) {
                 $name .= ".$extension";
             }
         }
@@ -538,7 +524,7 @@ class Zip extends File
      */
     private function addFileFromFlysystem(Storage\Flysystem $file, ?string $name = null): string
     {
-        $name = $name ?? basename($file->path());
+        $name = $name ?? basename($file->getPath()->getRawPath());
         $name = str_replace(['\\', DIRECTORY_SEPARATOR], '/', $name);
 
         if (!$this->archive->addFromString($name, $file->readFile())) {
@@ -550,10 +536,9 @@ class Zip extends File
 
     /**
      * get archive status
+     * @return string
      * @throws ConstraintsException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function getStatus(): string
     {
@@ -571,8 +556,6 @@ class Zip extends File
     /**
      * @throws ConstraintsException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function getFileCount(): int
     {
@@ -586,8 +569,6 @@ class Zip extends File
     /**
      * @throws ConstraintsException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function setComment(string $comment, ?string $forFile = null): self
     {
@@ -607,8 +588,6 @@ class Zip extends File
     /**
      * @throws ConstraintsException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function getComment(?string $forFile = null): ?string
     {
@@ -624,8 +603,6 @@ class Zip extends File
      * get stats-array for single entry
      * @throws ConstraintsException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function getStat(string $forFile): ?array
     {

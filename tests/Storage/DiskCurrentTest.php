@@ -40,20 +40,18 @@ class DiskCurrentTest extends TestCase
         self::assertTrue($cwdFile->isFile());
         self::assertTrue($file->isFile());
 
-        self::assertNotSame($file->path()->raw, $cwdFile->path()->raw);
+        self::assertNotSame($file->getPath()->getRawPath(), $cwdFile->getPath()->getRawPath());
     }
 
     /**
      * @throws AccessDeniedException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
     public function testRootDir(): void
     {
         $dir = new Directory(new Storage\Disk\Current('/'));
 
-        self::assertSame($dir->path()->real, '/');
+        self::assertSame($dir->getPath()->getRealPath(), '/');
     }
 
     /**
@@ -65,6 +63,6 @@ class DiskCurrentTest extends TestCase
     {
         $current = new File(new Disk\Current());
 
-        self::assertSame($current->path()->real, getcwd());
+        self::assertSame($current->getPath()->getRealPath(), getcwd());
     }
 }

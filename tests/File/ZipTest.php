@@ -50,7 +50,7 @@ class ZipTest extends TestCase
 
         // check for file-consistency
         foreach ($extractDir->list()->files() as $extractedFile) {
-            self::assertSame($file->path()->filename, $extractedFile->path()->filename);
+            self::assertSame($file->getPath()->getFilename(), $extractedFile->getPath()->getFilename());
             self::assertSame($file->getHash(), $extractedFile->getHash());
         }
     }
@@ -84,7 +84,7 @@ class ZipTest extends TestCase
 
         // check for file-consistency
         foreach ($extractDir->list()->files() as $extractedFile) {
-            self::assertSame($file->path()->filename, $extractedFile->path()->filename);
+            self::assertSame($file->getPath()->getFilename(), $extractedFile->getPath()->getFilename());
             self::assertSame($file->getHash(), $extractedFile->getHash());
         }
     }
@@ -145,11 +145,11 @@ class ZipTest extends TestCase
 
         $sourceFiles = [];
         foreach ($dir->list(false)->files() as $file) {
-            $sourceFiles[$file->path()->filename] = $file->getHash();
+            $sourceFiles[$file->getPath()->getFilename()] = $file->getHash();
         }
 
         foreach ($extractDir->list(false)->files() as $file) {
-            self::assertSame($sourceFiles[$file->path()->filename], $file->getHash());
+            self::assertSame($sourceFiles[$file->getPath()->getFilename()], $file->getHash());
         }
     }
 
@@ -178,11 +178,11 @@ class ZipTest extends TestCase
 
         $sourceFiles = [];
         foreach ($dir->list(true)->files() as $file) {
-            $sourceFiles[$file->path()->filepath] = $file->getHash();
+            $sourceFiles[$file->getPath()->getRelativePathToSafePath()] = $file->getHash();
         }
 
         foreach ($extractDir->list(true)->files() as $file) {
-            self::assertSame($sourceFiles[$file->path()->filepath], $file->getHash());
+            self::assertSame($sourceFiles[$file->getPath()->getRelativePathToSafePath()], $file->getHash());
         }
     }
 
@@ -207,7 +207,7 @@ class ZipTest extends TestCase
         $zip->addFile($file, 'testfile1.php');
         $zip->addFile(new File(new Storage\Memory($file->read())), 'testfile2.php');
 
-        $zip->addDirectoryIterator($dir->list(true), '/');
+        $zip->addDirectoryIterator($dir->list(true));
         $zip->addDirectory($exampleDir);
         $zip->commit();
 
@@ -217,19 +217,20 @@ class ZipTest extends TestCase
         $zip->extractTo($extractDir->storage());
 
         $sourceFiles = [
-            '/testfile1.php' => $file->getHash(),
-            '/testfile2.php' => $file->getHash(),
+            'testfile1.php' => $file->getHash(),
+            'testfile2.php' => $file->getHash(),
         ];
 
         foreach ($dir->list(true)->files() as $file) {
-            $sourceFiles[$file->path()->filepath] = $file->getHash();
+            $sourceFiles[$file->getPath()->getRelativePathToSafePath()] = $file->getHash();
         }
+
         foreach ($exampleDir->list(true)->files() as $file) {
-            $sourceFiles["/{$exampleDir->path()->basename}{$file->path()->filepath}"] = $file->getHash();
+            $sourceFiles["{$exampleDir->getPath()->getBasename()}/{$file->getPath()->getRelativePathToSafePath()}"] = $file->getHash();
         }
 
         foreach ($extractDir->list(true)->files() as $file) {
-            self::assertSame($sourceFiles[$file->path()->filepath], $file->getHash());
+            self::assertSame($sourceFiles[$file->getPath()->getRelativePathToSafePath()], $file->getHash());
         }
     }
 

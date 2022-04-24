@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\File;
 
+use League\Flysystem\FilesystemException;
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
@@ -11,6 +12,7 @@ use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Directory;
@@ -25,6 +27,7 @@ class MoveTest extends TestCase
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws FilesystemException
      */
     public function testMoveFromDiskToDisk(): void
     {
@@ -44,6 +47,7 @@ class MoveTest extends TestCase
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws FilesystemException
      */
     public function testMoveFromDiskToMemory(): void
     {
@@ -61,6 +65,7 @@ class MoveTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
+     * @throws FilesystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -79,6 +84,7 @@ class MoveTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
+     * @throws FilesystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -97,8 +103,10 @@ class MoveTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
+     * @throws FilesystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function testMoveToDir(): void
     {
@@ -111,7 +119,7 @@ class MoveTest extends TestCase
         $retFile = $source->moveTo($destination->storage());
 
         self::assertFalse($source->isFile());
-        self::assertSame($destination->path()->raw, $retFile->path()->directory);
+        self::assertSame($destination->getPath()->getRealPath(), $retFile->getPath()->getDirectory());
         self::assertStringEqualsFile(__DIR__ . '/../_examples/test.txt', $retFile->read());
     }
 
@@ -120,8 +128,10 @@ class MoveTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
+     * @throws FilesystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function testMoveMemoryToDir(): void
     {
@@ -134,8 +144,8 @@ class MoveTest extends TestCase
         $retFile = $source->moveTo($destination->storage());
 
         self::assertFalse($source->isFile());
-        self::assertNotFalse(strpos($retFile->path()->filename, '.file'));
-        self::assertSame($destination->path()->raw, $retFile->path()->directory);
+        self::assertNotFalse(strpos($retFile->getPath()->getFilename(), '.file'));
+        self::assertSame($destination->getPath()->getRealPath(), $retFile->getPath()->getDirectory());
         self::assertStringEqualsFile(__DIR__ . '/../_examples/test.txt', $retFile->read());
     }
 }

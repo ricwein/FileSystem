@@ -5,90 +5,85 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Tests\Helper;
 
 use PHPUnit\Framework\TestCase;
-use ricwein\FileSystem\Exceptions\AccessDeniedException;
-use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
-use ricwein\FileSystem\File;
-
-use ricwein\FileSystem\Helper\Path;
-
-use ricwein\FileSystem\Storage;
+use ricwein\FileSystem\Path;
 
 /**
  * @author Richard Weinhold
  */
 class PathParserTest extends TestCase
 {
-    /**
-     * @throws UnexpectedValueException
-     */
     public function testPathParsing(): void
     {
-        $pathA = new Path([__DIR__ . '/../_examples', 'test.txt']);
-        $pathB = new Path([__DIR__, '/../', '_examples', 'test.txt']);
+        $pathA = new Path(__DIR__ . '/../_examples/test.txt');
+        $pathB = new Path(__DIR__ . '/../_examples', 'test.txt');
+        $pathC = new Path(__DIR__, '/../', '_examples', 'test.txt');
 
-        self::assertSame($pathA->real, $pathB->real);
-        self::assertSame($pathA->directory, $pathB->directory);
-        self::assertSame($pathA->raw, $pathB->raw);
+        self::assertSame(realpath(__DIR__ . '/../_examples/test.txt'), $pathA->getRealPath());
+        self::assertSame(realpath(__DIR__ . '/../_examples/test.txt'), $pathB->getRealPath());
+        self::assertSame(realpath(__DIR__ . '/../_examples/test.txt'), $pathC->getRealPath());
 
-        self::assertSame($pathA->filename, $pathB->filename);
-        self::assertSame($pathA->basename, $pathB->basename);
-        self::assertSame($pathA->extension, $pathB->extension);
+        self::assertSame(realpath(__DIR__ . '/../_examples/'), $pathA->getDirectory());
+        self::assertSame(realpath(__DIR__ . '/../_examples/'), $pathB->getDirectory());
+        self::assertSame(realpath(__DIR__ . '/../_examples/'), $pathC->getDirectory());
 
-        self::assertNotSame($pathA->safepath, $pathB->safepath);
-        self::assertNotSame($pathA->filepath, $pathB->filepath);
+        self::assertSame($pathA->getRawPath(), $pathB->getRawPath());
+        self::assertSame($pathA->getRawPath(), $pathC->getRawPath());
+
+        self::assertSame('test.txt', $pathA->getFilename());
+        self::assertSame('test.txt', $pathB->getFilename());
+        self::assertSame('test.txt', $pathC->getFilename());
+
+        self::assertSame('test', $pathA->getBasename());
+        self::assertSame('test', $pathB->getBasename());
+        self::assertSame('test', $pathC->getBasename());
+
+        self::assertSame('txt', $pathA->getExtension());
+        self::assertSame('txt', $pathB->getExtension());
+        self::assertSame('txt', $pathC->getExtension());
+
+        self::assertSame(realpath(__DIR__ . '/../_examples/'), realpath($pathA->getSafePath()));
+        self::assertSame(__DIR__ . '/../_examples', $pathA->getSafePath());
+        self::assertSame(realpath(__DIR__ . '/../_examples/'), realpath($pathB->getSafePath()));
+        self::assertSame(realpath(__DIR__), $pathC->getSafePath());
+
+        self::assertSame(__DIR__, $pathC->getSafePath());
     }
 
-    /**
-     * @throws UnexpectedValueException
-     * @throws RuntimeException
-     */
     public function testPathSelfSimilar(): void
     {
-        $path1 = new Path([__FILE__]);
-        $path2 = new Path([$path1]);
+        $path1 = new Path(__FILE__);
+        $path2 = new Path($path1);
 
-        self::assertSame($path1->getDetails(), $path2->getDetails());
+        self::assertSame(print_r($path1, true), print_r($path2, true));
     }
 
-    /**
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     */
     public function testMultiPathSelfSimilar(): void
     {
-        $path1 = new Path([__DIR__, basename(__FILE__)]);
-        $path2 = new Path([$path1]);
+        $path1 = new Path(__DIR__, basename(__FILE__));
+        $path2 = new Path($path1);
 
-        self::assertSame($path1->getDetails(), $path2->getDetails());
+        self::assertSame(print_r($path1, true), print_r($path2, true));
     }
 
-    /**
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws AccessDeniedException
-     * @throws Exception
-     */
-    public function testFilePathReusing(): void
+    public function testSafePathParsing(): void
     {
-        $file1 = new File(new Storage\Disk(__FILE__));
-        $file2 = new File(new Storage\Disk($file1->path()));
+        $path1 = new Path(__DIR__, '..', '_examples');
+        $path2 = new Path($path1, 'archive.zip');
 
-        self::assertSame($file1->storage()->getDetails(), $file2->storage()->getDetails());
-    }
+        self::assertTrue($path1->doesExist());
+        self::assertTrue($path1->isDir());
 
-    /**
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws AccessDeniedException
-     * @throws Exception
-     */
-    public function testFileMultiPathReusing(): void
-    {
-        $file1 = new File(new Storage\Disk(__DIR__, basename(__FILE__)));
-        $file2 = new File(new Storage\Disk($file1->path()));
+        self::assertSame(__DIR__, $path1->getSafePath());
+        self::assertTrue($path1->isInSafePath(__DIR__));
+        self::assertFalse($path1->isInSafePath());
 
-        self::assertSame($file1->storage()->getDetails(), $file2->storage()->getDetails());
+        self::assertTrue($path2->doesExist());
+        self::assertTrue($path2->isFile());
+        self::assertSame($path1->getSafePath(), $path2->getSafePath());
+
+        self::assertTrue($path2->isInSafePath(__DIR__));
+        self::assertFalse($path2->isInSafePath());
     }
 }

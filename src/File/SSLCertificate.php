@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace ricwein\FileSystem\File;
 
@@ -11,11 +12,12 @@ use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\Exception as FileSystemException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Helper\Constraint;
-use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Helper\Stream;
+use ricwein\FileSystem\Path;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Storage\Extensions\Binary;
 use function fclose;
@@ -27,14 +29,13 @@ use function stream_socket_client;
 class SSLCertificate extends File
 {
     private ?array $certificateInfo = null;
-    private int $certificateContentType;
+    private CertificateContentType $certificateContentType;
 
     /**
-     * @param int|null $certificateContentType CertificateContentType::DOMAIN | CertificateContentType::CERTIFICATE
      * @throws AccessDeniedException
      * @throws FileSystemException
      */
-    public function __construct(Storage $storage, int $constraints = Constraint::STRICT, ?int $certificateContentType = null, private int $timeout = 30)
+    public function __construct(Storage $storage, int $constraints = Constraint::STRICT, ?CertificateContentType $certificateContentType = null, private int $timeout = 30)
     {
         $this->certificateContentType = $certificateContentType ?? $storage instanceof Storage\Memory ? CertificateContentType::DOMAIN : CertificateContentType::CERTIFICATE;
         parent::__construct($storage, $constraints);
@@ -73,7 +74,7 @@ class SSLCertificate extends File
     /**
      * @throws FileNotFoundException
      * @throws RuntimeException
-     * @throws UnsupportedException
+     * @throws UnexpectedValueException
      * @internal
      */
     public function getCertificateInfo(): array
@@ -84,9 +85,9 @@ class SSLCertificate extends File
 
         $content = $this->storage->readFile();
 
-        if (($this->certificateContentType & CertificateContentType::CERTIFICATE) === CertificateContentType::CERTIFICATE) {
+        if ($this->certificateContentType === CertificateContentType::CERTIFICATE) {
             if (false === $certInfo = openssl_x509_parse($content)) {
-                throw new RuntimeException("Unable to parse ssl-certificate for file: '{$this->getPath()}'.", 500);
+                throw new RuntimeException("Unable to parse ssl-certificate for file: '{$this->getPath()->getRealOrRawPath()}'.", 500);
             }
             $this->certificateInfo = $certInfo;
             return $certInfo;
@@ -116,8 +117,8 @@ class SSLCertificate extends File
 
     /**
      * @throws FileNotFoundException
-     * @throws UnsupportedException
      * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function getIssuerName(): ?string
     {
@@ -127,8 +128,8 @@ class SSLCertificate extends File
 
     /**
      * @throws FileNotFoundException
-     * @throws UnsupportedException
      * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function getIssuer(): array
     {
@@ -139,7 +140,7 @@ class SSLCertificate extends File
      * @return string[]
      * @throws FileNotFoundException
      * @throws RuntimeException
-     * @throws UnsupportedException
+     * @throws UnexpectedValueException
      */
     public function getValidDomains(): array
     {
@@ -165,7 +166,6 @@ class SSLCertificate extends File
 
     /**
      * @throws FileNotFoundException
-     * @throws UnsupportedException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -207,8 +207,8 @@ class SSLCertificate extends File
 
     /**
      * @throws FileNotFoundException
-     * @throws UnsupportedException
      * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function validFrom(): ?DateTime
     {
@@ -218,7 +218,7 @@ class SSLCertificate extends File
             return null;
         }
 
-        $validFrom = DateTime::createFromFormat('U', $certInfo['validFrom_time_t']);
+        $validFrom = DateTime::createFromFormat('U', (string)$certInfo['validFrom_time_t']);
 
         if ($validFrom === false) {
             return null;
@@ -229,8 +229,8 @@ class SSLCertificate extends File
 
     /**
      * @throws FileNotFoundException
-     * @throws UnsupportedException
      * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function validTo(): ?DateTime
     {
@@ -240,7 +240,7 @@ class SSLCertificate extends File
             return null;
         }
 
-        $validTo = DateTime::createFromFormat('U', $certInfo['validTo_time_t']);
+        $validTo = DateTime::createFromFormat('U', (string)$certInfo['validTo_time_t']);
 
         if ($validTo === false) {
             return null;
@@ -251,8 +251,8 @@ class SSLCertificate extends File
 
     /**
      * @throws FileNotFoundException
-     * @throws UnsupportedException
      * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function isValid(): bool
     {
@@ -264,19 +264,18 @@ class SSLCertificate extends File
         return $now >= $validFrom && $now <= $validTo;
     }
 
-    public function getDate(int $type = Time::LAST_MODIFIED): ?DateTime
+    public function getDate(Time $type = Time::LAST_MODIFIED): ?DateTime
     {
         return match ($type) {
             Time::LAST_MODIFIED, Time::CREATED => $this->validFrom(),
             Time::LAST_ACCESSED => new DateTime(),
-            default => null,
         };
     }
 
     /**
      * @throws Exception
      */
-    public function getTime(int $type = Time::LAST_MODIFIED): ?int
+    public function getTime(Time $type = Time::LAST_MODIFIED): ?int
     {
         return $this->getDate()?->getTimestamp();
     }
@@ -298,31 +297,19 @@ class SSLCertificate extends File
     }
 
     /**
-     * @throws UnsupportedException
+     * @return Path
      * @throws FileNotFoundException
      * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    public function path(): Path|string
+    public function getPath(): Path
     {
         if ($this->storage instanceof Storage\Memory) {
             $content = $this->storage->readFile();
             if (!str_contains($content, "\n")) {
-                return $this->parseCertificateURL($content);
+                $url = $this->parseCertificateURL($content);
+                return new Path($url);
             }
-        }
-
-        return parent::path();
-    }
-
-    /**
-     * @throws UnsupportedException
-     * @throws FileNotFoundException
-     * @throws RuntimeException
-     */
-    public function getPath(): string
-    {
-        if ($this->storage instanceof Storage\Memory) {
-            return $this->path();
         }
 
         return parent::getPath();
@@ -337,8 +324,9 @@ class SSLCertificate extends File
      * @throws FileNotFoundException
      * @throws UnsupportedException
      * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    public function getHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): string
+    public function getHash(Hash $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): string
     {
         if ($mode !== Hash::CONTENT) {
             throw new UnsupportedException('Unable to get selected hash for ssl-certificate. Only Hash::CONTENT is available.', 500);

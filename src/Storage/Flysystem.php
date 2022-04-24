@@ -1,9 +1,4 @@
 <?php
-
-/**
- * @author Richard Weinhold
- */
-
 declare(strict_types=1);
 
 namespace ricwein\FileSystem\Storage;
@@ -15,6 +10,8 @@ use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\FilesystemException as FlySystemException;
 use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Exceptions\Exception;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Path;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Helper\Stream;
@@ -22,7 +19,6 @@ use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 
 /**
  * represents a file/directory at the local filesystem
@@ -30,25 +26,22 @@ use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 class Flysystem extends Storage
 {
     protected FlyFilesystem $flysystem;
-    protected string $path;
+    protected Path $path;
 
     protected string $type;
 
     /**
      * @throws FlySystemException
-     * @throws UnexpectedValueException
      */
     public function __construct(FlyFilesystem|FilesystemAdapter $filesystem, string $path)
     {
         if ($filesystem instanceof FilesystemAdapter) {
             $this->flysystem = new FlyFilesystem($filesystem);
-        } elseif ($filesystem instanceof FlyFilesystem) {
-            $this->flysystem = $filesystem;
         } else {
-            throw new UnexpectedValueException(sprintf('Unable to init Flysystem storage-engine from %s.', get_debug_type($filesystem)), 500);
+            $this->flysystem = $filesystem;
         }
 
-        $this->path = $path;
+        $this->path = new Path($path);
         $this->type = $this->flysystem->mimeType($path);
     }
 
@@ -70,7 +63,7 @@ class Flysystem extends Storage
             return;
         }
 
-        if (!$this->flysystem->fileExists($this->path)) {
+        if (!$this->flysystem->fileExists($this->path->getRawPath())) {
             return;
         }
 
@@ -89,7 +82,7 @@ class Flysystem extends Storage
     public function getDetails(): array
     {
         return array_merge(parent::getDetails(), [
-            'path' => $this->path,
+            'path' => $this->path->getRawPath(),
             'type' => $this->type,
             'timestamp' => $this->getTime(),
             'size' => $this->getSize(),
@@ -105,18 +98,13 @@ class Flysystem extends Storage
         return true;
     }
 
-    public function path(): string
-    {
-        return $this->path;
-    }
-
     /**
      * @inheritDoc
      * @throws FlySystemException
      */
     public function isFile(): bool
     {
-        if (!$this->flysystem->fileExists($this->path)) {
+        if (!$this->flysystem->fileExists($this->path->getRawPath())) {
             return false;
         }
         return !in_array(strtolower($this->type), ['dir', 'directory'], true);
@@ -152,7 +140,7 @@ class Flysystem extends Storage
      */
     public function isReadable(): bool
     {
-        return $this->flysystem->fileExists($this->path);
+        return $this->flysystem->fileExists($this->path->getRawPath());
     }
 
     /**
@@ -175,7 +163,7 @@ class Flysystem extends Storage
             throw new FileNotFoundException('file not found', 404);
         }
 
-        $handle = $this->flysystem->readStream($this->path);
+        $handle = $this->flysystem->readStream($this->path->getRawPath());
         if ($handle === false) {
             throw new RuntimeException('error while reading file', 500);
         }
@@ -221,11 +209,8 @@ class Flysystem extends Storage
             throw new UnsupportedException('FlySystem Adapters don\'t support appended writing mode', 500);
         }
 
-        if ($this->flysystem->write($this->path, $content)) {
-            return true;
-        }
-
-        return false;
+        $this->flysystem->write($this->path->getRawPath(), $content);
+        return true;
     }
 
     /**
@@ -234,7 +219,7 @@ class Flysystem extends Storage
      */
     public function removeFile(): bool
     {
-        $this->flysystem->delete($this->path);
+        $this->flysystem->delete($this->path->getRawPath());
         return true;
     }
 
@@ -245,10 +230,10 @@ class Flysystem extends Storage
     public function removeDir(): bool
     {
         if (!$this->isDir()) {
-            throw new AccessDeniedException(sprintf('unable to remove path, not a directory: "%s"', $this->path), 500);
+            throw new AccessDeniedException(sprintf('unable to remove path, not a directory: "%s"', $this->path->getRawPath()), 500);
         }
 
-        $this->flysystem->deleteDirectory($this->path);
+        $this->flysystem->deleteDirectory($this->path->getRawPath());
         return true;
     }
 
@@ -265,8 +250,8 @@ class Flysystem extends Storage
         }
 
         /** @var FileAttributes $file */
-        foreach ($this->flysystem->listContents($this->path, $recursive) as $file) {
-            yield new self($this->flysystem, sprintf("%s/%s", rtrim($this->path, '/'), basename($file->path())));
+        foreach ($this->flysystem->listContents($this->path->getRawPath(), $recursive) as $file) {
+            yield new self($this->flysystem, sprintf("%s/%s", rtrim($this->path->getRawPath(), '/'), basename($file->path())));
         }
     }
 
@@ -276,7 +261,7 @@ class Flysystem extends Storage
      */
     public function getSize(): int
     {
-        return $this->flysystem->fileSize($this->path);
+        return $this->flysystem->fileSize($this->path->getRawPath());
     }
 
     /**
@@ -294,29 +279,15 @@ class Flysystem extends Storage
      * @throws RuntimeException
      * @throws UnsupportedException
      */
-    public function getFileHash(int $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): ?string
+    public function getFileHash(Hash $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): ?string
     {
-        switch ($mode) {
-            case Hash::CONTENT:
-                if (!$this->isFile()) {
-                    throw new FileNotFoundException('file not found', 404);
-                }
+        return match ($mode) {
+            Hash::FILENAME => hash($algo, basename($this->path->getRawPath()), $raw),
+            Hash::FILEPATH => hash($algo, $this->path->getRawPath(), $raw),
+            Hash::CONTENT => $this->isFile() ? $this->getStream('rb')->closeOnFree()->getHash($algo, $raw) : throw new FileNotFoundException('file not found', 404),
+            Hash::LAST_MODIFIED => $this->isFile() ? hash($algo, (string)$this->getTime(), $raw) : throw new FileNotFoundException('file not found', 404),
 
-                return $this->getStream('rb')->closeOnFree()->getHash($algo, $raw);
-
-            case Hash::FILENAME:
-                return hash($algo, basename($this->path), $raw);
-
-            case Hash::FILEPATH:
-                return hash($algo, $this->path, $raw);
-
-            case Hash::LAST_MODIFIED:
-                if (!$this->isFile()) {
-                    throw new FileNotFoundException('file not found', 404);
-                }
-                return hash($algo, (string)$this->getTime(), $raw);
-        }
-        throw new UnsupportedException("unsupported hash-mode '$mode' for flysystem storage", 500);
+        };
     }
 
     /**
@@ -325,13 +296,20 @@ class Flysystem extends Storage
      * @throws RuntimeException
      * @throws UnsupportedException
      */
-    public function getTime(int $type = Time::LAST_MODIFIED): int
+    public function getTime(Time $type = Time::LAST_MODIFIED): int
     {
         if ($type !== Time::LAST_MODIFIED) {
             throw new UnsupportedException('Unable to fetch timestamp from Flysystem adapter. Only LAST_MODIFIED is currently supported.', 500);
         }
-        if (false !== $timestamp = $this->flysystem->lastModified($this->path)) {
+
+        $timestamp = $this->flysystem->lastModified($this->path->getRawPath());
+
+        if (is_int($timestamp)) {
             return $timestamp;
+        }
+
+        if (null !== $time = $timestamp->lastModified()) {
+            return $time;
         }
 
         throw new RuntimeException('unable to fetch timestamp', 500);
@@ -350,11 +328,11 @@ class Flysystem extends Storage
         }
 
         if (!$isFile) {
-            $this->flysystem->write($this->path, '');
+            $this->flysystem->write($this->path->getRawPath(), '');
             return true;
         }
 
-        $this->flysystem->move($this->path, $this->path);
+        $this->flysystem->move($this->path->getRawPath(), $this->path->getRawPath());
         return true;
     }
 
@@ -363,7 +341,7 @@ class Flysystem extends Storage
      */
     public function mkdir(): bool
     {
-        $this->flysystem->createDirectory($this->path);
+        $this->flysystem->createDirectory($this->path->getRawPath());
         return true;
     }
 
@@ -372,7 +350,7 @@ class Flysystem extends Storage
      */
     public function isDotfile(): bool
     {
-        return str_starts_with($this->path, '.');
+        return str_starts_with($this->path->getRawPath(), '.');
     }
 
     public function __toString(): string
@@ -388,7 +366,7 @@ class Flysystem extends Storage
      */
     public function getStream(string $mode = 'rb+'): Stream
     {
-        $stream = $this->flysystem->readStream($this->path);
+        $stream = $this->flysystem->readStream($this->path->getRawPath());
 
         if ($stream === false || !is_resource($stream)) {
             throw new RuntimeException('failed to open stream', 500);
@@ -405,7 +383,7 @@ class Flysystem extends Storage
     public function writeFromStream(Stream $stream): bool
     {
         $this->touch(true);
-        $this->flysystem->writeStream($this->path, $stream->getHandle());
+        $this->flysystem->writeStream($this->path->getRawPath(), $stream->getHandle());
         return true;
     }
 
@@ -427,11 +405,11 @@ class Flysystem extends Storage
                     return false;
                 }
 
-                $destination->path()->reload();
+                $destination->getPath()->reload();
                 return true;
 
             case $destination instanceof self:
-                $this->flysystem->copy($this->path, $destination->path());
+                $this->flysystem->copy($this->path->getRawPath(), $destination->getPath()->getRawPath());
                 return true;
 
             case $destination instanceof Memory:
@@ -451,7 +429,7 @@ class Flysystem extends Storage
         switch (true) {
 
             case $destination instanceof self:
-                $this->flysystem->move($this->path, $destination->path());
+                $this->flysystem->move($this->path->getRawPath(), $destination->getPath()->getRawPath());
                 return true;
 
             case $destination instanceof Disk:
@@ -468,12 +446,13 @@ class Flysystem extends Storage
 
     /**
      * changes current directory
-     * @param string[] $path
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      * @internal
      */
     public function cd(array $path): void
     {
-        $this->path .= sprintf("%s", implode('/', $path));
+        $this->path = new Path(sprintf("%s%s", $this->path->getRawPath(), implode('/', $path)));
     }
 
 }

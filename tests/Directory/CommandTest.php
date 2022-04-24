@@ -14,7 +14,7 @@ use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Helper\Path;
+use ricwein\FileSystem\Path;
 use ricwein\FileSystem\Directory\Command;
 use ricwein\FileSystem\Helper\Constraint;
 
@@ -43,7 +43,7 @@ class CommandTest extends TestCase
         $files = explode(PHP_EOL, $result);
         foreach ($ls->list(false)->all() as $file) {
             if ($file instanceof File) {
-                self::assertContains($file->path()->filename, $files);
+                self::assertContains($file->getPath()->getFilename(), $files);
             }
         }
     }
@@ -53,7 +53,7 @@ class CommandTest extends TestCase
      * @throws ConstraintsException
      * @throws FileNotFoundException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function testGitCommand(): void
     {
@@ -83,17 +83,16 @@ class CommandTest extends TestCase
         new Command(
             new Storage\Disk(__DIR__, '../../'),
             Constraint::STRICT & ~Constraint::IN_SAFEPATH,
-            ['/', new Path(['/']), new Storage\Disk('/'), new File(new Storage\Disk('/'))]
+            ['/', new Path('/'), new Storage\Disk('/'), new File(new Storage\Disk('/'))]
         );
     }
 
     /**
      * @throws AccessDeniedException
-     * @throws UnsupportedException
+     * @throws ConstraintsException
      * @throws FileNotFoundException
      * @throws RuntimeException
-     * @throws ConstraintsException
-     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function testCommandPrepend(): void
     {

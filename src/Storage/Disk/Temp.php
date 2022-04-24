@@ -11,7 +11,7 @@ namespace ricwein\FileSystem\Storage\Disk;
 use Exception;
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Helper\Constraint;
-use ricwein\FileSystem\Helper\Path;
+use ricwein\FileSystem\Path;
 use ricwein\FileSystem\Storage\Disk;
 
 /**
@@ -35,7 +35,7 @@ class Temp extends Disk
         $tmpdir = sys_get_temp_dir();
 
         if (empty($path)) {
-            $this->path = new Path([$tmpdir, $filename]);
+            $this->path = new Path($tmpdir, $filename);
             return;
         }
 
@@ -48,7 +48,7 @@ class Temp extends Disk
      */
     public function setConstraints(int $constraints): static
     {
-        return parent::setConstraints($constraints & ~Constraint::IN_OPENBASEDIR & ~Constraint::IN_SAFEPATH & ~Constraint::DISALLOW_LINK);
+        return parent::setConstraints($constraints & ~Constraint::IN_OPEN_BASEDIR & ~Constraint::IN_SAFEPATH & ~Constraint::DISALLOW_LINK);
     }
 
     /**

@@ -18,7 +18,7 @@ class Disk extends Binary
     protected ?string $filePath;
 
     /** @var resource|null */
-    protected $handle = null;
+    protected $handle;
     private array $stat;
 
     /**
@@ -29,7 +29,7 @@ class Disk extends Binary
     {
         parent::__construct($mode);
 
-        $this->filePath = $storage->path()->real;
+        $this->filePath = (false !== $realpath = $storage->getPath()->getRealPath()) ? $realpath : null;
         $this->openHandle($mode);
     }
 
@@ -57,13 +57,15 @@ class Disk extends Binary
             return;
         }
 
-        $this->handle = @fopen($this->filePath, ($mode === static::MODE_READ) ? 'rb' : 'wb');
-        if ($this->handle === false) {
+        $handle = @fopen($this->filePath, ($mode === static::MODE_READ) ? 'rb' : 'wb');
+
+        if ($handle === false) {
             $this->handle = null;
             $this->mode = static::MODE_CLOSED;
-
             throw new RuntimeException('unable to open file-handle', 500);
         }
+
+        $this->handle = $handle;
 
         if (!flock($this->handle, LOCK_NB | (($mode === self::MODE_READ) ? LOCK_SH : LOCK_EX))) {
             throw new RuntimeException('unable to get file-lock', 500);

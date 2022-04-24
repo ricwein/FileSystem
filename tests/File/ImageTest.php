@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\File;
 
+use League\Flysystem\FilesystemException;
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
@@ -15,7 +16,6 @@ use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 use Intervention\Image\Image as IImage;
-use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Helper\MimeType;
 use ricwein\FileSystem\Helper\Constraint;
 
@@ -30,6 +30,7 @@ class ImageTest extends TestCase
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
+     * @throws FilesystemException
      */
     public function testImageDetection(): void
     {
@@ -59,21 +60,22 @@ class ImageTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
+     * @throws FilesystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
-    public function testReencoding(): void
+    public function testReEncoding(): void
     {
         $source = new File\Image(new Storage\Disk(__DIR__, '../_examples', 'test.png'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
         $source = $source->copyTo(new Storage\Disk\Temp)->encode('jpg');
-        $sourceHash = $source->getHash(Hash::CONTENT);
+        $sourceHash = $source->getHash();
 
         $diskImage = $source->copyTo(new Storage\Disk\Temp);
         $memoryImage = $source->copyTo(new Storage\Memory);
 
-        self::assertSame($sourceHash, $diskImage->getHash(Hash::CONTENT));
-        self::assertSame($sourceHash, $memoryImage->getHash(Hash::CONTENT));
+        self::assertSame($sourceHash, $diskImage->getHash());
+        self::assertSame($sourceHash, $memoryImage->getHash());
 
         $diskHash = null;
         $memoryHash = null;
@@ -88,14 +90,14 @@ class ImageTest extends TestCase
         });
 
         self::assertSame($diskHash, $memoryHash);
-        self::assertSame($diskImage->getHash(Hash::CONTENT), $memoryImage->getHash(Hash::CONTENT));
+        self::assertSame($diskImage->getHash(), $memoryImage->getHash());
 
         $diskImage->encode('jpg');
         $memoryImage->encode('jpg');
 
-        self::assertNotSame($sourceHash, $diskImage->getHash(Hash::CONTENT));
-        self::assertNotSame($sourceHash, $memoryImage->getHash(Hash::CONTENT));
-        self::assertSame($diskImage->getHash(Hash::CONTENT), $memoryImage->getHash(Hash::CONTENT));
+        self::assertNotSame($sourceHash, $diskImage->getHash());
+        self::assertNotSame($sourceHash, $memoryImage->getHash());
+        self::assertSame($diskImage->getHash(), $memoryImage->getHash());
     }
 
     /**
@@ -103,6 +105,7 @@ class ImageTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
+     * @throws FilesystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException

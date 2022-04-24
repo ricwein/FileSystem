@@ -10,6 +10,7 @@ use ricwein\FileSystem\Exceptions\ConstraintsException;
 use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Directory;
@@ -42,7 +43,7 @@ class DiskTempTest extends TestCase
     {
         $file = new File(new Storage\Disk\Temp());
 
-        $path = $file->path()->real;
+        $path = $file->getPath()->getRealPath();
         self::assertTrue($file->isFile());
 
         $file = null;
@@ -58,21 +59,20 @@ class DiskTempTest extends TestCase
     {
         $file = new File(new Storage\Disk\Temp('test.file'));
 
-        self::assertSame($file->path()->filename, 'test.file');
-        self::assertSame($file->path()->directory, sys_get_temp_dir());
+        self::assertSame('test.file', $file->getPath()->getFilename());
+        self::assertSame(realpath(sys_get_temp_dir()), $file->getPath()->getDirectory());
     }
 
     /**
      * @throws AccessDeniedException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function testPrecedentDirname(): void
     {
         $file = new Directory(new Storage\Disk\Temp('test.dir'));
 
-        self::assertSame($file->path()->basename, 'test.dir');
-        self::assertSame($file->path()->directory, sys_get_temp_dir());
+        self::assertSame('test.dir', $file->getPath()->getBasename());
+        self::assertSame(realpath(sys_get_temp_dir()), $file->getPath()->getDirectory());
     }
 
     /**
@@ -94,9 +94,9 @@ class DiskTempTest extends TestCase
         self::assertFileExists($path);
         self::assertTrue(is_file($path));
 
-        self::assertSame($file->path()->basename, $filename);
-        self::assertSame($file->path()->directory, __DIR__);
-        self::assertSame($file->path()->real, $path);
+        self::assertSame($file->getPath()->getBasename(), $filename);
+        self::assertSame($file->getPath()->getDirectory(), __DIR__);
+        self::assertSame($file->getPath()->getRealPath(), $path);
 
         $file = null;
         self::assertFileDoesNotExist($path);

@@ -10,12 +10,11 @@ namespace ricwein\FileSystem\Directory;
 
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
+use ricwein\FileSystem\Path;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\Constraint;
-use ricwein\FileSystem\Helper\Path;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
@@ -45,8 +44,7 @@ class Command extends Directory
      * @throws AccessDeniedException
      * @throws ConstraintsException
      * @throws FileNotFoundException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
+     * @throws UnsupportedException
      */
     public function __construct(Storage\Disk $storage, int $constraints = Constraint::STRICT, array $executablePath = [])
     {
@@ -56,30 +54,27 @@ class Command extends Directory
         $this->bin = $this->selectBinaryPath(array_merge($executablePath, $this->paths));
 
         if ($this->bin === null) {
-            throw new FileNotFoundException(sprintf('unable to find binary in paths: "%s"', implode('", "', (array)$executablePath)), 500);
+            throw new FileNotFoundException(sprintf('unable to find binary in paths: "%s"', implode('", "', $executablePath)), 500);
         }
     }
 
     /**
      * @param File[]|Storage\Disk[]|Path[]|string[] $paths
-     * @throws RuntimeException
      * @throws ConstraintsException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     protected function selectBinaryPath(array $paths): ?string
     {
         foreach ($paths as $path) {
-            if ($path instanceof Path && $path->fileInfo()->isFile() && $path->fileInfo()->isExecutable()) {
-                return $path->real;
+            if ($path instanceof Path && $path->isFile() && $path->isExecutable()) {
+                return (false !== $realpath = $path->getRealPath()) ? $realpath : null;
             }
 
             if ($path instanceof Storage\Disk && $path->isFile() && $path->isExecutable()) {
-                return $path->path()->real;
+                return (false !== $realpath = $path->getPath()->getRealPath()) ? $realpath : null;
             }
 
             if ($path instanceof File && $path->isFile() && $path->storage()->isExecutable()) {
-                return $path->path()->real;
+                return (false !== $realpath = $path->getPath()->getRealPath()) ? $realpath : null;
             }
 
             if (is_string($path) && file_exists($path) && is_file($path) && is_executable($path)) {
@@ -135,8 +130,6 @@ class Command extends Directory
      * @throws AccessDeniedException
      * @throws FileNotFoundException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function execSafe(string $cmd = '', array $arguments = []): bool|string
     {
@@ -150,8 +143,6 @@ class Command extends Directory
      * @throws AccessDeniedException
      * @throws FileNotFoundException
      * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function exec(string $cmd = '', array $arguments = [], bool $prependBinary = true): bool|string
     {
@@ -171,7 +162,7 @@ class Command extends Directory
         }
 
         $cmd = $this->bindVariables($cmd, $arguments);
-        $cmd = $this->bindVariables($cmd, ['path' => $this->storage->path()]);
+        $cmd = $this->bindVariables($cmd, ['path' => $this->storage->getPath()]);
         $cmd = $this->bindVariables($cmd, ['bin' => $this->bin]);
 
         $cmd = rtrim($cmd);
@@ -181,7 +172,7 @@ class Command extends Directory
             throw new RuntimeException(sprintf('unsupported storage system for Command-Execution: %s', get_class($this->storage)), 500);
         }
 
-        $path = $this->storage->path()->real;
+        $path = $this->storage->getPath()->getRealPath();
 
         if (!chdir($path)) {
             throw new AccessDeniedException('changing directory failed', 500);

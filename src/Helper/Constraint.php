@@ -1,17 +1,10 @@
 <?php
-
-/**
- * @author Richard Weinhold
- */
-
 declare(strict_types=1);
 
 namespace ricwein\FileSystem\Helper;
 
 use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
-use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\Path;
 
 /**
  * file-path validation class
@@ -32,7 +25,7 @@ class Constraint
     /**
      * checks if file is in open_basedir restrictions
      */
-    public const IN_OPENBASEDIR = 0b00000010;
+    public const IN_OPEN_BASEDIR = 0b00000010;
 
     /**
      * path must not be a symlink
@@ -63,7 +56,7 @@ class Constraint
     {
         $rules = [
             self::DISALLOW_LINK,
-            self::IN_OPENBASEDIR,
+            self::IN_OPEN_BASEDIR,
             self::IN_SAFEPATH,
         ];
 
@@ -77,11 +70,6 @@ class Constraint
         return $previous;
     }
 
-    /**
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
-     */
     public function isValidPath(Path $path): bool
     {
         if ($this->hasRun) {
@@ -90,38 +78,27 @@ class Constraint
 
         // not in open_basedir restrictions
         if (
-            ($this->constraints & self::IN_OPENBASEDIR) === self::IN_OPENBASEDIR
+            ($this->constraints & self::IN_OPEN_BASEDIR) === self::IN_OPEN_BASEDIR
             && !$path->isInOpenBasedir()
         ) {
-            $this->failedFor |= self::IN_OPENBASEDIR;
-            $this->errors[self::IN_OPENBASEDIR] = sprintf('the given path (%s) is not within the allowed \'open_basedir\' paths', $path->raw);
+            $this->failedFor |= self::IN_OPEN_BASEDIR;
+            $this->errors[self::IN_OPEN_BASEDIR] = sprintf('the given path (%s) is not within the allowed \'open_basedir\' paths', $path->getRealOrRawPath());
         }
 
         // path contains a symlink
         if (
             ($this->constraints & self::DISALLOW_LINK) === self::DISALLOW_LINK
-            && file_exists($path->raw)
-            && $path->fileInfo()->isLink()
+            && $path->doesExist()
+            && $path->isLink()
         ) {
             $this->failedFor |= self::DISALLOW_LINK;
-            $this->errors[self::DISALLOW_LINK] = sprintf('the given path (%s) contains a symlink', $path->raw);
+            $this->errors[self::DISALLOW_LINK] = sprintf('the given path (%s) contains a symlink', $path->getRealOrRawPath());
         }
 
         // ensure realpath is in original search path (prevent /../ cd's)
-        if (($this->constraints & self::IN_SAFEPATH) === self::IN_SAFEPATH) {
-
-            if ($path->real !== null && !str_starts_with($path->real, $path->safepath)) {
-
-                $this->failedFor |= self::IN_SAFEPATH;
-                $this->errors[self::IN_SAFEPATH] = sprintf('the given real-path (%s) is not within the safepath (%s)', $path->raw, $path->safepath);
-
-            } elseif ($path->real === null && file_exists($path->raw) && !str_starts_with($path->raw, $path->safepath)) {
-
-                $this->failedFor |= self::IN_SAFEPATH;
-                $this->errors[self::IN_SAFEPATH] = sprintf('the given raw-path (%s) is not within the safepath (%s)', $path->raw, $path->safepath);
-
-            }
-
+        if (($this->constraints & self::IN_SAFEPATH) === self::IN_SAFEPATH && !$path->isInSafePath()) {
+            $this->failedFor |= self::IN_SAFEPATH;
+            $this->errors[self::IN_SAFEPATH] = sprintf('the given path (%s) is not within the safepath (%s)', $path->getRealOrRawPath(), $path->getRealOrRawPath());
         }
 
         $this->hasRun = true;

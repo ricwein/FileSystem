@@ -36,10 +36,10 @@ class CopyTest extends TestCase
         self::assertSame($source->getSize(), $destination->getSize());
         self::assertSame($source->getHash(), $destination->getHash());
 
-        self::assertDirectoryExists($destination->path()->real . '/Directory');
-        self::assertDirectoryExists($destination->path()->real . '/_examples');
+        self::assertDirectoryExists($destination->getPath()->getRealPath() . '/Directory');
+        self::assertDirectoryExists($destination->getPath()->getRealPath() . '/_examples');
 
-        self::assertFileExists($destination->path()->real . '/_examples/archive.zip');
-        self::assertFileExists($destination->path()->real . '/Directory/CopyTest.php');
+        self::assertFileExists($destination->getPath()->getRealPath() . '/_examples/archive.zip');
+        self::assertFileExists($destination->getPath()->getRealPath() . '/Directory/CopyTest.php');
     }
 }

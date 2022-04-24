@@ -61,7 +61,7 @@ class Image extends File
         }
 
         // fetch image (path or content)
-        $imageData = $this->storage instanceof Storage\Disk ? $this->storage->path()->real : $this->read();
+        $imageData = $this->storage instanceof Storage\Disk ? $this->storage->getPath()->getRealPath() : $this->read();
         $image = $callback($this->manager->make($imageData));
 
         /** @var IImage $image */
@@ -82,7 +82,7 @@ class Image extends File
         $this->write((string)$image);
 
         if ($this->storage instanceof Storage\Disk) {
-            $this->storage->path()->reload();
+            $this->storage->getPath()->reload();
         }
 
         return $this;
