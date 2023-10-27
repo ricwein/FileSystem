@@ -10,12 +10,12 @@ use SplFileInfo;
 
 class Creator
 {
-    public static function fromFileInfo(SplFileInfo $fileInfo): ?FileSystem
+    public static function fromFileInfo(SplFileInfo $fileInfo, int $constraint = Constraint::STRICT): ?FileSystem
     {
         $storage = new Storage\Disk($fileInfo);
         return match (true) {
-            $storage->isDir() => new Directory($storage),
-            $storage->isFile() => new File($storage),
+            $storage->isDir() => new Directory($storage, $constraint),
+            $storage->isFile() => new File($storage, $constraint),
             default => null,
         };
     }

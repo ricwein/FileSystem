@@ -1,8 +1,8 @@
-.idea
-.vscode
-.build
+/.idea
+/.vscode
+/.build
 
-vendor/
+/vendor/
 
 # Dotfiles
 .*

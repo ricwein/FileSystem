@@ -6,7 +6,7 @@
         colors="true"
         failOnRisky="true"
         failOnWarning="true"
-        cacheDirectory=".phpunit.cache"
+        cacheResultFile=".build/phpunit.cache"
 >
     <coverage/>
     <php>
