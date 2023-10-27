@@ -17,7 +17,9 @@ use ricwein\FileSystem\Storage\BaseStorage;
 use ricwein\FileSystem\Storage\DirectoryStorageInterface;
 
 /**
- * represents a selected directory
+ * Represents a selected directory.
+ * @author Richard Weinhold
+ * @method BaseStorage&DirectoryStorageInterface storage()
  */
 class Directory extends FileSystem
 {
@@ -129,8 +131,17 @@ class Directory extends FileSystem
      * @throws UnsupportedException
      * @throws UnexpectedValueException
      */
-    public function getHash(Hash $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false, bool $recursive = true): string
+    public function getHash(Hash $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false, bool $recursive = false): string
     {
+        if (!$recursive && in_array($mode, [Hash::FILENAME, Hash::FILEPATH, Hash::LAST_MODIFIED], true)) {
+            return match ($mode) {
+                Hash::FILENAME => hash($algo, $this->getPath()->getFilename(), $raw),
+                Hash::FILEPATH => hash($algo, $this->getPath()->getRealPath() ?: throw new UnexpectedValueException('Failed to calculate directory-hash.', 500), $raw),
+                Hash::LAST_MODIFIED => hash($algo, (string)$this->getTime(), $raw),
+            };
+        }
+
+        /** @var string[] $fileHashes */
         $fileHashes = [];
 
         /** @var File $entry */
@@ -228,7 +239,7 @@ class Directory extends FileSystem
             throw $this->storage->getConstraintViolations();
         }
 
-        $directory = new $as(clone $this->storage(), $constraints ?? $this->storage->getConstraints(), ...$arguments);
+        $directory = new $as(clone $this->storage, $constraints ?? $this->storage->getConstraints(), ...$arguments);
         return $directory->cd($dirname);
     }
 

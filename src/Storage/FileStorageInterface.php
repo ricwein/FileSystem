@@ -73,7 +73,7 @@ interface FileStorageInterface extends StorageInterface
     public function touch(bool $ifNewOnly = false, ?int $time = null, ?int $atime = null): bool;
 
     /**
-     * calculate file-hash
+     * Calculate file-hash.
      * @param string $algo hashing-algorithm
      * @internal
      */

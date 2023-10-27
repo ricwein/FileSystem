@@ -17,8 +17,9 @@ use ricwein\FileSystem\Storage\BaseStorage;
 use ricwein\FileSystem\Storage\FileStorageInterface;
 
 /**
+ * Represents a actual File
  * @author Richard Weinhold
- * represents a selected file
+ * @method BaseStorage&FileStorageInterface storage()
  */
 class File extends FileSystem
 {
@@ -269,7 +270,7 @@ class File extends FileSystem
             return $hash;
         }
 
-        throw new UnexpectedValueException('unable to calculate file-hash', 500);
+        throw new UnexpectedValueException('Failed to calculate file-hash.', 500);
     }
 
     /**

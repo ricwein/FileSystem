@@ -25,6 +25,7 @@ use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\File;
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Helper\MimeType;
@@ -32,6 +33,8 @@ use ricwein\FileSystem\Helper\Stream;
 use ricwein\FileSystem\Path;
 use ricwein\FileSystem\Storage\Extensions\Binary;
 use SplFileInfo;
+use function hash;
+use function hash_file;
 
 /**
  * represents a file/directory at the local filesystem
@@ -376,14 +379,20 @@ class Disk extends BaseStorage implements FileStorageInterface, DirectoryStorage
      */
     public function getFileHash(Hash $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false): ?string
     {
-        if (null === $realPath = $this->path->getRealPath()) {
-            return null;
+        if (in_array($mode, [Hash::CONTENT, Hash::FILEPATH], true)) {
+            if (false === $realPath = $this->path->getRealPath()) {
+                return null;
+            }
+
+            return match ($mode) {
+                Hash::CONTENT => hash_file($algo, $realPath, $raw),
+                Hash::FILEPATH => hash($algo, $realPath, $raw),
+            };
         }
 
+        /** @noinspection PhpUncoveredEnumCasesInspection */
         return match ($mode) {
-            Hash::CONTENT => hash_file($algo, $realPath, $raw),
             Hash::FILENAME => hash($algo, $this->path->getFilename(), $raw),
-            Hash::FILEPATH => hash($algo, $realPath, $raw),
             Hash::LAST_MODIFIED => hash($algo, (string)$this->getTime(), $raw),
         };
     }

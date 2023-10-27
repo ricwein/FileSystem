@@ -115,7 +115,11 @@ final class Path extends SplFileInfo
             $rootPath = $path->getRealOrRawPath();
         }
 
-        return ltrim(str_replace(search: $rootPath, replace: '', subject: $this->getRealOrRawPath()), DIRECTORY_SEPARATOR);
+        $relativePath = trim(str_replace(search: $rootPath, replace: '', subject: $this->getRealOrRawPath()), DIRECTORY_SEPARATOR);
+        if ($this->isDir()) {
+            $relativePath .= DIRECTORY_SEPARATOR;
+        }
+        return empty($relativePath) ? '/' : $relativePath;
     }
 
     public function getRelativePathToSafePath(): string
