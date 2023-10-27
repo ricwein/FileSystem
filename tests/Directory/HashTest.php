@@ -5,16 +5,15 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Tests\Directory;
 
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
-use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Storage;
 
 class HashTest extends TestCase
 {
@@ -22,7 +21,6 @@ class HashTest extends TestCase
     /**
      * @throws AccessDeniedException
      * @throws ConstraintsException
-     * @throws Exception
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
@@ -39,7 +37,6 @@ class HashTest extends TestCase
     /**
      * @throws AccessDeniedException
      * @throws ConstraintsException
-     * @throws Exception
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException

@@ -5,33 +5,20 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Tests\Directory;
 
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\Exception;
-use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\File;
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Directory;
-use ricwein\FileSystem\File;
+use ricwein\FileSystem\Storage\BaseStorage;
 use SplFileInfo;
 
 class ReadTest extends TestCase
 {
-    /**
-     * @throws AccessDeniedException
-     * @throws UnsupportedException
-     */
-    public function testMemoryInit(): void
-    {
-        $this->expectException(UnsupportedException::class);
-        $this->expectExceptionMessage('Only Disk and FlySystem Storages are supported for Directories.');
-
-        new Directory(new Storage\Memory());
-    }
-
     /**
      * @return array
      */
@@ -47,8 +34,6 @@ class ReadTest extends TestCase
     /**
      * @throws AccessDeniedException
      * @throws ConstraintsException
-     * @throws Exception
-     * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
@@ -76,8 +61,6 @@ class ReadTest extends TestCase
     /**
      * @throws AccessDeniedException
      * @throws ConstraintsException
-     * @throws Exception
-     * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
@@ -98,8 +81,6 @@ class ReadTest extends TestCase
 
     /**
      * @throws AccessDeniedException
-     * @throws Exception
-     * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
@@ -115,7 +96,7 @@ class ReadTest extends TestCase
 
 
         /** @var Directory $dir */
-        foreach ($dir->list(false)->dirs() as $dir) {
+        foreach ($dir->list()->dirs() as $dir) {
             self::assertTrue($dir->isDir());
 
             self::assertInstanceOf(Directory::class, $dir);
@@ -127,8 +108,6 @@ class ReadTest extends TestCase
 
     /**
      * @throws AccessDeniedException
-     * @throws Exception
-     * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
@@ -136,7 +115,7 @@ class ReadTest extends TestCase
     {
         $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'), Constraint::LOOSE);
 
-        $iterator = $dir->list(false);
+        $iterator = $dir->list();
         $iterator->filterPath(static function (SplFileInfo $file): bool {
             return $file->getSize() > 1024;
         });
@@ -149,8 +128,6 @@ class ReadTest extends TestCase
 
     /**
      * @throws AccessDeniedException
-     * @throws Exception
-     * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
@@ -158,8 +135,8 @@ class ReadTest extends TestCase
     {
         $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'), Constraint::LOOSE);
 
-        $iterator = $dir->list(false);
-        $iterator->filterStorage(static function (Storage $storage): bool {
+        $iterator = $dir->list();
+        $iterator->filterStorage(static function (BaseStorage $storage): bool {
             return $storage->getSize() > 1024;
         });
 
@@ -171,8 +148,6 @@ class ReadTest extends TestCase
 
     /**
      * @throws AccessDeniedException
-     * @throws Exception
-     * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
@@ -180,7 +155,7 @@ class ReadTest extends TestCase
     {
         $dir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'), Constraint::LOOSE);
 
-        $iterator = $dir->list(false);
+        $iterator = $dir->list();
         $iterator->filter(static function (FileSystem $file): bool {
             return $file->isFile() && ($file->getPath()->getExtension() === 'png');
         });

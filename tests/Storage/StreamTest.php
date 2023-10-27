@@ -3,21 +3,18 @@
 namespace ricwein\FileSystem\Tests\Storage;
 
 use PHPUnit\Framework\TestCase;
-use ricwein\FileSystem\Exceptions\FileNotFoundException;
-use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\Exceptions\FilesystemException;
 use ricwein\FileSystem\Helper\Stream;
 use ricwein\FileSystem\Storage;
 
 class StreamTest extends TestCase
 {
     /**
-     * @throws RuntimeException
-     * @throws UnsupportedException
+     * @throws FilesystemException
      */
     public function testAttributeDetection(): void
     {
-        $storage = new Storage\Stream(Stream::fromResourceName('php://temp', 'rb+'));
+        $storage = new Storage\Stream(Stream::fromResourceName('php://temp'));
 
         self::assertTrue($storage->isFile());
         self::assertFalse($storage->isDir());
@@ -39,8 +36,7 @@ class StreamTest extends TestCase
     }
 
     /**
-     * @throws RuntimeException
-     * @throws UnsupportedException
+     * @throws FilesystemException
      */
     public function testReadOfWriteOnlyFileAnomaly(): void
     {
@@ -53,9 +49,7 @@ class StreamTest extends TestCase
     }
 
     /**
-     * @throws RuntimeException
-     * @throws UnsupportedException
-     * @throws FileNotFoundException
+     * @throws FilesystemException
      */
     public function testHashCalculation(): void
     {

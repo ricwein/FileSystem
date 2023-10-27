@@ -20,11 +20,11 @@ use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Helper\MimeType;
-use ricwein\FileSystem\Storage;
+use ricwein\FileSystem\Storage\BaseStorage;
 
 /**
  * use gd/imagemagick for image-manipulations
- * @method Image copyTo(Storage $destination, ?int $constraints = null)
+ * @method Image copyTo(BaseStorage $destination, ?int $constraints = null)
  */
 class Image extends File
 {
@@ -34,7 +34,7 @@ class Image extends File
      * @inheritDoc
      * @throws UnsupportedException
      */
-    public function __construct(Storage $storage, int $constraints = Constraint::STRICT, string $driver = 'gd')
+    public function __construct(BaseStorage $storage, int $constraints = Constraint::STRICT, string $driver = 'gd')
     {
         parent::__construct($storage, $constraints);
 

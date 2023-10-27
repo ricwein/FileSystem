@@ -5,12 +5,16 @@ namespace ricwein\FileSystem;
 
 use League\Flysystem\FilesystemException as FlysystemException;
 use ricwein\FileSystem\Enum\Hash;
+use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\ConstraintsException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Helper\DirectoryIterator;
-use ricwein\FileSystem\Exceptions\AccessDeniedException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Storage\BaseStorage;
+use ricwein\FileSystem\Storage\DirectoryStorageInterface;
 
 /**
  * represents a selected directory
@@ -18,22 +22,17 @@ use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 class Directory extends FileSystem
 {
     /**
-     * @var Storage\Disk|Storage\Flysystem
-     * @noinspection PhpDocFieldTypeMismatchInspection
+     * @var BaseStorage&DirectoryStorageInterface
      */
-    protected Storage $storage;
+    protected BaseStorage $storage;
 
     /**
      * @inheritDoc
      * @throws AccessDeniedException
      * @throws UnsupportedException
      */
-    public function __construct(Storage $storage, int $constraints = Constraint::STRICT)
+    public function __construct(BaseStorage&DirectoryStorageInterface $storage, int $constraints = Constraint::STRICT)
     {
-        if (!$storage instanceof Storage\Disk && !$storage instanceof Storage\Flysystem) {
-            throw new UnsupportedException('Only Disk and FlySystem Storages are supported for Directories.', 500);
-        }
-
         if ($storage instanceof Storage\Disk\Temp && !$storage->isDir() && !$storage->mkdir()) {
             throw new AccessDeniedException('Unable to create temp directory.', 500);
         }
@@ -51,7 +50,7 @@ class Directory extends FileSystem
     }
 
     /**
-     * @throws Exceptions\ConstraintsException
+     * @throws ConstraintsException
      * @throws FileNotFoundException
      * @inheritDoc
      */
@@ -67,16 +66,15 @@ class Directory extends FileSystem
     /**
      * create new dir if not exists
      * @throws AccessDeniedException
-     * @throws Exceptions\ConstraintsException
-     * @throws FlysystemException
+     * @throws ConstraintsException
      */
-    public function mkdir(): self
+    public function mkdir(int $permissions = 0755): self
     {
         if (!$this->storage->doesSatisfyConstraints()) {
             throw $this->storage->getConstraintViolations();
         }
 
-        if (!$this->storage->isDir() && !$this->storage->mkdir()) {
+        if (!$this->storage->isDir() && !$this->storage->mkdir(false, $permissions)) {
             throw new AccessDeniedException(sprintf('unable to create directory at: "%s"', $this->storage->getPath()->getRawPath()), 500);
         }
 
@@ -86,11 +84,10 @@ class Directory extends FileSystem
     /**
      * @inheritDoc
      * @throws AccessDeniedException
-     * @throws Exceptions\ConstraintsException
-     * @throws Exceptions\RuntimeException
+     * @throws ConstraintsException
+     * @throws RuntimeException
      * @throws FileNotFoundException
      * @throws UnexpectedValueException
-     * @throws FlysystemException
      * @throws UnsupportedException
      */
     public function remove(): static
@@ -112,7 +109,7 @@ class Directory extends FileSystem
     }
 
     /**
-     * @throws Exceptions\ConstraintsException
+     * @throws ConstraintsException
      */
     public function list(bool $recursive = false, ?int $constraints = null): DirectoryIterator
     {
@@ -126,11 +123,10 @@ class Directory extends FileSystem
     /**
      * @inheritDoc
      * @throws AccessDeniedException
-     * @throws Exceptions\ConstraintsException
-     * @throws Exceptions\Exception
-     * @throws Exceptions\FileNotFoundException
-     * @throws Exceptions\RuntimeException
-     * @throws Exceptions\UnsupportedException
+     * @throws ConstraintsException
+     * @throws FileNotFoundException
+     * @throws RuntimeException
+     * @throws UnsupportedException
      * @throws UnexpectedValueException
      */
     public function getHash(Hash $mode = Hash::CONTENT, string $algo = 'sha256', bool $raw = false, bool $recursive = true): string
@@ -148,8 +144,7 @@ class Directory extends FileSystem
     /**
      * calculate size
      * @throws AccessDeniedException
-     * @throws Exceptions\Exception
-     * @throws Exceptions\UnsupportedException
+     * @throws UnsupportedException
      * @throws UnexpectedValueException
      */
     public function getSize(bool $recursive = true): int
@@ -165,7 +160,7 @@ class Directory extends FileSystem
 
     /**
      * changes current directory
-     * @throws Exceptions\RuntimeException
+     * @throws RuntimeException
      * @throws UnexpectedValueException
      */
     public function cd(string|FileSystem|Path|Storage\Disk ...$path): self
@@ -176,7 +171,7 @@ class Directory extends FileSystem
 
     /**
      * move directory upwards (like /../)
-     * @throws Exceptions\RuntimeException
+     * @throws RuntimeException
      * @throws UnexpectedValueException
      */
     public function up(int $move = 1): self
@@ -186,8 +181,8 @@ class Directory extends FileSystem
     }
 
     /**
-     * @throws Exceptions\ConstraintsException
-     * @throws Exceptions\RuntimeException
+     * @throws ConstraintsException
+     * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws FlysystemException
      */
@@ -198,11 +193,7 @@ class Directory extends FileSystem
         }
 
         if ($this->storage instanceof Storage\Flysystem) {
-            return new $as(
-                new Storage\Flysystem($this->storage->getFlySystem(), "{$this->storage->getPath()->getRawPath()}/$filename"),
-                $constraints ?? $this->storage->getConstraints(),
-                ...$arguments
-            );
+            return new $as(new Storage\Flysystem($this->storage->getFlySystem(), "{$this->storage->getPath()->getRawPath()}/$filename"), $constraints ?? $this->storage->getConstraints(), ...$arguments);
         }
 
         $dirPath = $this->getDirectoryPath();
@@ -215,23 +206,19 @@ class Directory extends FileSystem
             $safepath = realpath($safepath);
         }
 
-        /** @var Storage $storage */
+        /** @var BaseStorage $storage */
         if (is_dir($safepath) && str_starts_with($dirPath, $safepath)) {
             $storage = new Storage\Disk($safepath, str_replace($safepath, '', $dirPath), $filename);
         } else {
             $storage = new Storage\Disk($dirPath, $filename);
         }
 
-        return new $as(
-            $storage,
-            $constraints ?? $this->storage->getConstraints(),
-            ...$arguments
-        );
+        return new $as($storage, $constraints ?? $this->storage->getConstraints(), ...$arguments);
     }
 
     /**
-     * @throws Exceptions\ConstraintsException
-     * @throws Exceptions\RuntimeException
+     * @throws ConstraintsException
+     * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
@@ -241,40 +228,22 @@ class Directory extends FileSystem
             throw $this->storage->getConstraintViolations();
         }
 
-        $directory = new $as(
-            clone $this->storage(),
-            $constraints ?? $this->storage->getConstraints(),
-            ...$arguments
-        );
+        $directory = new $as(clone $this->storage(), $constraints ?? $this->storage->getConstraints(), ...$arguments);
         return $directory->cd($dirname);
     }
 
     /**
      * @throws AccessDeniedException
-     * @throws Exceptions\ConstraintsException
+     * @throws ConstraintsException
      * @throws FileNotFoundException
      * @throws UnsupportedException
      */
-    public function copyTo(Storage $destination, ?int $constraints = null): static
+    public function copyTo(BaseStorage $destination, ?int $constraints = null): static
     {
-        if (!$destination instanceof Storage\Disk) {
-            throw new UnsupportedException(sprintf('Copying a directory requires the destination storage to be of type Storage\Disk, but got %s instead.', get_debug_type($destination)), 500);
+        if (!$destination instanceof Storage\Disk || !$this->storage instanceof Storage\Disk) {
+            throw new UnsupportedException(sprintf("Copying a directory requires both, source and destination to be of type Storage\\Disk, but got %s instead.", $destination::class), 500);
         }
 
-        if (!$this->copyDirectoryTo($destination, $constraints)) {
-            throw new AccessDeniedException('unable to copy file', 403);
-        }
-
-        return new static($destination);
-    }
-
-    /**
-     * @throws AccessDeniedException
-     * @throws Exceptions\ConstraintsException
-     * @throws FileNotFoundException
-     */
-    protected function copyDirectoryTo(Storage\Disk $destination, ?int $constraints = null): bool
-    {
         $destination->setConstraints($constraints ?? $this->storage->getConstraints());
 
         $this->checkFileReadPermissions();
@@ -288,6 +257,10 @@ class Directory extends FileSystem
         }
 
         // actual copy directory to destination: use native functions if possible
-        return $this->storage->copyDirectoryTo($destination);
+        if (!$this->storage->copyDirectoryTo($destination)) {
+            throw new AccessDeniedException('unable to copy file', 403);
+        }
+
+        return new static($destination);
     }
 }

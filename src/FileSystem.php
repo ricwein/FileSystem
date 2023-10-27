@@ -1,9 +1,5 @@
 <?php
 
-/**
- * @author Richard Weinhold
- */
-
 declare(strict_types=1);
 
 namespace ricwein\FileSystem;
@@ -14,18 +10,20 @@ use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Storage\BaseStorage;
 
 /**
+ * @author Richard Weinhold
  * base of all FileSystem type-classes (File/Directory)
  */
 abstract class FileSystem
 {
-    protected Storage $storage;
+    protected BaseStorage $storage;
 
     /**
      * @param int $constraints Constraint::LOOSE || Constraint::STRICT || Constraint::IN_SAFEPATH | Constraint::IN_OPEN_BASEDIR | Constraint::DISALLOW_LINK
      */
-    public function __construct(Storage $storage, int $constraints = Constraint::STRICT)
+    public function __construct(BaseStorage $storage, int $constraints = Constraint::STRICT)
     {
         $this->storage = $storage;
         $this->storage->setConstraints($constraints);
@@ -50,7 +48,7 @@ abstract class FileSystem
         unset($this->storage);
     }
 
-    public function storage(): Storage
+    public function storage(): BaseStorage
     {
         return $this->storage;
     }
@@ -143,6 +141,7 @@ abstract class FileSystem
 
     /**
      * check if directory exists and is an actual directory
+     * @throws
      */
     public function isDir(): bool
     {
@@ -172,5 +171,5 @@ abstract class FileSystem
         return new $class($this->storage);
     }
 
-    abstract public function copyTo(Storage $destination, ?int $constraints = null): static;
+    abstract public function copyTo(BaseStorage $destination, ?int $constraints = null): static;
 }

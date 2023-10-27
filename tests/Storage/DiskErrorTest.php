@@ -3,16 +3,12 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\Storage;
 
-use League\Flysystem\FilesystemException;
+use Exception;
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Directory;
-use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
-use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
-use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\Exceptions\FilesystemException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 
@@ -20,9 +16,8 @@ class DiskErrorTest extends TestCase
 {
 
     /**
-     * @throws AccessDeniedException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws \Exception
      */
     public function testImplicitReadError(): void
     {
@@ -32,9 +27,8 @@ class DiskErrorTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws \Exception
      */
     public function testImplicitReadConstraintError(): void
     {
@@ -44,9 +38,8 @@ class DiskErrorTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws \Exception
      */
     public function testImplicitDirectoryReadError(): void
     {
@@ -56,9 +49,8 @@ class DiskErrorTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws \Exception
      */
     public function testImplicitDirectoryReadConstraintError(): void
     {
@@ -68,13 +60,7 @@ class DiskErrorTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws FileNotFoundException
      * @throws FilesystemException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function testImplicitDirectoryWriteError(): void
     {
@@ -84,8 +70,6 @@ class DiskErrorTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws Exception
      * @throws FilesystemException
      */
     public function testImplicitDirectoryWriteConstraintError(): void

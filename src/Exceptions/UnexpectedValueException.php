@@ -8,9 +8,6 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Exceptions;
 
-/**
- * the selected file was not found (mostly for disk-storage)
- */
-class UnexpectedValueException extends Exception
+class UnexpectedValueException extends \UnexpectedValueException implements FilesystemException
 {
 }

@@ -9,8 +9,8 @@ use ricwein\FileSystem\Enum\CertificateContentType;
 use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
-use ricwein\FileSystem\Exceptions\Exception as FileSystemException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\FilesystemException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
@@ -19,6 +19,7 @@ use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Helper\Stream;
 use ricwein\FileSystem\Path;
 use ricwein\FileSystem\Storage;
+use ricwein\FileSystem\Storage\BaseStorage;
 use ricwein\FileSystem\Storage\Extensions\Binary;
 use function fclose;
 use function openssl_x509_parse;
@@ -33,11 +34,15 @@ class SSLCertificate extends File
 
     /**
      * @throws AccessDeniedException
-     * @throws FileSystemException
+     * @throws FilesystemException
      */
-    public function __construct(Storage $storage, int $constraints = Constraint::STRICT, ?CertificateContentType $certificateContentType = null, private int $timeout = 30)
-    {
-        $this->certificateContentType = $certificateContentType ?? $storage instanceof Storage\Memory ? CertificateContentType::DOMAIN : CertificateContentType::CERTIFICATE;
+    public function __construct(
+        BaseStorage $storage,
+        int $constraints = Constraint::STRICT,
+        ?CertificateContentType $certificateContentType = null,
+        private readonly int $timeout = 30
+    ) {
+        $this->certificateContentType = $certificateContentType ?? ($storage instanceof Storage\Memory ? CertificateContentType::DOMAIN : CertificateContentType::CERTIFICATE);
         parent::__construct($storage, $constraints);
     }
 

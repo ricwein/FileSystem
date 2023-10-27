@@ -3,28 +3,18 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\File;
 
+use Exception;
 use PHPUnit\Framework\TestCase;
-use ricwein\FileSystem\Exceptions\AccessDeniedException;
-use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\Exception;
-use ricwein\FileSystem\Exceptions\FileNotFoundException;
-use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\FilesystemException;
 use ricwein\FileSystem\File;
-use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Storage;
 
 class ReadTest extends TestCase
 {
     /**
-     * @return void
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws FileNotFoundException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws \Exception
      */
     public function testFileRead(): void
     {
@@ -43,11 +33,8 @@ class ReadTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws \Exception
      */
     public function testLineRead(): void
     {
@@ -68,14 +55,8 @@ class ReadTest extends TestCase
     }
 
     /**
-     * @return void
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws FileNotFoundException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws \Exception
      */
     public function testPartialFileRead(): void
     {
@@ -113,12 +94,8 @@ class ReadTest extends TestCase
     }
 
     /**
-     * @return void
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws FileNotFoundException
-     * @throws UnexpectedValueException
      */
     public function testFileMimeTypeGuessing(): void
     {

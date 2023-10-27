@@ -4,27 +4,21 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\File;
 
+use Exception;
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
-use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\FilesystemException;
 use ricwein\FileSystem\File;
+use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Helper\Stream;
 use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Helper\Constraint;
 
 class StreamTest extends TestCase
 {
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
-     * @throws FileNotFoundException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
+     * @throws FilesystemException
      */
     public function testFileStream(): void
     {
@@ -45,11 +39,8 @@ class StreamTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws FileNotFoundException
-     * @throws \Exception
      */
     public function testMemoryStream(): void
     {
@@ -69,7 +60,7 @@ class StreamTest extends TestCase
      * @throws ConstraintsException
      * @throws Exception
      * @throws FileNotFoundException
-     * @throws \Exception
+     * @throws Exception
      */
     public function testStreamCopy(): void
     {

@@ -4,15 +4,15 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Helper;
 
 use Generator;
+use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
-use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\File;
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Directory;
-use ricwein\FileSystem\File;
+use ricwein\FileSystem\Storage\BaseStorage;
 use SplFileInfo;
 
 /**
@@ -24,29 +24,23 @@ class DirectoryIterator
     /**
      * @var callable[]
      */
-    protected array $storageFilters = [];
+    private array $storageFilters = [];
 
     /**
      * @var callable[]
      */
-    protected array $filesystemFilters = [];
+    private array $filesystemFilters = [];
 
     /**
      * @var callable|null
      */
-    protected $pathFilter = null;
+    private $pathFilter = null;
 
-    protected Storage $storage;
-
-    protected ?int $constraints;
-    protected bool $recursive;
-
-    public function __construct(Storage $storage, bool $recursive = false, ?int $constraints = null)
-    {
-        $this->storage = $storage;
-        $this->recursive = $recursive;
-        $this->constraints = $constraints;
-    }
+    public function __construct(
+        private readonly BaseStorage&Storage\DirectoryStorageInterface $storage,
+        private readonly bool $recursive = false,
+        private readonly ?int $constraints = null
+    ) {}
 
     /**
      * @param callable $filter in format: function(Storage $file): bool
@@ -86,11 +80,10 @@ class DirectoryIterator
 
     /**
      * low-level storage iterator
-     * @return Generator|Storage[]
+     * @return Generator<BaseStorage>
      * @throws UnexpectedValueException
      * @throws UnsupportedException
      * @throws RuntimeException
-     * @noinspection PhpDocSignatureInspection
      */
     public function storages(): Generator
     {
@@ -117,18 +110,16 @@ class DirectoryIterator
     }
 
     /**
-     * @return Generator|FileSystem[]
+     * @return Generator<FileSystem>
      * @throws UnsupportedException
      * @throws AccessDeniedException
-     * @throws Exception
      * @throws UnexpectedValueException
-     * @noinspection PhpDocSignatureInspection
      */
     public function all(?int $constraints = null): Generator
     {
         $constraints = $constraints ?? $this->storage->getConstraints();
 
-        /** @var Storage $storage */
+        /** @var BaseStorage $storage */
         foreach ($this->storages() as $storage) {
             $file = $storage->isDir() ? new Directory($storage, $constraints) : new File($storage, $constraints);
 
@@ -145,12 +136,10 @@ class DirectoryIterator
 
     /**
      * list only files
-     * @return Generator|File[]
+     * @return Generator<File>
      * @throws AccessDeniedException
-     * @throws Exception
      * @throws UnexpectedValueException
      * @throws UnsupportedException
-     * @noinspection PhpDocSignatureInspection
      */
     public function files(?int $constraints = null): Generator
     {
@@ -163,12 +152,10 @@ class DirectoryIterator
 
     /**
      * list only directories
-     * @return Generator|Directory[]
+     * @return Generator<Directory>
      * @throws AccessDeniedException
-     * @throws Exception
      * @throws UnexpectedValueException
      * @throws UnsupportedException
-     * @noinspection PhpDocSignatureInspection
      */
     public function dirs(?int $constraints = null): Generator
     {
@@ -182,7 +169,7 @@ class DirectoryIterator
     /**
      * @internal
      */
-    public function getStorage(): Storage
+    public function getStorage(): BaseStorage
     {
         return $this->storage;
     }

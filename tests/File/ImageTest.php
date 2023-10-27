@@ -4,32 +4,18 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\File;
 
-use League\Flysystem\FilesystemException;
-use PHPUnit\Framework\TestCase;
-use ricwein\FileSystem\Exceptions\AccessDeniedException;
-use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\Exception;
-use ricwein\FileSystem\Exceptions\FileNotFoundException;
-use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
-use ricwein\FileSystem\Exceptions\UnsupportedException;
-use ricwein\FileSystem\File;
-use ricwein\FileSystem\Storage;
 use Intervention\Image\Image as IImage;
-use ricwein\FileSystem\Helper\MimeType;
+use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Exceptions\FilesystemException;
+use ricwein\FileSystem\File;
 use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Helper\MimeType;
+use ricwein\FileSystem\Storage;
 
 class ImageTest extends TestCase
 {
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
-     * @throws FileNotFoundException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      * @throws FilesystemException
      */
     public function testImageDetection(): void
@@ -37,7 +23,7 @@ class ImageTest extends TestCase
         $image = new File\Image(new Storage\Disk(__DIR__, '../_examples', 'test.png'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
         self::assertTrue(MimeType::isImage($image->getType()));
 
-        $image = $image->copyTo(new Storage\Disk\Temp)->encode('jpg');
+        $image = $image->copyTo(new Storage\Disk\Temp())->encode('jpg');
         self::assertTrue(MimeType::isImage($image->getType()));
         self::assertSame(MimeType::getMimeFor('jpg'), $image->getType());
 
@@ -47,7 +33,7 @@ class ImageTest extends TestCase
         $image = new File\Image(new Storage\Memory(file_get_contents(__DIR__ . '/../_examples/test.png')));
         self::assertTrue(MimeType::isImage($image->getType()));
 
-        $image = $image->copyTo(new Storage\Memory)->encode('jpg');
+        $image = $image->copyTo(new Storage\Memory())->encode('jpg');
         self::assertTrue(MimeType::isImage($image->getType()));
         self::assertSame(MimeType::getMimeFor('jpg'), $image->getType());
 
@@ -56,23 +42,16 @@ class ImageTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
-     * @throws FileNotFoundException
      * @throws FilesystemException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function testReEncoding(): void
     {
         $source = new File\Image(new Storage\Disk(__DIR__, '../_examples', 'test.png'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
-        $source = $source->copyTo(new Storage\Disk\Temp)->encode('jpg');
+        $source = $source->copyTo(new Storage\Disk\Temp())->encode('jpg');
         $sourceHash = $source->getHash();
 
-        $diskImage = $source->copyTo(new Storage\Disk\Temp);
-        $memoryImage = $source->copyTo(new Storage\Memory);
+        $diskImage = $source->copyTo(new Storage\Disk\Temp());
+        $memoryImage = $source->copyTo(new Storage\Memory());
 
         self::assertSame($sourceHash, $diskImage->getHash());
         self::assertSame($sourceHash, $memoryImage->getHash());
@@ -101,29 +80,22 @@ class ImageTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
-     * @throws FileNotFoundException
      * @throws FilesystemException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function testCompression(): void
     {
         $source = new File\Image(new Storage\Disk(__DIR__, '../_examples', 'test.png'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
-        $source = $source->copyTo(new Storage\Disk\Temp)->encode('jpg');
+        $source = $source->copyTo(new Storage\Disk\Temp())->encode('jpg');
 
         $shouldSize = (int)floor($source->getSize() / 1.1);
         self::assertGreaterThanOrEqual($shouldSize, $source->getSize());
 
-        $image = $source->copyTo(new Storage\Disk\Temp);
+        $image = $source->copyTo(new Storage\Disk\Temp());
         $image->compress($shouldSize);
 
         self::assertGreaterThanOrEqual($image->getSize(), $shouldSize);
 
-        $image = $source->copyTo(new Storage\Memory);
+        $image = $source->copyTo(new Storage\Memory());
         $image->compress($shouldSize);
 
         self::assertGreaterThanOrEqual($image->getSize(), $shouldSize);

@@ -10,21 +10,22 @@ namespace ricwein\FileSystem\File;
 
 use Exception;
 use League\Flysystem\FilesystemException as FlySystemException;
-use ricwein\FileSystem\Exceptions\Hint;
-use ricwein\FileSystem\Exceptions\UnsupportedException;
-use ZipArchive;
 use ricwein\FileSystem\Directory;
-use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\ConstraintsException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\Hint;
+use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\FileSystem;
-use ricwein\FileSystem\Helper\MimeType;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Helper\DirectoryIterator;
+use ricwein\FileSystem\Helper\MimeType;
 use ricwein\FileSystem\Storage;
+use ricwein\FileSystem\Storage\BaseStorage;
+use ZipArchive;
 
 /**
  * represents a zip-file,
@@ -35,31 +36,7 @@ class Zip extends File
     /**
      * @var string[]
      */
-    private const ERROR_MESSAGES = [
-        ZipArchive::ER_EXISTS => 'file already exists',
-        ZipArchive::ER_INCONS => 'archive is inconsistent',
-        ZipArchive::ER_INVAL => 'invalid argument',
-        ZipArchive::ER_MEMORY => 'memory-malloc failure',
-        ZipArchive::ER_NOENT => 'file not found',
-        ZipArchive::ER_NOZIP => 'not a zip archive',
-        ZipArchive::ER_TMPOPEN => 'unable to create temporary file',
-        ZipArchive::ER_OPEN => 'unable to open file',
-        ZipArchive::ER_CLOSE => 'closing zip archive failed',
-        ZipArchive::ER_ZIPCLOSED => 'zip archive was closed',
-        ZipArchive::ER_READ => 'unable to read file',
-        ZipArchive::ER_WRITE => 'unable to write file',
-        ZipArchive::ER_SEEK => 'seek failed',
-        ZipArchive::ER_MULTIDISK => 'multi-disk zip archives not supported',
-        ZipArchive::ER_RENAME => 'renaming temporary file failed',
-        ZipArchive::ER_CRC => 'invalid CRC',
-        ZipArchive::ER_ZLIB => 'error in zlib',
-        ZipArchive::ER_CHANGED => 'entry has been changed',
-        ZipArchive::ER_DELETED => 'entry has been deleted',
-        ZipArchive::ER_COMPNOTSUPP => 'compression method not supported',
-        ZipArchive::ER_EOF => 'premature EOF',
-        ZipArchive::ER_INTERNAL => 'internal error',
-        ZipArchive::ER_REMOVE => 'can\'t remove file',
-    ];
+    private const ERROR_MESSAGES = [ZipArchive::ER_EXISTS => 'file already exists', ZipArchive::ER_INCONS => 'archive is inconsistent', ZipArchive::ER_INVAL => 'invalid argument', ZipArchive::ER_MEMORY => 'memory-malloc failure', ZipArchive::ER_NOENT => 'file not found', ZipArchive::ER_NOZIP => 'not a zip archive', ZipArchive::ER_TMPOPEN => 'unable to create temporary file', ZipArchive::ER_OPEN => 'unable to open file', ZipArchive::ER_CLOSE => 'closing zip archive failed', ZipArchive::ER_ZIPCLOSED => 'zip archive was closed', ZipArchive::ER_READ => 'unable to read file', ZipArchive::ER_WRITE => 'unable to write file', ZipArchive::ER_SEEK => 'seek failed', ZipArchive::ER_MULTIDISK => 'multi-disk zip archives not supported', ZipArchive::ER_RENAME => 'renaming temporary file failed', ZipArchive::ER_CRC => 'invalid CRC', ZipArchive::ER_ZLIB => 'error in zlib', ZipArchive::ER_CHANGED => 'entry has been changed', ZipArchive::ER_DELETED => 'entry has been deleted', ZipArchive::ER_COMPNOTSUPP => 'compression method not supported', ZipArchive::ER_EOF => 'premature EOF', ZipArchive::ER_INTERNAL => 'internal error', ZipArchive::ER_REMOVE => 'can\'t remove file',];
 
     /**
      * automatically close and reopened zip-archive after x files added,
@@ -85,7 +62,7 @@ class Zip extends File
     protected int $fileCounter = 0;
 
     /** @var Storage\Disk */
-    protected Storage $storage;
+    protected BaseStorage $storage;
 
     /**
      * @inheritDoc
@@ -147,10 +124,7 @@ class Zip extends File
         $result = $this->archive->open($this->getPath()->getRawPath(), $this->flags);
 
         if (($this->flags & ZipArchive::CREATE) === ZipArchive::CREATE && $result === ZipArchive::ER_NOZIP && $this->storage->isFile()) {
-            throw new RuntimeException(
-                sprintf('[%d] Error while opening ZipArchive: "%s"', $result, static::ERROR_MESSAGES[$result]),
-                500,
-                new Hint("The issue might be, that the zip-file already exists, but should be created since the ZipArchive::CREATE is set."));
+            throw new RuntimeException(sprintf('[%d] Error while opening ZipArchive: "%s"', $result, static::ERROR_MESSAGES[$result]), 500, new Hint("The zip-file probably already exists, but should be created since 'ZipArchive::CREATE' is set."));
         }
 
 
@@ -220,7 +194,6 @@ class Zip extends File
      * @param string[]|null $entries
      * @throws AccessDeniedException
      * @throws ConstraintsException
-     * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnsupportedException
      */
@@ -271,11 +244,7 @@ class Zip extends File
             return $this->addFile($file, $asNode);
         }
 
-        throw new UnexpectedValueException(sprintf('%s::%s($file) only supports Directory and File as $file type, but is %s',
-            static::class,
-            __METHOD__,
-            get_class($file)
-        ));
+        throw new UnexpectedValueException(sprintf('%s::%s($file) only supports Directory and File as $file type, but is %s', static::class, __METHOD__, get_class($file)));
     }
 
     /**
@@ -287,7 +256,7 @@ class Zip extends File
      * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
-    public function addStorage(Storage $storage, ?string $asNode = null): self
+    public function addStorage(BaseStorage $storage, ?string $asNode = null): self
     {
         if ($storage->isDir()) {
             return $this->addDirectoryStorage($storage, $asNode ?? '/');
@@ -322,7 +291,7 @@ class Zip extends File
      * @throws UnexpectedValueException
      * @throws UnsupportedException
      */
-    public function addDirectoryStorage(Storage $storage, string $toNode = '/', ?callable $filter = null): self
+    public function addDirectoryStorage(BaseStorage $storage, string $toNode = '/', ?callable $filter = null): self
     {
         $path = $storage->getPath();
         return $this->addDirectoryStorageContent($storage, rtrim($toNode, '/') . '/' . basename($path->getRawPath()) . '/', $filter);
@@ -354,7 +323,7 @@ class Zip extends File
      * @throws UnsupportedException
      * @throws FlySystemException
      */
-    public function addDirectoryStorageContent(Storage $storage, string $toNode = '/', ?callable $filter = null): self
+    public function addDirectoryStorageContent(BaseStorage $storage, string $toNode = '/', ?callable $filter = null): self
     {
         // prepare recursive directory-iterator
         $iterator = new DirectoryIterator($storage, true);
@@ -377,7 +346,7 @@ class Zip extends File
     {
         $iteratorStorage = $iterator->getStorage();
 
-        /** @var Storage $fileStorage */
+        /** @var BaseStorage $fileStorage */
         foreach ($iterator->storages() as $fileStorage) {
             if ($fileStorage->isDir()) {
                 continue;
@@ -431,8 +400,9 @@ class Zip extends File
      * @throws FlySystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
+     * @throws Exception
      */
-    public function addFileStorage(Storage $storage, ?string $name = null): self
+    public function addFileStorage(BaseStorage $storage, ?string $name = null): self
     {
         if (!$this->isOpen) {
             $this->openArchive();
@@ -621,7 +591,7 @@ class Zip extends File
      * @inheritDoc
      * @return File
      */
-    public function moveTo(Storage $destination, ?int $constraints = null): static
+    public function moveTo(BaseStorage $destination, ?int $constraints = null): static
     {
         // actual move file to file: use native functions if possible
         if (!$this->moveFileTo($destination, $constraints)) {

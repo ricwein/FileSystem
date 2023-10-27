@@ -8,12 +8,13 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Helper;
 
+use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Path;
 use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\FileSystem;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
-use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Storage\BaseStorage;
 
 /**
  * creates an absolute path from current-working-directory
@@ -23,13 +24,13 @@ class PathFinder
     /**
      * list of possible paths
      * => !not components of a single path!
-     * @param string[]|Path[]|Storage[]|FileSystem[] $paths
-     * @return Storage
+     * @param string[]|Path[]|BaseStorage[]|FileSystem[] $paths
+     * @return BaseStorage
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public static function try(array $paths): Storage
+    public static function try(array $paths): BaseStorage
     {
         foreach ($paths as $diskPath) {
             if (is_string($diskPath)) {
@@ -40,7 +41,7 @@ class PathFinder
                 if ($diskPath->isFile() || $diskPath->isDir()) {
                     return new Storage\Disk($diskPath);
                 }
-            } elseif ($diskPath instanceof Storage) {
+            } elseif ($diskPath instanceof BaseStorage) {
                 if ($diskPath->isFile() || $diskPath->isDir()) {
                     return $diskPath;
                 }

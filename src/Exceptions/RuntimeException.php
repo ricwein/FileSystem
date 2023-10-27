@@ -1,16 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * @author Richard Weinhold
  */
 
-declare(strict_types=1);
-
 namespace ricwein\FileSystem\Exceptions;
 
-/**
- * the selected file was not found (mostly for disk-storage)
- */
-class RuntimeException extends Exception
+class RuntimeException extends \RuntimeException implements FilesystemException
 {
 }

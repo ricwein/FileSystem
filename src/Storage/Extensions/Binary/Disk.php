@@ -181,7 +181,7 @@ class Disk extends Binary
             throw new RuntimeException('no file-handle found', 500);
         }
 
-        if (fseek($this->handle, $position, SEEK_SET) !== 0) {
+        if (fseek($this->handle, $position) !== 0) {
             throw new RuntimeException('fseek() failed', 500);
         }
 

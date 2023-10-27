@@ -3,9 +3,9 @@
 This Library provides a Filesystem abstraction layer.
 
 ```php
+use ricwein\FileSystem\Exceptions\FilesystemException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Exceptions\Exception as FileSystemException;
 
 try {
 
@@ -22,7 +22,6 @@ try {
     }
 
 } catch (FileSystemException $e) {
-
     http_response_code(500);
     echo json_encode(['errors' => [
         'status' => $e->getCode(),
@@ -86,7 +85,7 @@ $copyDir->cd('test'); // $originalDir will stay in __DIR__
 
 ### Exceptions
 
-Accessing File/Directory Attributes can result in throwing Exceptions. All Exceptions extend `Exceptions\Exception`.
+Accessing File/Directory Attributes can result in throwing Exceptions. All Exceptions implement the `Exceptions\FileSystemException` Interface.
 
 ## Usage: Files
 
@@ -154,9 +153,9 @@ $content = $file->write('content');
 ### or from a Flysystem object
 
 ```php
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
-use League\Flysystem\Local\LocalFilesystemAdapter;
 
 $file = new File(new Storage\Flysystem(new LocalFilesystemAdapter(__DIR__), 'test.txt'));
 $content = $file->read();
@@ -224,8 +223,8 @@ Constraints are defined on initialization of `File` or `Directory` objects and a
 
 ```php
 use ricwein\FileSystem\Directory;
+use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage;
- use ricwein\FileSystem\Helper\Constraint;
 
 $dir = new Directory(new Storage\Disk(__DIR__), Constraint::STRICT);
 $file = $dir->file($_GET['filename']);
@@ -241,8 +240,8 @@ The following constraints are set as default (as part of `Constraint::STRICT`), 
 
  ```php
  use ricwein\FileSystem\File;
- use ricwein\FileSystem\Storage;
  use ricwein\FileSystem\Helper\Constraint;
+ use ricwein\FileSystem\Storage;
 
  // let's assume $_GET['file'] == '/../file.txt'
 
@@ -390,7 +389,7 @@ use ricwein\FileSystem\Storage;
  $file = $uploaded->moveTo(new Storage\Disk(__DIR__, 'uploads'));
  ```
 
-- `Memory\Resource`: Reads resource content into **MEMORY** on construction. The resource can be closed afterwards.
+- `Memory\Resource`: Reads resource content into **MEMORY** on construction. The resource can be closed afterward.
 
 > ATTENTION: Usually it's a better idea to just use `Storage\Stream` instead!
 

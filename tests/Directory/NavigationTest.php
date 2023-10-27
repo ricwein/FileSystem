@@ -6,17 +6,16 @@ namespace ricwein\FileSystem\Tests\Directory;
 
 use League\Flysystem\FilesystemException;
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
-use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Storage;
 use ZipArchive;
 
 class NavigationTest extends TestCase
@@ -64,10 +63,7 @@ class NavigationTest extends TestCase
     {
         $dir = new Directory(new Storage\Disk(__DIR__), Constraint::LOOSE);
 
-        self::assertSame(
-            $dir->up(2)->file('LICENSE')->read(),
-            file_get_contents(__DIR__ . '/../../LICENSE')
-        );
+        self::assertSame($dir->up(2)->file('LICENSE')->read(), file_get_contents(__DIR__ . '/../../LICENSE'));
 
         $exampleDir = new Directory(new Storage\Disk(__DIR__, '..', '_examples'), Constraint::LOOSE);
         $zipFile = $exampleDir->file('archive.zip', Constraint::LOOSE, File\Zip::class, ZipArchive::CREATE);
@@ -80,7 +76,6 @@ class NavigationTest extends TestCase
     /**
      * @throws AccessDeniedException
      * @throws ConstraintsException
-     * @throws Exception
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException

@@ -18,33 +18,31 @@ use League\Flysystem\FilesystemException;
 use RecursiveCallbackFilterIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use ricwein\FileSystem\Enum\Time;
-use ricwein\FileSystem\Exceptions\Exception;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
-use ricwein\FileSystem\Exceptions\UnsupportedException;
-use ricwein\FileSystem\Helper\Constraint;
-use ricwein\FileSystem\Path;
-use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Enum\Hash;
-use ricwein\FileSystem\Helper\Stream;
+use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\FileSystem;
+use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Helper\MimeType;
+use ricwein\FileSystem\Helper\Stream;
+use ricwein\FileSystem\Path;
 use ricwein\FileSystem\Storage\Extensions\Binary;
 use SplFileInfo;
 
 /**
  * represents a file/directory at the local filesystem
  */
-class Disk extends Storage
+class Disk extends BaseStorage implements FileStorageInterface, DirectoryStorageInterface
 {
     /**
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function __construct(string|FileSystem|Path|self ...$path)
+    public function __construct(string|FileSystem|Path|self|SplFileInfo ...$path)
     {
         if (empty($path)) {
             throw new RuntimeException('unable to load Disk-Storage without a path', 400);
@@ -80,10 +78,7 @@ class Disk extends Storage
      */
     public function getDetails(): array
     {
-        return array_merge(
-            parent::getDetails(),
-            $this->path->__debugInfo()
-        );
+        return array_merge(parent::getDetails(), $this->path->__debugInfo());
     }
 
     /**
@@ -202,7 +197,6 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @throws Exception
      */
     public function writeFile(string $content, bool $append = false, int $mode = LOCK_EX): bool
     {
@@ -344,10 +338,7 @@ class Disk extends Storage
                 continue;
             }
 
-            yield new self(
-                $this->path->getRealPath(),
-                str_replace($this->path->getRealPath(), '', $file->getPathname())
-            );
+            yield new self($this->path->getRealPath(), str_replace($this->path->getRealPath(), '', $file->getPathname()));
         }
     }
 
@@ -445,13 +436,13 @@ class Disk extends Storage
         return true;
     }
 
-    public function mkdir(bool $ifNewOnly = false): bool
+    public function mkdir(bool $ifNewOnly = false, int $permissions = 0755): bool
     {
         if ($ifNewOnly && $this->isDir() && $this->isFile()) {
             return true;
         }
 
-        if (mkdir($concurrentDirectory = $this->path->getRawPath(), 0777, true) || !is_dir($concurrentDirectory)) {
+        if (mkdir($concurrentDirectory = $this->path->getRawPath(), $permissions, true) || !is_dir($concurrentDirectory)) {
             $this->path->reload();
             return true;
         }
@@ -523,23 +514,19 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @throws Exception
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws FilesystemException
      */
-    public function copyFileTo(Storage $destination): bool
+    public function copyFileTo(BaseStorage $destination): bool
     {
         switch (true) {
 
             case $destination instanceof self:
 
                 // copy file from disk to disk
-                if (!copy(
-                    from: $this->path->getRealOrRawPath(),
-                    to: $destination->getPath()->getRawPath()
-                )) {
+                if (!copy(from: $this->path->getRealOrRawPath(), to: $destination->getPath()->getRawPath())) {
                     return false;
                 }
 
@@ -558,21 +545,17 @@ class Disk extends Storage
 
     /**
      * @inheritDoc
-     * @throws Exception
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws FilesystemException
      */
-    public function moveFileTo(Storage $destination): bool
+    public function moveFileTo(BaseStorage $destination): bool
     {
         switch (true) {
 
             // copy file from disk to disk
             case $destination instanceof self:
-                if (!rename(
-                    from: $this->path->getRealOrRawPath(),
-                    to: $destination->getPath()->getRawPath()
-                )) {
+                if (!rename(from: $this->path->getRealOrRawPath(), to: $destination->getPath()->getRawPath())) {
                     return false;
                 }
                 $destination->getPath()->reload();
@@ -595,10 +578,7 @@ class Disk extends Storage
      */
     public function copyDirectoryTo(self $destination): bool
     {
-        $result = $this->copyDirectory(
-            sourcePath: $this->path->getRealOrRawPath(),
-            destinationPath: $destination->getPath()->getRawPath()
-        );
+        $result = $this->copyDirectory(sourcePath: $this->path->getRealOrRawPath(), destinationPath: $destination->getPath()->getRawPath());
 
         $destination->getPath()->reload();
 

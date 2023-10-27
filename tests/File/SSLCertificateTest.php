@@ -5,24 +5,14 @@ namespace ricwein\FileSystem\Tests\File;
 use DateTime;
 use DateTimeZone;
 use PHPUnit\Framework\TestCase;
-use ricwein\FileSystem\Exceptions\AccessDeniedException;
-use ricwein\FileSystem\Exceptions\Exception;
-use ricwein\FileSystem\Exceptions\FileNotFoundException;
-use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
-use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\Exceptions\FilesystemException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 
 class SSLCertificateTest extends TestCase
 {
     /**
-     * @throws AccessDeniedException
-     * @throws UnsupportedException
-     * @throws Exception
-     * @throws FileNotFoundException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
+     * @throws FilesystemException
      */
     public function testCertificateFileReading(): void
     {
@@ -36,11 +26,7 @@ class SSLCertificateTest extends TestCase
     }
 
     /**
-     * @throws FileNotFoundException
-     * @throws UnsupportedException
-     * @throws AccessDeniedException
-     * @throws RuntimeException
-     * @throws Exception
+     * @throws FilesystemException
      */
     public function testCertificateServerFetching(): void
     {

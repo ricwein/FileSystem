@@ -9,20 +9,18 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Storage;
 
 use finfo;
+use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
-use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
-use ricwein\FileSystem\Helper\Stream;
-use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Helper\Stream;
 use ricwein\FileSystem\Storage\Extensions\Binary;
 
 /**
- * represents a file/directory from in-memory
+ * Represents a file/directory from in-memory.
  */
-class Memory extends Storage
+class Memory extends BaseStorage implements FileStorageInterface
 {
     protected ?string $content = '';
     protected int $lastModified = 0;
@@ -297,10 +295,9 @@ class Memory extends Storage
 
     /**
      * @inheritDoc
-     * @throws Exception
      * @throws FileNotFoundException
      */
-    public function copyFileTo(Storage $destination): bool
+    public function copyFileTo(BaseStorage $destination): bool
     {
         switch (true) {
 
@@ -320,10 +317,9 @@ class Memory extends Storage
 
     /**
      * @inheritDoc
-     * @throws Exception
      * @throws FileNotFoundException
      */
-    public function moveFileTo(Storage $destination): bool
+    public function moveFileTo(BaseStorage $destination): bool
     {
         if (!$this->copyFileTo($destination)) {
             return false;

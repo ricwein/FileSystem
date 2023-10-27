@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd" bootstrap="vendor/autoload.php" backupGlobals="false" colors="true" convertNoticesToExceptions="true"
-         convertWarningsToExceptions="true" processIsolation="false" stopOnFailure="false" failOnRisky="true" failOnWarning="true">
-    <coverage processUncoveredFiles="true">
-        <include>
-            <directory suffix=".php">./src/</directory>
-        </include>
-        <exclude>
-            <directory suffix=".php">vendor</directory>
-        </exclude>
-    </coverage>
+<phpunit
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.4/phpunit.xsd"
+        bootstrap="vendor/autoload.php"
+        colors="true"
+        failOnRisky="true"
+        failOnWarning="true"
+        cacheDirectory=".phpunit.cache"
+>
+    <coverage/>
     <php>
         <ini name="error_reporting" value="-1"/>
         <ini name="intl.error_level" value="0"/>
@@ -16,7 +16,15 @@
     </php>
     <testsuites>
         <testsuite name="ricwein/FileSystem Unit-Testing">
-            <directory suffix=".php">./tests/</directory>
+            <directory suffix=".php">./tests</directory>
         </testsuite>
     </testsuites>
+    <source>
+        <include>
+            <directory>./src</directory>
+        </include>
+        <exclude>
+            <directory>./vendor</directory>
+        </exclude>
+    </source>
 </phpunit>

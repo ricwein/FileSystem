@@ -6,7 +6,7 @@ namespace ricwein\FileSystem\Exceptions;
 
 use Exception;
 
-class Hint extends Exception
+class Hint extends Exception implements FilesystemException
 {
     public function __construct(string $message)
     {

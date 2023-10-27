@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\Extensions\Binary;
 
+use Exception;
 use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
-use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\Exception;
-use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\FilesystemException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Storage\Extensions\Binary;
@@ -20,12 +18,8 @@ class DiskTest extends TestCase
     protected const MSG_LENGTH = 2 ** 12;
 
     /**
-     * @throws AccessDeniedException
-     * @throws RuntimeException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws FileNotFoundException
-     * @throws UnsupportedException
-     * @throws \Exception
      */
     public function testWriteRead(): void
     {
@@ -38,12 +32,8 @@ class DiskTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws FileNotFoundException
-     * @throws RuntimeException
-     * @throws UnsupportedException
-     * @throws \Exception
      */
     public function testOOBRead(): void
     {
@@ -60,12 +50,8 @@ class DiskTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws FileNotFoundException
-     * @throws RuntimeException
-     * @throws UnsupportedException
-     * @throws \Exception
      */
     public function testHandleLock(): void
     {
@@ -85,10 +71,7 @@ class DiskTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws Exception
-     * @throws FileNotFoundException
-     * @throws UnsupportedException
+     * @throws FilesystemException
      */
     public function testEmptyFile(): void
     {
@@ -100,12 +83,8 @@ class DiskTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws FileNotFoundException
-     * @throws UnsupportedException
-     * @throws \Exception
      */
     public function testSeek(): void
     {

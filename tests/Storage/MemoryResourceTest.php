@@ -4,19 +4,12 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\Storage;
 
-use League\Flysystem\FilesystemException as FlysystemFilesystemException;
 use PHPUnit\Framework\TestCase;
-use ricwein\FileSystem\Exceptions\AccessDeniedException;
-use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\Exception;
-use ricwein\FileSystem\Exceptions\FileNotFoundException;
-use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
-use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\Exceptions\FilesystemException;
 use ricwein\FileSystem\File;
-use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Helper\MimeType;
 use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Helper\MimeType;
+use ricwein\FileSystem\Storage;
 
 /**
  * test Temp-Storage
@@ -26,14 +19,7 @@ use ricwein\FileSystem\Helper\Constraint;
 class MemoryResourceTest extends TestCase
 {
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
-     * @throws FileNotFoundException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
-     * @throws FlysystemFilesystemException
+     * @throws FilesystemException
      */
     public function testResourceRead(): void
     {
@@ -49,12 +35,7 @@ class MemoryResourceTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
-     * @throws FileNotFoundException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
+     * @throws FilesystemException
      */
     public function testResourceGD(): void
     {

@@ -3,31 +3,38 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem;
 
-use League\Flysystem\FilesystemException;
-use ricwein\FileSystem\Exceptions\ConstraintsException;
+use League\Flysystem\FilesystemException as FlysystemException;
+use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
+use ricwein\FileSystem\Exceptions\ConstraintsException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Helper\Constraint;
-use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Helper\Stream;
 use ricwein\FileSystem\Storage\Extensions\Binary;
+use ricwein\FileSystem\Storage\BaseStorage;
+use ricwein\FileSystem\Storage\FileStorageInterface;
 
 /**
+ * @author Richard Weinhold
  * represents a selected file
  */
 class File extends FileSystem
 {
     /**
+     * @var BaseStorage&FileStorageInterface
+     */
+    protected BaseStorage $storage;
+
+    /**
      * @inheritDoc
      * @throws AccessDeniedException
-     * @throws Exceptions\Exception
      */
-    public function __construct(Storage $storage, int $constraints = Constraint::STRICT)
+    public function __construct(BaseStorage&FileStorageInterface $storage, int $constraints = Constraint::STRICT)
     {
         if ($storage instanceof Storage\Disk\Temp && !$storage->touch(true)) {
-            throw new AccessDeniedException('unable to create temp file', 500);
+            throw new AccessDeniedException('Unable to create temp file.', 500);
         }
 
         parent::__construct($storage, $constraints);
@@ -54,7 +61,9 @@ class File extends FileSystem
     protected function checkFileWritePermissions(): void
     {
         if (!$this->storage->doesSatisfyConstraints()) {
-            throw new AccessDeniedException(sprintf('unable to write file: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->getPath()->getRawPath() : get_class($this->storage)), 403, $this->storage->getConstraintViolations());
+            throw new AccessDeniedException(
+                sprintf('unable to write file: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->getPath()->getRawPath() : get_class($this->storage)), 403, $this->storage->getConstraintViolations()
+            );
         }
 
         if ($this->isFile() && !$this->isWriteable()) {
@@ -113,14 +122,8 @@ class File extends FileSystem
     /**
      * copy file-content to new destination
      * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exceptions\Exception
-     * @throws FileNotFoundException
-     * @throws FilesystemException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
      */
-    public function copyTo(Storage $destination, ?int $constraints = null): static
+    public function copyTo(BaseStorage $destination, ?int $constraints = null): static
     {
         if (!$this->copyFileTo($destination, $constraints)) {
             throw new AccessDeniedException('unable to copy file', 403);
@@ -130,16 +133,14 @@ class File extends FileSystem
     }
 
     /**
-     * @param Storage &$destination mutable
+     * @param BaseStorage &$destination mutable
      * @throws AccessDeniedException
      * @throws ConstraintsException
-     * @throws Exceptions\Exception
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
-     * @throws FilesystemException
      */
-    protected function copyFileTo(Storage &$destination, ?int $constraints = null): bool
+    protected function copyFileTo(BaseStorage &$destination, ?int $constraints = null): bool
     {
         $destination->setConstraints($constraints ?? $this->storage->getConstraints());
 
@@ -172,13 +173,11 @@ class File extends FileSystem
      * copy file-content to new destination
      * @throws AccessDeniedException
      * @throws ConstraintsException
-     * @throws Exceptions\Exception
      * @throws FileNotFoundException
-     * @throws FilesystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function moveTo(Storage $destination, ?int $constraints = null): static
+    public function moveTo(BaseStorage $destination, ?int $constraints = null): static
     {
         // actual move file to file: use native functions if possible
         if (!$this->moveFileTo($destination, $constraints)) {
@@ -189,16 +188,14 @@ class File extends FileSystem
     }
 
     /**
-     * @param Storage &$destination mutable
+     * @param BaseStorage &$destination mutable
      * @throws AccessDeniedException
      * @throws ConstraintsException
-     * @throws Exceptions\Exception
      * @throws FileNotFoundException
-     * @throws FilesystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function moveFileTo(Storage &$destination, ?int $constraints = null): bool
+    public function moveFileTo(BaseStorage &$destination, ?int $constraints = null): bool
     {
         $destination->setConstraints($constraints ?? $this->storage->getConstraints());
 
@@ -291,7 +288,6 @@ class File extends FileSystem
      * @param null|int $atime last-access time
      * @throws AccessDeniedException
      * @throws ConstraintsException
-     * @throws Exceptions\Exception
      */
     public function touch(bool $ifNewOnly = false, ?int $time = null, ?int $atime = null): bool
     {
@@ -337,7 +333,7 @@ class File extends FileSystem
 
     /**
      * @throws ConstraintsException
-     * @throws FilesystemException
+     * @throws FlysystemException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
@@ -356,11 +352,7 @@ class File extends FileSystem
                 $dirPath = '';
             }
 
-            return new $as(
-                new Storage\Flysystem($this->storage->getFlySystem(), $dirPath),
-                $constraints ?? $this->storage->getConstraints(),
-                ...$arguments
-            );
+            return new $as(new Storage\Flysystem($this->storage->getFlySystem(), $dirPath), $constraints ?? $this->storage->getConstraints(), ...$arguments);
         }
 
 
@@ -381,11 +373,7 @@ class File extends FileSystem
             $storage = new Storage\Disk($dirPath);
         }
 
-        return new $as(
-            $storage,
-            $constraints ?? $this->storage->getConstraints(),
-            ...$arguments
-        );
+        return new $as($storage, $constraints ?? $this->storage->getConstraints(), ...$arguments);
     }
 
 

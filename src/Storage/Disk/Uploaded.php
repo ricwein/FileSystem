@@ -8,18 +8,18 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Storage\Disk;
 
+use ricwein\FileSystem\Exceptions\ConstraintsException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Path;
-use ricwein\FileSystem\Storage\Disk;
 use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Storage\BaseStorage;
 
 /**
  * like Disk, but for temporary files
  */
-class Uploaded extends Disk
+class Uploaded extends Storage\Disk
 {
     protected bool $selfDestruct = true;
 
@@ -45,14 +45,14 @@ class Uploaded extends Disk
      *  ['tmp_name' => string, 'name' => string, 'error' => int]
      * @throws RuntimeException
      * @throws UnexpectedValueException
-     * @noinspection MagicMethodsValidityInspection
      */
     public function __construct(array $file)
     {
         if (!isset($file['tmp_name']) || !is_string($file['tmp_name'])) {
             throw new UnexpectedValueException('invalid or missing \'tmp_name\'', 500);
         }
-        $this->path = new Path($file['tmp_name']);
+
+        parent::__construct(new Path($file['tmp_name']));
 
         if (array_key_exists('error', $file) && is_int($file['error'])) {
             $this->checkUploadError($file['error']);
@@ -115,12 +115,12 @@ class Uploaded extends Disk
     /**
      * @inheritDoc
      */
-    public function moveFileTo(Storage $destination): bool
+    public function moveFileTo(BaseStorage $destination): bool
     {
         switch (true) {
 
             // use native safe-move function for uploaded files
-            case $destination instanceof Disk:
+            case $destination instanceof Storage\Disk:
                 if (!move_uploaded_file($this->path->getRealPath(), $destination->getPath()->getRawPath())) {
                     return false;
                 }

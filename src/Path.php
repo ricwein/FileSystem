@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace ricwein\FileSystem;
@@ -7,12 +8,14 @@ use DateTime;
 use DateTimeInterface;
 use SplFileInfo;
 
+/**
+ * @author Richard Weinhold
+ */
 final class Path extends SplFileInfo
 {
     private string $scheme = 'file';
 
     private string $safePath;
-    private ?string $realSafePath;
 
     public function __construct(FileSystem|Path|int|string|Storage\Disk|SplFileInfo ...$path)
     {
@@ -55,7 +58,6 @@ final class Path extends SplFileInfo
         }
 
         $this->safePath = $safepath;
-        $this->realSafePath = (false !== $realSafePath = realpath($safepath)) ? $realSafePath : null;
 
         parent::__construct($parts['path'] ?? $resultPath);
     }
@@ -113,11 +115,7 @@ final class Path extends SplFileInfo
             $rootPath = $path->getRealOrRawPath();
         }
 
-        return ltrim(str_replace(
-            search: $rootPath,
-            replace: '',
-            subject: $this->getRealOrRawPath()
-        ), DIRECTORY_SEPARATOR);
+        return ltrim(str_replace(search: $rootPath, replace: '', subject: $this->getRealOrRawPath()), DIRECTORY_SEPARATOR);
     }
 
     public function getRelativePathToSafePath(): string
@@ -132,10 +130,7 @@ final class Path extends SplFileInfo
             $path = new self($path);
         }
 
-        if (
-            (false !== $realpath = $path->getRealPath())
-            && (false !== $safePath = realpath($this->getSafePath()))
-        ) {
+        if ((false !== $realpath = $path->getRealPath()) && (false !== $safePath = realpath($this->getSafePath()))) {
             return str_starts_with($realpath, $safePath);
         }
 
@@ -148,10 +143,7 @@ final class Path extends SplFileInfo
             $path = new self($path);
         }
 
-        if (
-            (false !== $realpath = $this->getRealPath())
-            && (false !== $searchRealpath = $path->getRealPath())
-        ) {
+        if ((false !== $realpath = $this->getRealPath()) && (false !== $searchRealpath = $path->getRealPath())) {
             return str_starts_with($realpath, $searchRealpath);
         }
 
@@ -160,12 +152,7 @@ final class Path extends SplFileInfo
 
     public function isInOpenBaseDir(): bool
     {
-        /**
-         * fetch openBaseDir
-         * @var string[]
-         */
         static $openBaseDirs = null;
-
         if ($openBaseDirs === null) {
             $openBaseDirs = array_filter(explode(':', trim(ini_get('open_basedir'))), static fn($dir): bool => !empty($dir));
         }
@@ -233,10 +220,7 @@ final class Path extends SplFileInfo
 
     public function getURL(): string
     {
-        return sprintf("%s://%s",
-            $this->scheme,
-            $this->getRealOrRawPath()
-        );
+        return sprintf("%s://%s", $this->scheme, $this->getRealOrRawPath());
     }
 
     /**

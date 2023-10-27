@@ -11,10 +11,10 @@ use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Helper\MimeType;
-use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Helper\Stream as StreamResource;
+use ricwein\FileSystem\Storage\Extensions\Binary;
 
-class Stream extends Storage
+class Stream extends BaseStorage implements FileStorageInterface
 {
     private StreamResource $stream;
 
@@ -28,7 +28,7 @@ class Stream extends Storage
      * @throws RuntimeException
      * @throws UnsupportedException
      */
-    public function __construct(mixed $stream, private bool $lockOnIO = true)
+    public function __construct(mixed $stream, private readonly bool $lockOnIO = true)
     {
         if ($stream instanceof StreamResource) {
             $this->stream = $stream;
@@ -261,7 +261,7 @@ class Stream extends Storage
         }
 
         $content = $this->readFile();
-        return (new finfo($withEncoding ? FILEINFO_MIME : FILEINFO_MIME_TYPE))->buffer($content ?? '');
+        return (new finfo($withEncoding ? FILEINFO_MIME : FILEINFO_MIME_TYPE))->buffer($content);
     }
 
     /**
@@ -316,7 +316,7 @@ class Stream extends Storage
      * @throws UnsupportedException
      * @throws FilesystemException
      */
-    public function copyFileTo(Storage $destination): bool
+    public function copyFileTo(BaseStorage $destination): bool
     {
         switch (true) {
             case $destination instanceof Memory:
@@ -337,12 +337,17 @@ class Stream extends Storage
      * @throws RuntimeException
      * @throws UnsupportedException
      */
-    public function moveFileTo(Storage $destination): bool
+    public function moveFileTo(BaseStorage $destination): bool
     {
         if (!$this->copyFileTo($destination)) {
             return false;
         }
 
         return $this->removeFile();
+    }
+
+    public function getHandle(int $mode): Binary
+    {
+        throw new UnsupportedException(sprintf('%s::%s() is not supported.', static::class, __METHOD__), 500);
     }
 }

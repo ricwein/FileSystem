@@ -4,24 +4,17 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\File;
 
+use Exception;
 use PHPUnit\Framework\TestCase;
-use ricwein\FileSystem\Exceptions\AccessDeniedException;
-use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\Exception;
-use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\FilesystemException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
-use function bin2hex;
-use function random_bytes;
 
 class WriteTest extends TestCase
 {
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws FileNotFoundException
-     * @throws \Exception
      */
     public function testFileOverwriteTempDisk(): void
     {
@@ -38,11 +31,8 @@ class WriteTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws FileNotFoundException
-     * @throws \Exception
      */
     public function testFileWriteAppendTempDisk(): void
     {
@@ -59,11 +49,8 @@ class WriteTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws FileNotFoundException
-     * @throws \Exception
      */
     public function testFileOverwriteMemory(): void
     {
@@ -80,11 +67,8 @@ class WriteTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws FileNotFoundException
-     * @throws \Exception
      */
     public function testFileWriteAppendMemory(): void
     {

@@ -73,7 +73,7 @@ abstract class Binary
      */
     public function remainingBytes(): int
     {
-        return (int)(PHP_INT_MAX & ($this->getSize() - $this->pos));
+        return PHP_INT_MAX & ($this->getSize() - $this->pos);
     }
 
     /**

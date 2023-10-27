@@ -4,26 +4,27 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Storage;
 
 use Generator;
+use League\Flysystem\Config;
 use League\Flysystem\FileAttributes;
 use League\Flysystem\Filesystem as FlyFilesystem;
 use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\FilesystemException as FlySystemException;
-use ricwein\FileSystem\Enum\Time;
-use ricwein\FileSystem\Exceptions\Exception;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
-use ricwein\FileSystem\Path;
-use ricwein\FileSystem\Storage;
+use League\Flysystem\Visibility;
 use ricwein\FileSystem\Enum\Hash;
-use ricwein\FileSystem\Helper\Stream;
-use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
+use ricwein\FileSystem\Exceptions\RuntimeException;
+use ricwein\FileSystem\Exceptions\UnexpectedValueException;
+use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\Helper\Stream;
+use ricwein\FileSystem\Path;
+use ricwein\FileSystem\Storage\Extensions\Binary;
 
 /**
  * represents a file/directory at the local filesystem
  */
-class Flysystem extends Storage
+class Flysystem extends BaseStorage implements FileStorageInterface, DirectoryStorageInterface
 {
     protected FlyFilesystem $flysystem;
     protected Path $path;
@@ -35,14 +36,17 @@ class Flysystem extends Storage
      */
     public function __construct(FlyFilesystem|FilesystemAdapter $filesystem, string $path)
     {
-        if ($filesystem instanceof FilesystemAdapter) {
-            $this->flysystem = new FlyFilesystem($filesystem);
-        } else {
+        if ($filesystem instanceof FlyFilesystem) {
             $this->flysystem = $filesystem;
+        } else {
+            $this->flysystem = new FlyFilesystem($filesystem);
         }
 
         $this->path = new Path($path);
-        $this->type = $this->flysystem->mimeType($path);
+
+        if ($this->flysystem->fileExists($path)) {
+            $this->type = $this->flysystem->mimeType($path);
+        }
     }
 
     /**
@@ -81,12 +85,7 @@ class Flysystem extends Storage
      */
     public function getDetails(): array
     {
-        return array_merge(parent::getDetails(), [
-            'path' => $this->path->getRawPath(),
-            'type' => $this->type,
-            'timestamp' => $this->getTime(),
-            'size' => $this->getSize(),
-        ]);
+        return array_merge(parent::getDetails(), ['path' => $this->path->getRawPath(), 'type' => $this->type, 'timestamp' => $this->getTime(), 'size' => $this->getSize(),]);
     }
 
     /**
@@ -112,10 +111,11 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
+     * @throws FlySystemException
      */
     public function isDir(): bool
     {
-        return in_array(strtolower($this->type), ['dir', 'directory'], true);
+        return $this->flysystem->directoryExists($this->path->getRawPath());
     }
 
     /**
@@ -304,7 +304,7 @@ class Flysystem extends Storage
 
         $timestamp = $this->flysystem->lastModified($this->path->getRawPath());
 
-        if (is_int($timestamp)) {
+        if ($timestamp) {
             return $timestamp;
         }
 
@@ -339,9 +339,9 @@ class Flysystem extends Storage
     /**
      * @throws FlySystemException
      */
-    public function mkdir(): bool
+    public function mkdir(bool $ifNewOnly = false, int $permissions = 0755): bool
     {
-        $this->flysystem->createDirectory($this->path->getRawPath());
+        $this->flysystem->createDirectory($this->path->getRawPath(), [Config::OPTION_DIRECTORY_VISIBILITY => $permissions > 700 ? Visibility::PUBLIC : Visibility::PRIVATE,]);
         return true;
     }
 
@@ -360,7 +360,7 @@ class Flysystem extends Storage
 
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * @throws FlySystemException
      * @throws RuntimeException
      */
@@ -377,7 +377,6 @@ class Flysystem extends Storage
 
     /**
      * @inheritDoc
-     * @throws Exception
      * @throws FlySystemException
      */
     public function writeFromStream(Stream $stream): bool
@@ -393,7 +392,7 @@ class Flysystem extends Storage
      * @throws FlySystemException
      * @throws RuntimeException
      */
-    public function copyFileTo(Storage $destination): bool
+    public function copyFileTo(BaseStorage $destination): bool
     {
         switch (true) {
 
@@ -424,7 +423,7 @@ class Flysystem extends Storage
      * @throws FlySystemException
      * @throws RuntimeException
      */
-    public function moveFileTo(Storage $destination): bool
+    public function moveFileTo(BaseStorage $destination): bool
     {
         switch (true) {
 
@@ -455,4 +454,8 @@ class Flysystem extends Storage
         $this->path = new Path(sprintf("%s%s", $this->path->getRawPath(), implode('/', $path)));
     }
 
+    public function getHandle(int $mode): Binary
+    {
+        throw new UnsupportedException(sprintf('%s::%s() is not supported.', static::class, __METHOD__), 500);
+    }
 }

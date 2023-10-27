@@ -1,6 +1,5 @@
 <?php
 /**
- * @author Richard Weinhold
  * @noinspection PhpComposerExtensionStubsInspection
  */
 
@@ -14,7 +13,8 @@ use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 
 /**
- * like Memory, but for temporary files
+ * Like Memory, but for temporary files.
+ * @author Richard Weinhold
  */
 class Resource extends Memory
 {
@@ -39,7 +39,7 @@ class Resource extends Memory
                     break;
                 }
 
-                throw new UnsupportedException(sprintf('unsupported resource of type %s', $type ?? 'NULL'), 500);
+                throw new UnsupportedException("Unsupported resource of type '$type'.", 500);
 
             default:
                 throw new UnexpectedValueException(sprintf('Argument 1 of Memory\Resource() must be of type resource|GdImage, but %s given', get_debug_type($resource)), 500);

@@ -4,29 +4,16 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\File;
 
-use League\Flysystem\FilesystemException;
 use PHPUnit\Framework\TestCase;
-use ricwein\FileSystem\Exceptions\AccessDeniedException;
-use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\Exception;
-use ricwein\FileSystem\Exceptions\FileNotFoundException;
-use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
-use ricwein\FileSystem\Exceptions\UnsupportedException;
-use ricwein\FileSystem\File;
-use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Directory;
+use ricwein\FileSystem\Exceptions\FilesystemException;
+use ricwein\FileSystem\File;
 use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Storage;
 
 class CopyTest extends TestCase
 {
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
-     * @throws FileNotFoundException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
      * @throws FilesystemException
      */
     public function testCopyFromDiskToDisk(): void
@@ -46,13 +33,7 @@ class CopyTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
-     * @throws FileNotFoundException
      * @throws FilesystemException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
      */
     public function testCopyFromDiskToMemory(): void
     {
@@ -69,13 +50,7 @@ class CopyTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
-     * @throws FileNotFoundException
      * @throws FilesystemException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
      */
     public function testCopyFromMemoryToDisk(): void
     {
@@ -89,13 +64,7 @@ class CopyTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
-     * @throws FileNotFoundException
      * @throws FilesystemException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
      */
     public function testCopyFromMemoryToMemory(): void
     {
@@ -109,14 +78,7 @@ class CopyTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
-     * @throws FileNotFoundException
      * @throws FilesystemException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function testCopyToDir(): void
     {
@@ -134,14 +96,7 @@ class CopyTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
-     * @throws FileNotFoundException
      * @throws FilesystemException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function testCopyMemoryToDir(): void
     {

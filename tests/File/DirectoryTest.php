@@ -6,22 +6,12 @@ namespace ricwein\FileSystem\Tests\File;
 
 use League\Flysystem\FilesystemException;
 use PHPUnit\Framework\TestCase;
-use ricwein\FileSystem\Exceptions\AccessDeniedException;
-use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\Exception;
-use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
 
 class DirectoryTest extends TestCase
 {
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
      * @throws FilesystemException
      */
     public function testSinglePath(): void
@@ -38,12 +28,7 @@ class DirectoryTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
      * @throws FilesystemException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
      */
     public function testTwoPartedPath(): void
     {
@@ -63,11 +48,6 @@ class DirectoryTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
      * @throws FilesystemException
      */
     public function testThreePartedPath(): void

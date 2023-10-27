@@ -8,7 +8,6 @@ use PHPUnit\Framework\TestCase;
 use ricwein\FileSystem\Directory;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\Exception;
 use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
@@ -24,7 +23,6 @@ class CopyTest extends TestCase
      * @throws RuntimeException
      * @throws UnexpectedValueException
      * @throws UnsupportedException
-     * @throws Exception
      */
     public function testDirectoryCopy(): void
     {

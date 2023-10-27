@@ -11,6 +11,6 @@ namespace ricwein\FileSystem\Exceptions;
 /**
  * the selected file was not found (mostly for disk-storage)
  */
-class UnsupportedException extends Exception
+class UnsupportedException extends \UnexpectedValueException implements FilesystemException
 {
 }

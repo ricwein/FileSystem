@@ -4,27 +4,20 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\Storage;
 
+use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemException as FlySystemException;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use PHPUnit\Framework\TestCase;
-use ricwein\FileSystem\Exceptions\AccessDeniedException;
-use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\Exception;
-use ricwein\FileSystem\Exceptions\FileNotFoundException;
-use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
-use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\Directory;
+use ricwein\FileSystem\Exceptions\FilesystemException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Directory;
-use League\Flysystem\Filesystem;
 
 /**
  * test FlySystem-Storage Adapter
  *
  * @author Richard Weinhold
- * @requires
  */
 class FlysystemTest extends TestCase
 {
@@ -36,12 +29,7 @@ class FlysystemTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
-     * @throws FileNotFoundException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
+     * @throws FilesystemException
      * @throws FlySystemException
      */
     public function testFileRead(): void
@@ -70,13 +58,8 @@ class FlysystemTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
+     * @throws FilesystemException
      * @throws FlySystemException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function testDirectoryRead(): void
     {
@@ -106,12 +89,8 @@ class FlysystemTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
+     * @throws FilesystemException
      * @throws FlySystemException
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws UnsupportedException
      */
     public function testNavigation(): void
     {

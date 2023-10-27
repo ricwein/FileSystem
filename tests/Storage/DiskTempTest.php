@@ -4,16 +4,12 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Tests\Storage;
 
+use Exception;
 use PHPUnit\Framework\TestCase;
-use ricwein\FileSystem\Exceptions\AccessDeniedException;
-use ricwein\FileSystem\Exceptions\ConstraintsException;
-use ricwein\FileSystem\Exceptions\Exception;
-use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
-use ricwein\FileSystem\Exceptions\UnsupportedException;
+use ricwein\FileSystem\Directory;
+use ricwein\FileSystem\Exceptions\FilesystemException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Storage;
-use ricwein\FileSystem\Directory;
 
 /**
  * test Temp-Storage
@@ -23,9 +19,7 @@ use ricwein\FileSystem\Directory;
 class DiskTempTest extends TestCase
 {
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
+     * @throws FilesystemException
      */
     public function testFileCreation(): void
     {
@@ -34,10 +28,7 @@ class DiskTempTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
-     * @throws Exception
-     * @throws RuntimeException
+     * @throws FilesystemException
      */
     public function testFileDestruction(): void
     {
@@ -51,9 +42,7 @@ class DiskTempTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws Exception
-     * @throws RuntimeException
+     * @throws FilesystemException
      */
     public function testPrecedentFilename(): void
     {
@@ -64,8 +53,7 @@ class DiskTempTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws UnsupportedException
+     * @throws FilesystemException
      */
     public function testPrecedentDirname(): void
     {
@@ -76,12 +64,8 @@ class DiskTempTest extends TestCase
     }
 
     /**
-     * @throws AccessDeniedException
-     * @throws ConstraintsException
+     * @throws FilesystemException
      * @throws Exception
-     * @throws RuntimeException
-     * @throws UnexpectedValueException
-     * @throws \Exception
      */
     public function testAbsolutePath(): void
     {
