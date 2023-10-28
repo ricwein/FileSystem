@@ -114,19 +114,25 @@ final class Path extends SplFileInfo
 
     public function getRelativePath(self|string $path): string
     {
-        if (is_string($path)) {
-            $rootPath = $path;
-        } elseif ($path->isFile()) {
-            $rootPath = $path->getDirectory();
-        } else {
-            $rootPath = $path->getRealOrRawPath();
-        }
+        $rootPath = match (true) {
+            is_string($path) => $path,
+            $path->isFile() => $path->getDirectory(),
+            default => $path->getRealOrRawPath(),
+        };
+        $relativePath = trim(
+            str_replace(
+                search: rtrim($rootPath, DIRECTORY_SEPARATOR),
+                replace: '',
+                subject: $this->getRealOrRawPath()
+            ),
+            DIRECTORY_SEPARATOR
+        );
 
-        $relativePath = trim(str_replace(search: rtrim($rootPath, DIRECTORY_SEPARATOR), replace: '', subject: $this->getRealOrRawPath()), DIRECTORY_SEPARATOR);
         if ($this->isDir()) {
             $relativePath .= DIRECTORY_SEPARATOR;
         }
-        return empty($relativePath) ? DIRECTORY_SEPARATOR : $relativePath;
+
+        return $relativePath;
     }
 
     public function getRelativePathToSafePath(): string
