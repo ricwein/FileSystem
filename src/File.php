@@ -244,15 +244,10 @@ class File extends FileSystem
      * @throws FileNotFoundException
      * @throws UnexpectedValueException
      */
-    public function getType(bool $withEncoding = false): string
+    public function getType(bool $withEncoding = false): ?string
     {
         $this->checkFileReadPermissions();
-
-        if (null !== $mime = $this->storage->getFileType($withEncoding)) {
-            return $mime;
-        }
-
-        throw new UnexpectedValueException('unable to determine files content-type', 500);
+        return $this->storage->getFileType($withEncoding);
     }
 
     /**

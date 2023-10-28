@@ -132,7 +132,7 @@ final class Path extends SplFileInfo
             $relativePath .= DIRECTORY_SEPARATOR;
         }
 
-        return $relativePath;
+        return $relativePath === DIRECTORY_SEPARATOR ? '' : $relativePath;
     }
 
     public function getRelativePathToSafePath(): string
