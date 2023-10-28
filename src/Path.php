@@ -16,6 +16,7 @@ final class Path extends SplFileInfo
     private string $scheme = 'file';
 
     private string $safePath;
+    private ?string $safePathReal;
 
     public function __construct(FileSystem|Path|int|string|Storage\Disk|SplFileInfo ...$path)
     {
@@ -34,7 +35,7 @@ final class Path extends SplFileInfo
 
             // parse single path-component
             $normalizedPath = self::normalize($component, $position === $positionStart, $position === $positionEnd);
-            $normalizedPath = str_replace(['/', '\\', DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR], DIRECTORY_SEPARATOR, $normalizedPath);
+            $normalizedPath = str_replace(['/', DIRECTORY_SEPARATOR, '\\', DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR], DIRECTORY_SEPARATOR, $normalizedPath);
 
             if ($position === $positionStart) {
                 $components[] = ($normalizedPath === DIRECTORY_SEPARATOR) ? DIRECTORY_SEPARATOR : rtrim($normalizedPath, DIRECTORY_SEPARATOR);
@@ -58,6 +59,7 @@ final class Path extends SplFileInfo
         }
 
         $this->safePath = $safepath;
+        $this->safePathReal = realpath($safepath) ?: null;
 
         parent::__construct($parts['path'] ?? $resultPath);
     }
@@ -105,6 +107,11 @@ final class Path extends SplFileInfo
         return $this->safePath;
     }
 
+    public function getSafePathReal(): ?string
+    {
+        return $this->safePathReal;
+    }
+
     public function getRelativePath(self|string $path): string
     {
         if (is_string($path)) {
@@ -115,16 +122,16 @@ final class Path extends SplFileInfo
             $rootPath = $path->getRealOrRawPath();
         }
 
-        $relativePath = trim(str_replace(search: $rootPath, replace: '', subject: $this->getRealOrRawPath()), DIRECTORY_SEPARATOR);
+        $relativePath = trim(str_replace(search: rtrim($rootPath, DIRECTORY_SEPARATOR), replace: '', subject: $this->getRealOrRawPath()), DIRECTORY_SEPARATOR);
         if ($this->isDir()) {
             $relativePath .= DIRECTORY_SEPARATOR;
         }
-        return empty($relativePath) ? '/' : $relativePath;
+        return empty($relativePath) ? DIRECTORY_SEPARATOR : $relativePath;
     }
 
     public function getRelativePathToSafePath(): string
     {
-        return $this->getRelativePath($this->getSafePath());
+        return $this->getRelativePath($this->getSafePathReal());
     }
 
     public function isInSafePath(null|self|string $path = null): bool
@@ -181,6 +188,37 @@ final class Path extends SplFileInfo
         }
 
         return $this->getPath();
+    }
+
+    public function getEscapedFilename(): string
+    {
+        $filename = strip_tags($this->getFilename());
+
+        $filename = preg_replace('/[\r\n\t ]+/', ' ', $filename);
+        $filename = preg_replace('/[\"*\/:<>?\'|]+/', ' ', $filename);
+        $filename = html_entity_decode($filename, ENT_QUOTES, "utf-8");
+        $filename = htmlentities($filename, ENT_QUOTES, "utf-8");
+
+        $filename = strtr($filename, [
+            'Ü' => 'Ue',
+            'Ü' => 'Ue',
+            'Ö' => 'Oe',
+            'Ä' => 'Ae',
+            'ü' => 'ue',
+            'ö' => 'oe',
+            'a' => 'ae',
+            'ß' => 'ss',
+            ' ' => '_'
+        ]);
+
+        if (function_exists('transliterator_transliterate')) {
+            $filename = transliterator_transliterate('Any-Latin; Latin-ASCII;', $filename);
+        }
+
+        $filename = preg_replace("/(&)([a-z])([a-z]+;)/i", '$2', $filename);
+        $filename = preg_replace('/\s+/', '-', $filename);
+        $filename = rawurlencode($filename);
+        return str_replace('%', '-', $filename);
     }
 
     public function getRawPath(): string

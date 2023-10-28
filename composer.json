@@ -29,6 +29,7 @@
     "sort-packages": true
   },
   "suggest": {
+    "ext-intl": "Use Transliterator for automatic special-char transliateration to ascii",
     "ext-gd": "Allows easy usage of gd resouces as Storage\\Memory\\Resource()",
     "intervention/image": "Adds image-manipulation capabilities",
     "league/flysystem": "Support for more filesystems"
