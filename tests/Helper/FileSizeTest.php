@@ -5,7 +5,7 @@ namespace Helper;
 use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use ricwein\FileSystem\Helper\FileSize;
+use ricwein\FileSystem\Model\FileSize;
 
 class FileSizeTest extends TestCase
 {

@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ricwein\FileSystem\Helper;
+namespace ricwein\FileSystem\Model;
 
+use ricwein\FileSystem\Helper\FileSizeUnit;
 use Serializable;
 
 final class FileSize implements Serializable
@@ -92,7 +93,7 @@ final class FileSize implements Serializable
 
     private function __construct(
         string|int|float $size,
-        private readonly bool $preferBinarySizes
+        private readonly bool $preferBinarySizes,
     ) {
         if (is_int($size) || is_float($size)) {
             $this->bytes = $size;
@@ -157,11 +158,11 @@ final class FileSize implements Serializable
 
     public function __serialize(): array
     {
-        return [$this->bytes];
+        return [$this->bytes, $this->preferBinarySizes];
     }
 
     public function __unserialize(array $data): void
     {
-        $this->bytes = (int)(reset($data) ?: 0);
+        [$this->bytes, $this->preferBinarySizes] = $data;
     }
 }

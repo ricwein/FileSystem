@@ -13,7 +13,7 @@ use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Helper\DirectoryIterator;
-use ricwein\FileSystem\Helper\FileSize;
+use ricwein\FileSystem\Model\FileSize;
 use ricwein\FileSystem\Storage\BaseStorage;
 use ricwein\FileSystem\Storage\DirectoryStorageInterface;
 

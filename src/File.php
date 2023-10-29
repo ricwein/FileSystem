@@ -11,10 +11,10 @@ use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Helper\Constraint;
-use ricwein\FileSystem\Helper\FileSize;
 use ricwein\FileSystem\Helper\Stream;
-use ricwein\FileSystem\Storage\Extensions\Binary;
+use ricwein\FileSystem\Model\FileSize;
 use ricwein\FileSystem\Storage\BaseStorage;
+use ricwein\FileSystem\Storage\Extensions\Binary;
 use ricwein\FileSystem\Storage\FileStorageInterface;
 
 /**

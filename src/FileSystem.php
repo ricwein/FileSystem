@@ -10,7 +10,7 @@ use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Helper\Constraint;
-use ricwein\FileSystem\Helper\FileSize;
+use ricwein\FileSystem\Model\FileSize;
 use ricwein\FileSystem\Storage\BaseStorage;
 
 /**
