@@ -8,11 +8,11 @@ use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Storage;
 use SplFileInfo;
 
-class Creator
+final class Creator
 {
-    public static function fromFileInfo(SplFileInfo $fileInfo, int $constraint = Constraint::STRICT): ?FileSystem
+    public static function from(SplFileInfo|Storage\StorageInterface $fileInfo, int $constraint = Constraint::STRICT): ?FileSystem
     {
-        $storage = new Storage\Disk($fileInfo);
+        $storage = $fileInfo instanceof SplFileInfo ? new Storage\Disk($fileInfo) : $fileInfo;
         return match (true) {
             $storage->isDir() => new Directory($storage, $constraint),
             $storage->isFile() => new File($storage, $constraint),

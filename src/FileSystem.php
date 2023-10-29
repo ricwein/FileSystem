@@ -10,6 +10,7 @@ use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Enum\Time;
 use ricwein\FileSystem\Exceptions\AccessDeniedException;
 use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Helper\FileSize;
 use ricwein\FileSystem\Storage\BaseStorage;
 
 /**
@@ -147,6 +148,11 @@ abstract class FileSystem
     {
         return false;
     }
+
+    /**
+     * Get filesize as FileSize object.
+     */
+    abstract public function getSize(): FileSize;
 
     /**
      * remove file from filesystem on object destruction

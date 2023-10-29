@@ -31,7 +31,7 @@ class CopyTest extends TestCase
 
         $source->copyTo($destination->storage());
 
-        self::assertSame($source->getSize(), $destination->getSize());
+        self::assertSame($source->getSize()->getBytes(), $destination->getSize()->getBytes());
         self::assertSame($source->getHash(), $destination->getHash());
 
         self::assertDirectoryExists($destination->getPath()->getRealPath() . '/Directory');

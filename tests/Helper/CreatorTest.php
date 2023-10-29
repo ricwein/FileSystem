@@ -25,6 +25,6 @@ class CreatorTest extends TestCase
     #[DataProvider('provideTestData')]
     public function testCreator(SplFileInfo $fileInfo, string $excepted): void
     {
-        self::assertSame($excepted, get_debug_type(Creator::fromFileInfo($fileInfo)));
+        self::assertSame($excepted, get_debug_type(Creator::from($fileInfo)));
     }
 }

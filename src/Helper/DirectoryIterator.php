@@ -19,7 +19,7 @@ use SplFileInfo;
  * provides filterable directory list support,
  * depends on storage->list() implementations
  */
-class DirectoryIterator
+final class DirectoryIterator
 {
     /**
      * @var callable[]

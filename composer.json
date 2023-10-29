@@ -10,7 +10,7 @@
     }
   ],
   "require": {
-    "php": ">=8.1",
+    "php": "^8.2",
     "ext-fileinfo": "*",
     "ext-zip": "*",
     "ext-openssl": "*"
@@ -23,9 +23,6 @@
     "ext-gd": "*"
   },
   "config": {
-    "platform": {
-      "php": "8.1"
-    },
     "sort-packages": true
   },
   "suggest": {

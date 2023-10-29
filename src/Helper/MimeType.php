@@ -11,7 +11,7 @@ namespace ricwein\FileSystem\Helper;
 /**
  * extension-to-mimetype map
  */
-class MimeType
+final class MimeType
 {
     /**
      * map general file extensions to mime-type

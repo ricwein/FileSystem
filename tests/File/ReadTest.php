@@ -62,7 +62,7 @@ class ReadTest extends TestCase
     {
         $file = new File(new Storage\Disk(__DIR__ . '/../_examples', 'test.txt'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
 
-        $length = (int)floor($file->getSize() / 2);
+        $length = (int)floor($file->getSize()->getBytes() / 2);
         self::assertNotEmpty($length);
         self::assertSame(
             $file->read(0, $length),
@@ -72,7 +72,7 @@ class ReadTest extends TestCase
         $message = bin2hex(random_bytes(2 ** 10));
         $file = new File(new Storage\Memory($message));
 
-        $length = (int)floor($file->getSize() / 2);
+        $length = (int)floor($file->getSize()->getBytes() / 2);
         self::assertNotEmpty($length);
         self::assertSame(
             $file->read(0, $length),
@@ -85,7 +85,7 @@ class ReadTest extends TestCase
             mb_substr($message, $offset)
         );
 
-        $length = (int)floor($file->getSize() / 3);
+        $length = (int)floor($file->getSize()->getBytes() / 3);
         $offset = $length;
         self::assertSame(
             $file->read($offset, $length),

@@ -48,7 +48,7 @@ class FlysystemTest extends TestCase
             'path' => 'test.txt',
             'type' => 'text/plain',
             'timestamp' => $cmpFile->getTime(),
-            'size' => $cmpFile->getSize(),
+            'size' => $cmpFile->getSize()->getBytes(),
         ],
             $file->storage()->getDetails()
         );

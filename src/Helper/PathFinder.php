@@ -15,22 +15,23 @@ use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Path;
 use ricwein\FileSystem\Storage;
 use ricwein\FileSystem\Storage\BaseStorage;
+use ricwein\FileSystem\Storage\StorageInterface;
 
 /**
  * creates an absolute path from current-working-directory
  */
-class PathFinder
+final class PathFinder
 {
     /**
      * list of possible paths
      * => !not components of a single path!
-     * @param string[]|Path[]|BaseStorage[]|FileSystem[] $paths
+     * @param string[]|Path[]|StorageInterface[]|FileSystem[] $paths
      * @return BaseStorage
      * @throws FileNotFoundException
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public static function try(array $paths): BaseStorage
+    public static function try(array $paths): StorageInterface
     {
         foreach ($paths as $diskPath) {
             if (is_string($diskPath)) {
@@ -41,7 +42,7 @@ class PathFinder
                 if ($diskPath->isFile() || $diskPath->isDir()) {
                     return new Storage\Disk($diskPath);
                 }
-            } elseif ($diskPath instanceof BaseStorage) {
+            } elseif ($diskPath instanceof StorageInterface) {
                 if ($diskPath->isFile() || $diskPath->isDir()) {
                     return $diskPath;
                 }

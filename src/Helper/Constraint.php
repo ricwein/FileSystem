@@ -9,7 +9,7 @@ use ricwein\FileSystem\Path;
 /**
  * file-path validation class
  */
-class Constraint
+final class Constraint
 {
     /**
      * no requirements

@@ -11,6 +11,7 @@ use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Helper\FileSize;
 use ricwein\FileSystem\Helper\Stream;
 use ricwein\FileSystem\Storage\Extensions\Binary;
 use ricwein\FileSystem\Storage\BaseStorage;
@@ -273,10 +274,10 @@ class File extends FileSystem
      * @throws ConstraintsException
      * @throws FileNotFoundException
      */
-    public function getSize(): int
+    public function getSize(): FileSize
     {
         $this->checkFileReadPermissions();
-        return $this->storage->getSize();
+        return FileSize::from($this->storage->getSize());
     }
 
     /**

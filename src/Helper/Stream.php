@@ -9,7 +9,7 @@ namespace ricwein\FileSystem\Helper;
 
 use ricwein\FileSystem\Exceptions\RuntimeException;
 
-class Stream
+final class Stream
 {
     /** @var resource $handle */
     protected $handle;

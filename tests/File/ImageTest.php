@@ -87,18 +87,18 @@ class ImageTest extends TestCase
         $source = new File\Image(new Storage\Disk(__DIR__, '../_examples', 'test.png'), Constraint::STRICT & ~Constraint::IN_SAFEPATH);
         $source = $source->copyTo(new Storage\Disk\Temp())->encode('jpg');
 
-        $shouldSize = (int)floor($source->getSize() / 1.1);
-        self::assertGreaterThanOrEqual($shouldSize, $source->getSize());
+        $shouldSize = (int)floor($source->getSize()->getBytes() / 1.1);
+        self::assertGreaterThanOrEqual($shouldSize, $source->getSize()->getBytes());
 
         $image = $source->copyTo(new Storage\Disk\Temp());
         $image->compress($shouldSize);
 
-        self::assertGreaterThanOrEqual($image->getSize(), $shouldSize);
+        self::assertGreaterThanOrEqual($image->getSize()->getBytes(), $shouldSize);
 
         $image = $source->copyTo(new Storage\Memory());
         $image->compress($shouldSize);
 
-        self::assertGreaterThanOrEqual($image->getSize(), $shouldSize);
+        self::assertGreaterThanOrEqual($image->getSize()->getBytes(), $shouldSize);
         self::assertSame($image->getType(), MimeType::getMimeFor('jpg'));
     }
 }

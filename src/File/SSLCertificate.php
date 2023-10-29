@@ -16,6 +16,7 @@ use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\File;
 use ricwein\FileSystem\Helper\Constraint;
+use ricwein\FileSystem\Helper\FileSize;
 use ricwein\FileSystem\Helper\Stream;
 use ricwein\FileSystem\Path;
 use ricwein\FileSystem\Storage;
@@ -348,7 +349,7 @@ class SSLCertificate extends File
     /**
      * @throws UnsupportedException
      */
-    public function getSize(): int
+    public function getSize(): FileSize
     {
         throw new UnsupportedException("Calculating size of a ssl-certificate is currently not supported.");
     }

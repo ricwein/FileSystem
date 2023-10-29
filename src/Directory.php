@@ -13,6 +13,7 @@ use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Helper\DirectoryIterator;
+use ricwein\FileSystem\Helper\FileSize;
 use ricwein\FileSystem\Storage\BaseStorage;
 use ricwein\FileSystem\Storage\DirectoryStorageInterface;
 
@@ -158,15 +159,16 @@ class Directory extends FileSystem
      * @throws UnsupportedException
      * @throws UnexpectedValueException
      */
-    public function getSize(bool $recursive = true): int
+    public function getSize(bool $recursive = true): FileSize
     {
+        $this->checkFileReadPermissions();
         $size = 0;
 
         /** @var File $entry */
         foreach ($this->list($recursive)->files($this->storage->getConstraints()) as $file) {
-            $size += $file->getSize();
+            $size += $file->getSize()->getBytes();
         }
-        return $size;
+        return FileSize::from($size);
     }
 
     /**

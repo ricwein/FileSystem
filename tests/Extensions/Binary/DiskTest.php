@@ -91,12 +91,12 @@ class DiskTest extends TestCase
         $file = (new File(new Storage\Disk\Temp()))->write(random_bytes(self::MSG_LENGTH));
         $handle = $file->getHandle(Binary::MODE_READ);
 
-        self::assertSame($file->getSize(), $handle->getSize());
+        self::assertSame($file->getSize()->getBytes(), $handle->getSize());
         self::assertSame(0, $handle->getPos());
 
-        $pos = (int)floor($file->getSize() / 2);
+        $pos = (int)floor($file->getSize()->getBytes() / 2);
         $handle->seek($pos);
         self::assertSame($pos, $handle->getPos());
-        self::assertSame($file->getSize() - $pos, $handle->remainingBytes());
+        self::assertSame($file->getSize()->getBytes() - $pos, $handle->remainingBytes());
     }
 }
