@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace ricwein\FileSystem\Model;
 
+use JsonSerializable;
 use ricwein\FileSystem\Helper\FileSizeUnit;
 use Serializable;
 use UnexpectedValueException;
 
-final class FileSize implements Serializable
+final class FileSize implements Serializable, JsonSerializable
 {
     /**
      * @var array<FileSizeUnit>|null
@@ -180,5 +181,14 @@ final class FileSize implements Serializable
     public function __unserialize(array $data): void
     {
         [$this->bytes, $this->preferBinarySizes] = $data;
+    }
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'bytes' => $this->bytes,
+            'number' => $this->getNumber(),
+            'unit' => $this->getUnit(),
+        ];
     }
 }
