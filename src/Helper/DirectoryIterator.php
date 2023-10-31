@@ -93,7 +93,7 @@ final class DirectoryIterator
         } elseif ($this->storage instanceof Storage\Disk) {
             $iterator = $this->storage->list($this->recursive, $this->constraints, $this->pathFilter);
         } else {
-            throw new RuntimeException(sprintf('Found Unsupported Storage Engine (%s) for pathFilter.', get_class($this->storage)), 400);
+            throw new RuntimeException(sprintf('Found Unsupported Storage Engine (%s) for pathFilter.', $this->storage::class), 400);
         }
 
         foreach ($iterator as $storage) {

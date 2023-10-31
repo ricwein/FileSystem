@@ -63,7 +63,8 @@ abstract class BaseStorage implements StorageInterface, Stringable
 
     public function __toString(): string
     {
-        return sprintf('[Storage: %s]', trim(str_replace(self::class, '', get_class($this)), '\\'));
+        $namespace = explode('\\', static::class);
+        return sprintf('[Storage: %s]', end($namespace));
     }
 
     /**

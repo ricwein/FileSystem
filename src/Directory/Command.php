@@ -170,7 +170,7 @@ class Command extends Directory
         $this->lastCommand = $cmd;
 
         if (!$this->storage instanceof Storage\Disk) {
-            throw new RuntimeException(sprintf('unsupported storage system for Command-Execution: %s', get_class($this->storage)), 500);
+            throw new RuntimeException(sprintf('unsupported storage system for Command-Execution: %s', $this->storage::class), 500);
         }
 
         $path = $this->storage->getPath()->getRealPath();

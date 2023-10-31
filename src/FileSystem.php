@@ -162,7 +162,7 @@ abstract class FileSystem
     public function removeOnFree(bool $activate = true): static
     {
         if (!$this->storage->doesSatisfyConstraints()) {
-            throw new AccessDeniedException(sprintf('unable to remove: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->getPath()->getRawPath() : get_class($this->storage)), 404, $this->storage->getConstraintViolations());
+            throw new AccessDeniedException(sprintf('unable to remove: "%s"', $this->storage instanceof Storage\Disk ? $this->storage->getPath()->getRawPath() : $this->storage::class), 404, $this->storage->getConstraintViolations());
         }
         $this->storage->removeOnFree($activate);
         return $this;

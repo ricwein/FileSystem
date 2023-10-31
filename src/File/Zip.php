@@ -124,7 +124,11 @@ class Zip extends File
         $result = $this->archive->open($this->getPath()->getRawPath(), $this->flags);
 
         if (($this->flags & ZipArchive::CREATE) === ZipArchive::CREATE && $result === ZipArchive::ER_NOZIP && $this->storage->isFile()) {
-            throw new RuntimeException(sprintf('[%d] Error while opening ZipArchive: "%s"', $result, static::ERROR_MESSAGES[$result]), 500, new Hint("The zip-file probably already exists, but should be created since 'ZipArchive::CREATE' is set."));
+            throw new RuntimeException(
+                sprintf('[%d] Error while opening ZipArchive: "%s"', $result, static::ERROR_MESSAGES[$result]),
+                500,
+                new Hint("The zip-file probably already exists, but should be created since 'ZipArchive::CREATE' is set.")
+            );
         }
 
 
@@ -244,7 +248,7 @@ class Zip extends File
             return $this->addFile($file, $asNode);
         }
 
-        throw new UnexpectedValueException(sprintf('%s::%s($file) only supports Directory and File as $file type, but is %s', static::class, __METHOD__, get_class($file)));
+        throw new UnexpectedValueException(sprintf('%s::%s($file) only supports Directory and File as $file type, but is %s', static::class, __METHOD__, $file::class));
     }
 
     /**
@@ -389,7 +393,7 @@ class Zip extends File
     public function addFile(File $file, ?string $name = null): self
     {
         if (!$file->isFile() || !$file->isReadable()) {
-            throw new FileNotFoundException(sprintf('unable to open file: "%s"', $file->storage() instanceof Storage\Disk ? $file->getPath()->getRawPath() : get_class($file->storage())), 404);
+            throw new FileNotFoundException(sprintf('unable to open file: "%s"', $file->storage() instanceof Storage\Disk ? $file->getPath()->getRawPath() : $file->storage()::class), 404);
         }
         return $this->addFileStorage($file->storage(), $name);
     }
@@ -409,7 +413,7 @@ class Zip extends File
         }
 
         if (!$storage->isFile() || !$storage->isReadable()) {
-            throw new FileNotFoundException(sprintf('unable to open file: "%s"', $storage instanceof Storage\Disk ? $storage->getPath()->getRawPath() : get_class($storage)), 404);
+            throw new FileNotFoundException(sprintf('unable to open file: "%s"', $storage instanceof Storage\Disk ? $storage->getPath()->getRawPath() : $storage::class), 404);
         }
 
         // add file to archive

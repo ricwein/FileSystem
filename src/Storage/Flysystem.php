@@ -355,7 +355,7 @@ class Flysystem extends BaseStorage implements FileStorageInterface, DirectorySt
 
     public function __toString(): string
     {
-        return sprintf('%s/[Adapter: %s] at: "%s"', parent::__toString(), get_class($this->flysystem), $this->path);
+        return sprintf('%s/[Adapter: %s] at: "%s"', parent::__toString(), $this->flysystem::class, $this->path);
     }
 
 

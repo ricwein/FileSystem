@@ -69,7 +69,7 @@ class NavigationTest extends TestCase
         $zipFile = $exampleDir->file('archive.zip', Constraint::LOOSE, File\Zip::class, ZipArchive::CREATE);
 
         self::assertTrue($zipFile->isFile());
-        self::assertSame(File\Zip::class, get_class($zipFile));
+        self::assertSame(File\Zip::class, $zipFile::class);
         self::assertTrue(method_exists($zipFile, 'extractTo'));
     }
 
