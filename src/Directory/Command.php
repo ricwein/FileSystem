@@ -32,6 +32,7 @@ class Command extends Directory
 
     /**
      * default search paths for binaries
+     * @var string[]
      */
     protected array $paths = [];
 
@@ -51,7 +52,7 @@ class Command extends Directory
         parent::__construct($storage, $constraints);
 
         // try to find binary in given file-paths
-        $this->bin = $this->selectBinaryPath(array_merge($executablePath, $this->paths));
+        $this->bin = $this->selectBinaryPath([...$executablePath, ... $this->paths]);
 
         if ($this->bin === null) {
             throw new FileNotFoundException(sprintf('unable to find binary in paths: "%s"', implode('", "', $executablePath)), 500);

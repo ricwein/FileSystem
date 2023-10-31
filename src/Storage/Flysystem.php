@@ -17,7 +17,7 @@ use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
-use ricwein\FileSystem\Helper\Stream;
+use ricwein\FileSystem\Helper\Stream as StreamResource;
 use ricwein\FileSystem\Path;
 use ricwein\FileSystem\Storage\Extensions\Binary;
 
@@ -168,7 +168,7 @@ class Flysystem extends BaseStorage implements FileStorageInterface, DirectorySt
             throw new RuntimeException('error while reading file', 500);
         }
 
-        return (new Stream($handle))->read($offset, $length);
+        return (new StreamResource($handle))->read($offset, $length);
     }
 
     /**
@@ -364,7 +364,7 @@ class Flysystem extends BaseStorage implements FileStorageInterface, DirectorySt
      * @throws FlySystemException
      * @throws RuntimeException
      */
-    public function getStream(string $mode = 'rb+'): Stream
+    public function getStream(string $mode = 'rb+'): StreamResource
     {
         $stream = $this->flysystem->readStream($this->path->getRawPath());
 
@@ -372,14 +372,14 @@ class Flysystem extends BaseStorage implements FileStorageInterface, DirectorySt
             throw new RuntimeException('failed to open stream', 500);
         }
 
-        return new Stream($stream);
+        return new StreamResource($stream);
     }
 
     /**
      * @inheritDoc
      * @throws FlySystemException
      */
-    public function writeFromStream(Stream $stream): bool
+    public function writeFromStream(StreamResource $stream): bool
     {
         $this->touch(true);
         $this->flysystem->writeStream($this->path->getRawPath(), $stream->getHandle());
@@ -457,5 +457,10 @@ class Flysystem extends BaseStorage implements FileStorageInterface, DirectorySt
     public function getHandle(int $mode): Binary
     {
         throw new UnsupportedException(sprintf('%s::%s() is not supported.', static::class, __METHOD__), 500);
+    }
+
+    public function __serialize(): array
+    {
+        throw new UnsupportedException("Unable to serialize FlySystem Storage.", 500);
     }
 }

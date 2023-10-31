@@ -42,9 +42,9 @@ abstract class BaseStorage implements StorageInterface, Stringable
     /**
      * @internal
      */
-    public function getConstraints(): int
+    public function getConstraints(): ?int
     {
-        return $this->constraints->getConstraints();
+        return $this->constraints?->getConstraints();
     }
 
     /**
@@ -52,7 +52,7 @@ abstract class BaseStorage implements StorageInterface, Stringable
      */
     public function getConstraintViolations(ConstraintsException $previous = null): ?ConstraintsException
     {
-        return $this->constraints->getErrors($previous);
+        return $this->constraints?->getErrors($previous);
     }
 
     /**
@@ -81,5 +81,27 @@ abstract class BaseStorage implements StorageInterface, Stringable
     {
         $this->selfDestruct = $activate;
         return $this;
+    }
+
+    /**
+     * @return array{p: null|array, c: null|Constraint}
+     */
+    public function __serialize(): array
+    {
+        return [
+            'p' => ($this->path ?? null)?->_getPathComponents(),
+            'c' => $this->constraints,
+        ];
+    }
+
+    /**
+     * @param array{p: null|array, c: null|Constraint} $data
+     */
+    public function __unserialize(array $data): void
+    {
+        if (!empty($data['p'])) {
+            $this->path = new Path(...$data['p']);
+        }
+        $this->constraints = $data['c'] ?? null;
     }
 }

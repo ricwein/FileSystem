@@ -25,7 +25,6 @@ use ricwein\FileSystem\Exceptions\FileNotFoundException;
 use ricwein\FileSystem\Exceptions\RuntimeException;
 use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Exceptions\UnsupportedException;
-use ricwein\FileSystem\File;
 use ricwein\FileSystem\FileSystem;
 use ricwein\FileSystem\Helper\Constraint;
 use ricwein\FileSystem\Helper\MimeType;

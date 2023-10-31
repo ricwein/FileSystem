@@ -104,4 +104,14 @@ final class Constraint
         $this->hasRun = true;
         return $this->failedFor === 0;
     }
+
+    public function __serialize(): array
+    {
+        return [$this->constraints];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        [$this->constraints] = $data;
+    }
 }

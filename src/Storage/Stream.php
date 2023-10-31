@@ -350,4 +350,10 @@ class Stream extends BaseStorage implements FileStorageInterface
     {
         throw new UnsupportedException(sprintf('%s::%s() is not supported.', static::class, __METHOD__), 500);
     }
+
+
+    public function __serialize(): array
+    {
+        throw new UnsupportedException("Unable to serialize Stream Storage.", 500);
+    }
 }

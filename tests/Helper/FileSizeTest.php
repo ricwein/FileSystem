@@ -5,6 +5,7 @@ namespace Helper;
 use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use ricwein\FileSystem\Helper\FileSizeUnit;
 use ricwein\FileSystem\Model\FileSize;
 
 class FileSizeTest extends TestCase
@@ -34,5 +35,7 @@ class FileSizeTest extends TestCase
         self::assertNotNull($size);
         self::assertSame($expectedBytes, $size->getBytes());
         self::assertSame($expectedFormat, (string)$size);
+        self::assertSame("$expectedBytes B", $size->getFormattedAs('B'));
+        self::assertSame("$expectedBytes bytes", $size->getFormattedAs(new FileSizeUnit(1, true, 'bytes')));
     }
 }

@@ -4,7 +4,7 @@ namespace ricwein\FileSystem\Storage;
 
 use ricwein\FileSystem\Enum\Hash;
 use ricwein\FileSystem\Enum\Time;
-use ricwein\FileSystem\Helper\Stream as FileStream;
+use ricwein\FileSystem\Helper\Stream as StreamResource;
 use ricwein\FileSystem\Storage\Extensions\Binary;
 
 interface FileStorageInterface extends StorageInterface
@@ -18,7 +18,7 @@ interface FileStorageInterface extends StorageInterface
     /**
      * @internal
      */
-    public function getStream(string $mode = 'rb+'): FileStream;
+    public function getStream(string $mode = 'rb+'): StreamResource;
 
 
     /**
@@ -46,10 +46,10 @@ interface FileStorageInterface extends StorageInterface
 
     /**
      * Update content from stream.
-     * @param FileStream $stream file-handle
+     * @param StreamResource $stream file-handle
      * @internal
      */
-    public function writeFromStream(FileStream $stream): bool;
+    public function writeFromStream(StreamResource $stream): bool;
 
     /**
      * write content to storage

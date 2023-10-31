@@ -169,12 +169,13 @@ abstract class FileSystem
     }
 
     /**
-     * cast current object to given class-name,
-     * reusing internal storage-objects
+     * Cast current object to given class-name,
+     * reusing internal storage-objects.
+     * @param class-string<FileSystem> $class
      */
     public function as(string $class): static
     {
-        return new $class($this->storage);
+        return new $class($this->storage, $this->storage->getConstraints());
     }
 
     abstract public function copyTo(BaseStorage $destination, ?int $constraints = null): static;

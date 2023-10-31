@@ -6,6 +6,7 @@ namespace ricwein\FileSystem\Model;
 
 use ricwein\FileSystem\Helper\FileSizeUnit;
 use Serializable;
+use UnexpectedValueException;
 
 final class FileSize implements Serializable
 {
@@ -136,14 +137,29 @@ final class FileSize implements Serializable
         return $this->getBestUnit()->symbol;
     }
 
-    public function formatted(int $decimals = 2, string $decimalSeparator = '.', string $thousandsSeparator = ''): string
+    public function getFormatted(int $decimals = 2, string $decimalSeparator = '.', string $thousandsSeparator = ''): string
     {
         return $this->getBestUnit()->getFormatted($this->bytes, $decimals, $decimalSeparator, $thousandsSeparator);
     }
 
+    public function getFormattedAs(string|FileSizeUnit $unit, int $decimals = 2, string $decimalSeparator = '.', string $thousandsSeparator = ''): string
+    {
+        if ($unit instanceof FileSizeUnit) {
+            return $unit->getFormatted($this->bytes, $decimals, $decimalSeparator, $thousandsSeparator);
+        }
+
+        foreach (self::getUnits(null) as $knownUnit) {
+            if (strtolower($unit) === strtolower($knownUnit->symbol)) {
+                return $knownUnit->getFormatted($this->bytes, $decimals, $decimalSeparator, $thousandsSeparator);
+            }
+        }
+
+        throw new UnexpectedValueException("Failed to format file-size to unknown unit '$unit'.", 500);
+    }
+
     public function __toString(): string
     {
-        return $this->formatted();
+        return $this->getFormatted();
     }
 
     public function serialize(): string

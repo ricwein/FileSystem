@@ -13,10 +13,12 @@ use SplFileInfo;
  */
 final class Path extends SplFileInfo
 {
-    private string $scheme = 'file';
+    private readonly string $scheme;
 
-    private string $safePath;
-    private ?string $safePathReal;
+    private readonly string $safePath;
+    private readonly ?string $safePathReal;
+
+    private readonly array $pathComponents;
 
     public function __construct(FileSystem|Path|int|string|Storage\Disk|SplFileInfo ...$path)
     {
@@ -44,6 +46,7 @@ final class Path extends SplFileInfo
             }
         }
 
+        $this->pathComponents = $components;
         $safepath ??= reset($components);
 
         // use containing directory as safepath for files
@@ -56,6 +59,8 @@ final class Path extends SplFileInfo
         $parts = parse_url($resultPath);
         if (isset($parts['scheme'])) {
             $this->scheme = $parts['scheme'];
+        } else {
+            $this->scheme = 'file';
         }
 
         $this->safePath = $safepath;
@@ -142,10 +147,11 @@ final class Path extends SplFileInfo
 
     public function isInSafePath(null|self|string $path = null): bool
     {
-        $path ??= $this;
-        if (!$path instanceof self) {
-            $path = new self($path);
-        }
+        $path = match (true) {
+            is_string($path) => new self($path),
+            is_null($path) => $this,
+            default => $path,
+        };
 
         if ((false !== $realpath = $path->getRealPath()) && (false !== $safePath = realpath($this->getSafePath()))) {
             return str_starts_with($realpath, $safePath);
@@ -266,7 +272,7 @@ final class Path extends SplFileInfo
         return DateTime::createFromFormat('U', (string)$ctime);
     }
 
-    public function getURL(): string
+    public function getUrl(): string
     {
         return sprintf("%s://%s", $this->scheme, $this->getRealOrRawPath());
     }
@@ -318,5 +324,14 @@ final class Path extends SplFileInfo
             'aTime' => $this->getADate()?->format('Y-m-d H:i:s'),
             'cTime' => $this->getCDate()?->format('Y-m-d H:i:s'),
         ];
+    }
+
+    /**
+     * @return string[]
+     * @internal
+     */
+    public function _getPathComponents(): array
+    {
+        return $this->pathComponents;
     }
 }

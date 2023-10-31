@@ -41,7 +41,7 @@ final class Stream
             throw new RuntimeException("Stream creation failed, resource not found: $filename", 500);
         }
 
-        $stream = new static($handle);
+        $stream = new self($handle);
         $stream->updateMetaData(['mode' => $mode]);
         $stream->closeOnFree();
 
@@ -102,7 +102,7 @@ final class Stream
     /**
      * @throws RuntimeException
      */
-    public function rewind(int $offset = 0): static
+    public function rewind(int $offset = 0): self
     {
         if (fseek($this->handle, $offset) !== 0) {
             throw new RuntimeException('error while rewinding file', 500);
@@ -114,7 +114,7 @@ final class Stream
     /**
      * auto-close stream on destruction
      */
-    public function closeOnFree(bool $activate = true): static
+    public function closeOnFree(bool $activate = true): self
     {
         $this->closeOnFree = $activate;
         return $this;
@@ -267,12 +267,12 @@ final class Stream
 
     public function isWriteable(): bool
     {
-        return static::isModeWriteable($this->getAttribute('mode', ''));
+        return self::isModeWriteable($this->getAttribute('mode', ''));
     }
 
     public function isReadable(): bool
     {
-        return static::isModeReadable($this->getAttribute('mode', ''));
+        return self::isModeReadable($this->getAttribute('mode', ''));
     }
 
     public static function isModeWriteable(string $mode): bool

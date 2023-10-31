@@ -327,4 +327,24 @@ class Memory extends BaseStorage implements FileStorageInterface
 
         return $this->removeFile();
     }
+
+    public function __serialize(): array
+    {
+        return [
+            ...parent::__serialize(),
+            'cn' => $this->content,
+            'mt' => $this->lastModified,
+            'at' => $this->lastAccessed,
+            'ct' => $this->created,
+        ];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        parent::__unserialize($data);
+        $this->content = $data['cn'] ?? '';
+        $this->lastModified = $data['mt'] ?? time();
+        $this->lastAccessed = $data['at'] ?? time();
+        $this->created = $data['ct'] ?? time();
+    }
 }
