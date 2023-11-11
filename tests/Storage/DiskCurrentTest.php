@@ -38,8 +38,7 @@ class DiskCurrentTest extends TestCase
     public function testRootDir(): void
     {
         $dir = new Directory(new Storage\Disk\Current('/'));
-
-        self::assertSame($dir->getPath()->getRealPath(), '/');
+        self::assertSame('/', $dir->getPath()->getRealPath());
     }
 
     /**

@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace ricwein\FileSystem\Tests\Helper;
 
 use PHPUnit\Framework\TestCase;
-use ricwein\FileSystem\Exceptions\RuntimeException;
-use ricwein\FileSystem\Exceptions\UnexpectedValueException;
 use ricwein\FileSystem\Path;
 
 /**
@@ -85,5 +83,18 @@ class PathParserTest extends TestCase
 
         self::assertTrue($path2->isInSafePath(__DIR__));
         self::assertFalse($path2->isInSafePath());
+    }
+
+    public function testRelativePathResolver(): void
+    {
+        $path = new Path('/index/', '/public/', 'index.php');
+        self::assertSame('public/index.php', $path->getRelativePath('/index/'));
+
+        $path = new Path('/', 'index', 'public', 'index.php');
+        self::assertSame('public/index.php', $path->getRelativePath('/index/'));
+
+        $rootPath = new Path('/index');
+        $path = new Path($rootPath, '/public/', 'index.php');
+        self::assertSame('public/index.php', $path->getRelativePath($rootPath));
     }
 }
