@@ -93,6 +93,9 @@ class PathParserTest extends TestCase
         $path = new Path('/', 'index', 'public', 'index.php');
         self::assertSame('public/index.php', $path->getRelativePath('/index/'));
 
+        $path = new Path('/index/');
+        self::assertSame('', $path->getRelativePath('/index/'));
+
         $rootPath = new Path('/index');
         $path = new Path($rootPath, '/public/', 'index.php');
         self::assertSame('public/index.php', $path->getRelativePath($rootPath));

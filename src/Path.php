@@ -141,7 +141,7 @@ final class Path extends SplFileInfo
             $path->isFile() => $path->getDirectory(),
             default => $path->getRealOrRawPath(),
         };
-        $rootPath = rtrim($rootPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        $rootPath = rtrim($rootPath, DIRECTORY_SEPARATOR);
         $filepath = $this->getRealOrRawPath();
 
         if (str_starts_with($filepath, $rootPath)) {
